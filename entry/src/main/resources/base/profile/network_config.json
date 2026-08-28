@@ -1,0 +1,13 @@
+{
+  "network-security-config": {
+    "base-config": {
+      "trust-anchors": [
+        {
+          "certificates": "/data/storage/el1/bundle/entry/resources/resfile/appCaCert"
+        }
+      ]
+    }
+  },
+  "trust-global-user-ca": false,
+  "trust-current-user-ca": false
+}

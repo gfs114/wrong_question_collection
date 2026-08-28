@@ -1,0 +1,172 @@
+x-api-build: &api-build
+  context: .
+  dockerfile: Dockerfile
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      DB_NAME: ${DB_NAME}
+      MYSQL_USER: ${DB_MIGRATION_USER}
+      MYSQL_PASSWORD: ${DB_MIGRATION_PASSWORD}
+      DB_RUNTIME_USER: ${DB_RUNTIME_USER}
+      DB_RUNTIME_PASSWORD: ${DB_RUNTIME_PASSWORD}
+      DB_BACKUP_USER: ${DB_BACKUP_USER}
+      DB_BACKUP_PASSWORD: ${DB_BACKUP_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/provision-db-users.sh:/docker-entrypoint-initdb.d/10-provision-db-users.sh:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  migrate:
+    image: wrong-question-api:local
+    build: *api-build
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_MIGRATION_USER}
+      DB_PASSWORD: ${DB_MIGRATION_PASSWORD}
+    command: ["node", "dist/database/migrate.js"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend
+
+  api:
+    image: wrong-question-api:local
+    build: *api-build
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_RUNTIME_USER}
+      DB_PASSWORD: ${DB_RUNTIME_PASSWORD}
+      DB_RUN_MIGRATIONS: "false"
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+      HUAWEI_CLIENT_ID: ${HUAWEI_CLIENT_ID}
+      HUAWEI_CLIENT_SECRET: ${HUAWEI_CLIENT_SECRET}
+      HUAWEI_TOKEN_URL: ${HUAWEI_TOKEN_URL}
+      HUAWEI_PROFILE_URL: ${HUAWEI_PROFILE_URL}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3000"
+    networks:
+      - backend
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SERVER_IP: ${SERVER_IP}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs/server.crt:/certs/server.crt:ro
+      - ./certs/server.key:/certs/server.key:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  backup:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_BACKUP_USER}
+      DB_PASSWORD: ${DB_BACKUP_PASSWORD}
+      TZ: Asia/Shanghai
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    entrypoint: ["/bin/sh", "/scripts/backup.sh"]
+    volumes:
+      - ./scripts/backup.sh:/scripts/backup.sh:ro
+      - ./backup:/backup
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  caddy_data:
+  caddy_config:

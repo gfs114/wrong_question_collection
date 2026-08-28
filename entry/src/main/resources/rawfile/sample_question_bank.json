@@ -1,0 +1,30 @@
+{
+  "bankName": "数学基础示例题库",
+  "subject": "数学",
+  "questions": [
+    {
+      "id": "1",
+      "type": "single_choice",
+      "question": "12 + 8 的结果是多少？",
+      "options": ["A. 18", "B. 19", "C. 20", "D. 22"],
+      "answer": "C",
+      "analysis": "把 8 分成 3 和 5，12 + 3 = 15，再加 5 得 20。"
+    },
+    {
+      "id": "2",
+      "type": "single_choice",
+      "question": "解方程 3x - 6 = 9，x 等于多少？",
+      "options": ["A. 3", "B. 5", "C. 6", "D. 7"],
+      "answer": "B",
+      "analysis": "方程两边先加 6 得 3x = 15，再同时除以 3，得到 x = 5。"
+    },
+    {
+      "id": "3",
+      "type": "single_choice",
+      "question": "一个长方形长 6 厘米、宽 4 厘米，它的面积是多少平方厘米？",
+      "options": ["A. 10", "B. 20", "C. 22", "D. 24"],
+      "answer": "D",
+      "analysis": "长方形面积等于长乘宽，所以 6 × 4 = 24 平方厘米。"
+    }
+  ]
+}

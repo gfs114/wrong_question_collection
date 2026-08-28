@@ -1,0 +1,203 @@
+"""JobStore claim/failure semantics against the in-memory MySQL stand-in.
+
+Semantics mirror the TypeScript TypeOrmImportRepository: SKIP LOCKED claims,
+claimed_at fencing of progress/failure writes, and two automatic retries for
+retryable failures.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+
+import pytest
+
+from job_store import JobStore, JobStoreError, utcnow
+from tests.fake_mysql import COLUMN_INDEX, FakeDatabase, fake_connect, job_row
+
+T0 = datetime(2026, 8, 27, 0, 0, 0, tzinfo=timezone.utc)
+
+
+@pytest.fixture
+def store():
+    database = FakeDatabase()
+    return JobStore(fake_connect(database)), database
+
+
+def make_store(rows):
+    database = FakeDatabase(rows)
+    return JobStore(fake_connect(database)), database
+
+
+def test_claim_returns_only_one_queued_job(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+
+    first = imports.claim_next("worker-1")
+    second = imports.claim_next("worker-2")
+
+    assert first is not None
+    assert first.status == "processing"
+    assert first.claimed_at is not None
+    assert second is None
+
+
+def test_claim_takes_the_oldest_queued_job_first(store):
+    imports, database = store
+    database.jobs["old"] = job_row("old", created_at=T0)
+    database.jobs["new"] = job_row("new", created_at=T0 + timedelta(seconds=1))
+    database.jobs["busy"] = job_row("busy", status="processing", created_at=T0 - timedelta(days=1))
+    database.jobs["done"] = job_row("done", status="failed", created_at=T0 - timedelta(days=2))
+
+    claimed = imports.claim_next("worker-1")
+
+    assert claimed is not None
+    assert claimed.id == "old"
+    assert imports.claim_next("worker-1").id == "new"
+    assert imports.claim_next("worker-1") is None
+
+
+def test_claim_token_is_monotonic_when_the_previous_token_is_in_the_future():
+    database = FakeDatabase()
+    now = T0 + timedelta(hours=1)
+    future = now + timedelta(seconds=30)
+    database.jobs["job-1"] = job_row("job-1", claimed_at=future, created_at=T0)
+    imports = JobStore(fake_connect(database), clock=lambda: now)
+
+    claimed = imports.claim_next("worker-1")
+
+    assert claimed is not None
+    assert claimed.claimed_at == future + timedelta(microseconds=1000)
+
+
+def test_retryable_failure_requeues_once(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+
+    imports.fail("job-1", claimed.claimed_at, "OCR_FAILED", retryable=True)
+
+    after = database.jobs["job-1"]
+    assert after[COLUMN_INDEX["status"]] == "queued"
+    assert after[COLUMN_INDEX["retry_count"]] == 1
+    assert after[COLUMN_INDEX["error_code"]] == "OCR_FAILED"
+    assert after[COLUMN_INDEX["claimed_at"]] is None
+
+
+def test_retryable_failure_stops_after_two_retries(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+
+    for _ in range(2):
+        claimed = imports.claim_next("worker-1")
+        imports.fail("job-1", claimed.claimed_at, "OCR_FAILED", retryable=True)
+
+    assert imports.get("job-1").status == "failed"
+    assert imports.get("job-1").retry_count == 2
+
+
+def test_non_retryable_failure_stays_failed(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+
+    imports.fail("job-1", claimed.claimed_at, "PDF_INVALID", retryable=False)
+
+    assert imports.get("job-1").status == "failed"
+    assert imports.get("job-1").retry_count == 1
+
+
+def test_fail_with_a_stale_token_raises_and_touches_nothing(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+    stale = claimed.claimed_at - timedelta(seconds=1)
+
+    with pytest.raises(JobStoreError, match="not processing under this token"):
+        imports.fail("job-1", stale, "OCR_FAILED", retryable=True)
+
+    assert imports.get("job-1").status == "processing"
+    assert imports.get("job-1").retry_count == 0
+
+
+def test_fail_rejects_an_unknown_or_unclaimed_job(store):
+    imports, _database = store
+    with pytest.raises(JobStoreError, match="not processing under this token"):
+        imports.fail("missing", T0, "OCR_FAILED", retryable=True)
+
+
+def test_fail_rejects_when_the_automatic_retry_limit_is_exhausted(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", retry_count=2, created_at=T0)
+    claimed = imports.claim_next("worker-1")
+
+    with pytest.raises(JobStoreError, match="retry limit exceeded"):
+        imports.fail("job-1", claimed.claimed_at, "OCR_FAILED", retryable=True)
+
+
+def test_fail_validates_the_error_code(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+
+    with pytest.raises(JobStoreError, match="invalid failure code"):
+        imports.fail("job-1", claimed.claimed_at, "", retryable=True)
+
+
+def test_update_progress_is_fenced_by_the_claim_token(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+
+    assert imports.update_progress("job-1", claimed.claimed_at, 2, 20) is True
+    assert imports.update_progress("job-1", T0, 3, 20) is False
+
+    row = database.jobs["job-1"]
+    assert row[COLUMN_INDEX["progress_current"]] == 2
+    assert row[COLUMN_INDEX["progress_total"]] == 20
+
+
+def test_update_progress_rejects_invalid_bounds(store):
+    imports, _database = store
+    with pytest.raises(JobStoreError, match="invalid progress"):
+        imports.update_progress("job-1", T0, -1, 20)
+    with pytest.raises(JobStoreError, match="invalid progress"):
+        imports.update_progress("job-1", T0, 21, 20)
+
+
+def test_get_returns_the_row_or_none(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+
+    assert imports.get("job-1").id == "job-1"
+    assert imports.get("missing") is None
+
+
+def test_all_writes_are_parameterized_and_use_utc(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+    imports.fail("job-1", claimed.claimed_at, "OCR_FAILED", retryable=True)
+
+    # Values travel only inside bound parameters, never inside SQL text: no job id,
+    # error code, or timestamp literal may appear in a statement.
+    for sql, params in database.statement_log:
+        assert isinstance(params, tuple)
+        assert "job-1" not in sql
+        assert "OCR_FAILED" not in sql
+        assert "2026" not in sql
+        # Parameterized statements carry placeholders; pure reads may have none.
+        assert "%s" in sql or params == ()
+    # Requeue clears the claim token so the next claim can pick the job up again.
+    assert database.jobs["job-1"][COLUMN_INDEX["claimed_at"]] is None
+    assert imports.get("job-1").status == "queued"
+
+
+def test_clock_is_injected_for_deterministic_tokens(store):
+    database = FakeDatabase()
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    now = T0 + timedelta(hours=1)
+    imports = JobStore(fake_connect(database), clock=lambda: now)
+
+    claimed = imports.claim_next("worker-1")
+
+    assert claimed.claimed_at == now

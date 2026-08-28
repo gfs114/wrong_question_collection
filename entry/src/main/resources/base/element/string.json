@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "本地题库与错题管理"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "本地题库与错题管理"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "错题收集"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/ImportBankPage",
+    "pages/PdfImportSetupPage",
+    "pages/PdfImportProgressPage",
+    "pages/PdfImportReviewPage",
+    "pages/EditQuestionPage",
+    "pages/QuestionListPage",
+    "pages/QuestionDetailPage",
+    "pages/WrongQuestionDetailPage"
+  ]
+}

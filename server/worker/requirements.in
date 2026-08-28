@@ -1,0 +1,7 @@
+mysql-connector-python>=9,<10
+numpy>=2,<3
+opencv-python-headless>=4.10,<5
+paddleocr>=3,<4
+paddlepaddle>=3,<4
+Pillow>=11,<12
+pypdfium2>=4,<5

@@ -1,0 +1,16 @@
+export const COLOR_PRIMARY: string = '#18A66A'
+export const COLOR_PAGE_BG: string = '#F5F7FB'
+export const COLOR_CARD_BG: string = '#FFFFFF'
+export const COLOR_TEXT_PRIMARY: string = '#17233C'
+export const COLOR_TEXT_SECONDARY: string = '#6B768A'
+export const COLOR_TEXT_CAPTION: string = '#536077'
+export const COLOR_NAV_INACTIVE: string = '#202124'
+export const COLOR_SUCCESS: string = '#14966A'
+export const COLOR_SUCCESS_TEXT: string = '#087A54'
+export const COLOR_DANGER: string = '#D94848'
+export const PAGE_PADDING: number = 20
+export const CARD_RADIUS: number = 20
+export const CARD_GAP: number = 12
+export const TITLE_FONT_SIZE: number = 24
+export const SUBTITLE_FONT_SIZE: number = 16
+export const BODY_FONT_SIZE: number = 14

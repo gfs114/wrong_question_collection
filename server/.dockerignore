@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+.env
+certs
+backup
+npm-debug.log
