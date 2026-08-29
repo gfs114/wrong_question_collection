@@ -10,6 +10,13 @@ https:// {
     -Server
   }
 
+  # Non-part requests (JSON APIs, health) stay well below 5 MB; the 4 MB PDF
+  # part uploads are streamed by the API's octet-stream parser which enforces
+  # the exact part limit itself.
+  request_body {
+    max_size 5MB
+  }
+
   reverse_proxy api:3000
 
   log {

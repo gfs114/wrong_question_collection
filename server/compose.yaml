@@ -26,6 +26,7 @@ services:
       - ./scripts/provision-db-users.sh:/docker-entrypoint-initdb.d/10-provision-db-users.sh:ro
     networks:
       - backend
+      - worker_backend
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
@@ -77,6 +78,14 @@ services:
       HUAWEI_CLIENT_SECRET: ${HUAWEI_CLIENT_SECRET}
       HUAWEI_TOKEN_URL: ${HUAWEI_TOKEN_URL}
       HUAWEI_PROFILE_URL: ${HUAWEI_PROFILE_URL}
+      IMPORT_STORAGE_ROOT: /work/imports
+      IMPORT_MAX_PDF_BYTES: "209715200"
+      IMPORT_PART_BYTES: "4194304"
+      IMPORT_CONFIRM_MAX_BYTES: "2097152"
+      IMPORT_ARTIFACT_TTL_HOURS: "24"
+      IMPORT_MIN_FREE_BYTES: "5368709120"
+    volumes:
+      - import_data:/work/imports
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -162,11 +171,57 @@ services:
         max-size: 10m
         max-file: "3"
 
+  # Single-concurrency OCR worker. It has no public port, no Huawei/JWT/backup
+  # secrets, a read-only root, dropped capabilities and no outbound network
+  # (internal worker_backend only). It shares the import volume with the API:
+  # the API publishes source.pdf and part rows, the worker reads the source and
+  # publishes question images, and the API's cleanup service reclaims them.
+  ocr-worker:
+    image: wrong-question-ocr-worker:local
+    build:
+      context: ./worker
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME}
+      DB_RUNTIME_USER: ${DB_RUNTIME_USER}
+      DB_RUNTIME_PASSWORD: ${DB_RUNTIME_PASSWORD}
+      IMPORT_STORAGE_ROOT: /work/imports
+      WQC_WORKER_POLL_SECONDS: "5"
+      WQC_OCR_LANGUAGE: ch
+    volumes:
+      - import_data:/work/imports
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - worker_backend
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:size=256m,noexec,nosuid,nodev
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 3072M
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+
 networks:
   backend:
     driver: bridge
+  worker_backend:
+    driver: bridge
+    internal: true
 
 volumes:
   mysql_data:
   caddy_data:
   caddy_config:
+  import_data:
