@@ -62,7 +62,7 @@ describe('ImportStorageService', () => {
     await expect(storage.deleteStorageKey(`${id}/untrusted-name.bin`)).rejects.toThrow('Invalid storage key');
   });
 
-  it('opens a no-follow file-handle stream with exact size and an idempotent close', async () => {
+  it('opens a no-follow file-handle stream with exact size, verified hash and an idempotent close', async () => {
     const id = jobId();
     const artifactId = jobId();
     const body = Buffer.from('jpeg-stream');
@@ -70,7 +70,7 @@ describe('ImportStorageService', () => {
     await writeFile(join(root, id, `artifact-${artifactId}.bin`), body);
 
     const opened = await storage.openReadStream(
-      `${id}/artifact-${artifactId}.bin`, body.length, { jobId: id, artifactId }
+      `${id}/artifact-${artifactId}.bin`, body.length, sha256(body), { jobId: id, artifactId }
     );
     expect(Buffer.isBuffer(opened.stream)).toBe(false);
     const chunks: Buffer[] = [];
@@ -80,8 +80,23 @@ describe('ImportStorageService', () => {
     await expect(opened.close()).resolves.toBeUndefined();
 
     await expect(storage.openReadStream(
-      `${id}/artifact-${artifactId}.bin`, body.length + 1, { jobId: id, artifactId }
+      `${id}/artifact-${artifactId}.bin`, body.length + 1, sha256(body), { jobId: id, artifactId }
     )).rejects.toThrow('FILE_SIZE_MISMATCH');
+  });
+
+  it('rejects a same-size file whose actual content hash differs from the record', async () => {
+    const id = jobId();
+    const artifactId = jobId();
+    const body = Buffer.from('jpeg-stream');
+    await mkdir(join(root, id));
+    await writeFile(join(root, id, `artifact-${artifactId}.bin`), body);
+
+    await expect(storage.openReadStream(
+      `${id}/artifact-${artifactId}.bin`, body.length, '0'.repeat(64), { jobId: id, artifactId }
+    )).rejects.toThrow('FILE_HASH_MISMATCH');
+    await expect(storage.openReadStream(
+      `${id}/artifact-${artifactId}.bin`, body.length, 'not-a-hash', { jobId: id, artifactId }
+    )).rejects.toThrow('FILE_HASH_MISMATCH');
   });
 
   it('canonicalizes artifact keys and enforces the expected job and artifact binding', async () => {
@@ -96,11 +111,11 @@ describe('ImportStorageService', () => {
     await writeFile(join(root, id, 'source.pdf'), body);
 
     const boundOpen = storage.openReadStream.bind(storage) as unknown as (
-      key: string, size: number, expected: { jobId: string; artifactId: string }
+      key: string, size: number, sha256: string, expected: { jobId: string; artifactId: string }
     ) => Promise<unknown>;
-    await expect(boundOpen(`${id}/source.pdf`, body.length, { jobId: id, artifactId }))
+    await expect(boundOpen(`${id}/source.pdf`, body.length, sha256(body), { jobId: id, artifactId }))
       .rejects.toThrow('Invalid storage key');
-    await expect(boundOpen(canonicalKey, body.length, { jobId: id, artifactId: otherArtifactId }))
+    await expect(boundOpen(canonicalKey, body.length, sha256(body), { jobId: id, artifactId: otherArtifactId }))
       .rejects.toThrow('Invalid storage key');
   });
 
@@ -117,7 +132,7 @@ describe('ImportStorageService', () => {
     );
     try {
       await expect(storage.openReadStream(
-        `${id}/artifact-${artifactId}.bin`, 6, { jobId: id, artifactId }
+        `${id}/artifact-${artifactId}.bin`, 6, sha256(Buffer.from('secret')), { jobId: id, artifactId }
       )).rejects.toThrow('Unsafe storage path');
     } finally {
       await rm(outside, { recursive: true, force: true });

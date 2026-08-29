@@ -1077,6 +1077,57 @@ describe('TypeOrmImportRepository', () => {
     expect(dataSource.transaction).not.toHaveBeenCalled();
   });
 
+  it('pages terminal cleanup records with bounded keyset queries instead of a full scan', async () => {
+    const calls: Array<{ entity: unknown; options: unknown }> = [];
+    const manager = {
+      findOne: async () => job({
+        id: 'job-1', userId: 'user-1', deviceId: 'device-1', status: 'expired'
+      }),
+      count: async (entity: unknown) => {
+        if (entity === ImportUploadPartEntity) return 3;
+        throw new Error('unexpected count');
+      },
+      find: async (entity: unknown, options: { skip: number; take: number }) => {
+        calls.push({ entity, options });
+        if (entity === ImportUploadPartEntity) {
+          const available = Math.max(0, 3 - options.skip);
+          return Array.from({ length: Math.min(options.take, available) }, (_, partNumber) => ({
+            id: `part-${options.skip + partNumber}`, jobId: 'job-1',
+            storageKey: `job-1/part-${(options.skip + partNumber).toString().padStart(10, '0')}.bin`
+          }));
+        }
+        return Array.from({ length: options.take }, (_, index) => ({
+          id: `artifact-${options.skip + index}`, jobId: 'job-1',
+          storageKey: `job-1/artifact-${options.skip + index}.bin`
+        }));
+      }
+    };
+    const repository = new TypeOrmImportRepository({
+      transaction: async (work: (m: typeof manager) => Promise<unknown>) => work(manager)
+    } as unknown as DataSource);
+
+    // Page 1: two parts fit entirely inside the first page.
+    await expect(repository.listCleanupRecordsForJob('job-1', 0, 2)).resolves.toEqual([
+      { kind: 'part', id: 'part-0', storageKey: 'job-1/part-0000000000.bin' },
+      { kind: 'part', id: 'part-1', storageKey: 'job-1/part-0000000001.bin' }
+    ]);
+    expect(calls).toEqual([
+      { entity: ImportUploadPartEntity, options: expect.objectContaining({ skip: 0, take: 2 }) }
+    ]);
+    calls.length = 0;
+
+    // Page 2: the page starts inside the parts category and continues into artifacts.
+    await expect(repository.listCleanupRecordsForJob('job-1', 2, 3)).resolves.toEqual([
+      { kind: 'part', id: 'part-2', storageKey: 'job-1/part-0000000002.bin' },
+      { kind: 'artifact', id: 'artifact-0', storageKey: 'job-1/artifact-0.bin' },
+      { kind: 'artifact', id: 'artifact-1', storageKey: 'job-1/artifact-1.bin' }
+    ]);
+    expect(calls).toEqual([
+      { entity: ImportUploadPartEntity, options: expect.objectContaining({ skip: 2, take: 3 }) },
+      { entity: ImportArtifactEntity, options: expect.objectContaining({ skip: 0, take: 2 }) }
+    ]);
+  });
+
   it('pages queued part tombstones by offset for file-only parts sweeps', async () => {
     const calls: Array<{ entity: unknown; options: unknown }> = [];
     const manager = {

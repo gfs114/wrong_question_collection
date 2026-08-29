@@ -215,6 +215,76 @@ describe('ImportService', () => {
       .toHaveBeenCalledWith(USER_ID, DEVICE_ID, JOB_ID, expect.any(String), input);
   });
 
+  it('rejects confirmation when draft ids differ only by case and canonicalizes them', async () => {
+    const repo = repository({ findOwnedJob: jest.fn().mockResolvedValue(job({
+      status: 'review', expiresAt: new Date('2099-08-27T00:00:00.000Z')
+    })) });
+    const confirmImport = jest.fn().mockResolvedValue({
+      bankId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      questions: [],
+      expiresAt: job().expiresAt.toISOString()
+    });
+    (repo as unknown as { confirmImport: jest.Mock }).confirmImport = confirmImport;
+    const imports = service(repo) as unknown as {
+      confirm(userId: string, deviceId: string, jobId: string, body: unknown): Promise<unknown>;
+    };
+    const lowercaseId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
+    // Case-only duplicates must be rejected before any repository call.
+    await expect(imports.confirm(USER_ID, DEVICE_ID, JOB_ID, {
+      bankName: 'Bank', subject: 'Math',
+      questions: [
+        { draftQuestionId: lowercaseId, type: 'short_answer', question: 'q', options: null, answer: null, analysis: null, reviewed: true },
+        { draftQuestionId: lowercaseId.toUpperCase(), type: 'short_answer', question: 'q', options: null, answer: null, analysis: null, reviewed: true }
+      ]
+    })).rejects.toMatchObject({ status: 400 });
+    expect(confirmImport).not.toHaveBeenCalled();
+
+    // An uppercase draft id is canonicalized to lowercase before hashing/delegation.
+    const first = jest.fn();
+    const second = jest.fn();
+    confirmImport.mockImplementation(async (_u, _d, _j, sha, input) => {
+      first(sha, input.questions[0].draftQuestionId);
+      return { bankId: 'x', questions: [], expiresAt: job().expiresAt.toISOString() };
+    });
+    await imports.confirm(USER_ID, DEVICE_ID, JOB_ID, {
+      bankName: 'Bank', subject: 'Math',
+      questions: [{ draftQuestionId: lowercaseId, type: 'short_answer', question: 'q', options: null, answer: null, analysis: null, reviewed: true }]
+    });
+    confirmImport.mockImplementation(async (_u, _d, _j, sha, input) => {
+      second(sha, input.questions[0].draftQuestionId);
+      return { bankId: 'x', questions: [], expiresAt: job().expiresAt.toISOString() };
+    });
+    await imports.confirm(USER_ID, DEVICE_ID, JOB_ID, {
+      bankName: 'Bank', subject: 'Math',
+      questions: [{ draftQuestionId: lowercaseId.toUpperCase(), type: 'short_answer', question: 'q', options: null, answer: null, analysis: null, reviewed: true }]
+    });
+    // Same canonical content -> same request hash -> idempotent confirmation.
+    expect(second.mock.calls[0][0]).toBe(first.mock.calls[0][0]);
+    expect(first.mock.calls[0][1]).toBe(lowercaseId);
+    expect(second.mock.calls[0][1]).toBe(lowercaseId);
+  });
+
+  it('canonicalizes ack artifact ids and rejects case-only duplicates', async () => {
+    const repo = repository({ findOwnedJob: jest.fn().mockResolvedValue(job({
+      status: 'confirmed', expiresAt: new Date('2099-08-27T00:00:00.000Z')
+    })) });
+    const prepare = jest.fn().mockResolvedValue({ acknowledged: true, records: [] });
+    (repo as unknown as { prepareArtifactAck: jest.Mock }).prepareArtifactAck = prepare;
+    const imports = service(repo) as unknown as {
+      ackArtifacts(userId: string, deviceId: string, jobId: string, ids: string[]): Promise<void>;
+    };
+    const artifactId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+    await expect(imports.ackArtifacts(USER_ID, DEVICE_ID, JOB_ID, [artifactId, artifactId.toUpperCase()]))
+      .rejects.toMatchObject({ status: 400 });
+    expect(prepare).not.toHaveBeenCalled();
+
+    await expect(imports.ackArtifacts(USER_ID, DEVICE_ID, JOB_ID, [artifactId.toUpperCase()]))
+      .resolves.toBeUndefined();
+    expect(prepare).toHaveBeenCalledWith(USER_ID, DEVICE_ID, JOB_ID, [artifactId], expect.any(Date));
+  });
+
   it('opens only an exact confirmed question image and revalidates metadata after opening', async () => {
     const artifact = {
       artifactId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
@@ -238,7 +308,7 @@ describe('ImportService', () => {
 
     expect(lookup).toHaveBeenCalledTimes(2);
     expect((files as unknown as { openReadStream: jest.Mock }).openReadStream)
-      .toHaveBeenCalledWith(artifact.storageKey, artifact.size, {
+      .toHaveBeenCalledWith(artifact.storageKey, artifact.size, artifact.sha256, {
         jobId: JOB_ID, artifactId: artifact.artifactId
       });
     expect(result).toEqual(expect.objectContaining({
@@ -351,7 +421,7 @@ describe('ImportService', () => {
     expect(findDownloadArtifact.mock.calls.every((call: unknown[]) => call[2] === canonicalJobId)).toBe(true);
     expect(files.artifactKey).toHaveBeenCalledWith(canonicalJobId, artifactId);
     expect((files as unknown as { openReadStream: jest.Mock }).openReadStream)
-      .toHaveBeenCalledWith(artifact.storageKey, 123, { jobId: canonicalJobId, artifactId });
+      .toHaveBeenCalledWith(artifact.storageKey, 123, artifact.sha256, { jobId: canonicalJobId, artifactId });
   });
 
   it('keeps download device isolation opaque before artifact lookup', async () => {

@@ -29,6 +29,7 @@ describe('validateEnvironment', () => {
     expect(result.DB_RUN_MIGRATIONS).toBe(false);
     expect(result.IMPORT_MAX_PDF_BYTES).toBe(209715200);
     expect(result.IMPORT_PART_BYTES).toBe(4194304);
+    expect(result.IMPORT_CONFIRM_MAX_BYTES).toBe(2 * 1024 * 1024);
     expect(result.IMPORT_ARTIFACT_TTL_HOURS).toBe(24);
     expect(result.IMPORT_MIN_FREE_BYTES).toBe(5368709120);
     expect(result.IMPORT_STORAGE_ROOT).toBe(validEnvironment().IMPORT_STORAGE_ROOT);
@@ -106,6 +107,16 @@ describe('validateEnvironment', () => {
     environment.IMPORT_MIN_FREE_BYTES = '0';
     expect(() => validateEnvironment(environment)).toThrow(
       'IMPORT_MIN_FREE_BYTES must be a positive integer'
+    );
+
+    environment.IMPORT_MIN_FREE_BYTES = '5368709120';
+    environment.IMPORT_CONFIRM_MAX_BYTES = '65535';
+    expect(() => validateEnvironment(environment)).toThrow(
+      'IMPORT_CONFIRM_MAX_BYTES must be an integer between 65536 and 10485760'
+    );
+    environment.IMPORT_CONFIRM_MAX_BYTES = '10485761';
+    expect(() => validateEnvironment(environment)).toThrow(
+      'IMPORT_CONFIRM_MAX_BYTES must be an integer between 65536 and 10485760'
     );
   });
 });

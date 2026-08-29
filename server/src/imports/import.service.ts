@@ -443,19 +443,24 @@ export class ImportService {
     if (owned.status !== 'review' && owned.status !== 'confirmed') {
       throw this.conflict('IMPORT_NOT_IN_REVIEW', 'Import job cannot be confirmed from its current state');
     }
-    const identifiers = input.questions.map((question) => question.draftQuestionId);
+    const identifiers = input.questions.map((question) => question.draftQuestionId.toLowerCase());
     if (new Set(identifiers).size !== identifiers.length) {
       throw this.badRequest('INVALID_DRAFT', 'Confirmation repeats a draft question');
     }
+    // Nested UUIDs are compared and hashed in lowercase only: an uppercase draft id
+    // from the client must match the persisted lowercase row and must not change
+    // the idempotency hash.
     const canonicalInput = {
       ...input,
-      questions: [...input.questions].sort((left, right) =>
-        left.draftQuestionId.localeCompare(right.draftQuestionId))
+      questions: [...input.questions]
+        .map((question) => ({ ...question, draftQuestionId: question.draftQuestionId.toLowerCase() }))
+        .sort((left, right) =>
+          left.draftQuestionId.localeCompare(right.draftQuestionId))
     };
     const requestSha256 = createHash('sha256').update(stableJson(canonicalInput)).digest('hex');
     try {
       return await this.repository.confirmImport(
-        userId, deviceId, canonicalJobId, requestSha256, input
+        userId, deviceId, canonicalJobId, requestSha256, canonicalInput
       );
     } catch (error: unknown) {
       throw this.mapRepositoryError(error);
@@ -492,9 +497,8 @@ export class ImportService {
       !Number.isSafeInteger(metadata.size) || metadata.size < 1) throw this.artifactNotFound();
     let opened: OpenedImportFile;
     try {
-      opened = await this.storage.openReadStream(metadata.storageKey, metadata.size, {
-        jobId: canonicalJobId, artifactId
-      });
+      opened = await this.storage.openReadStream(metadata.storageKey, metadata.size,
+        metadata.sha256, { jobId: canonicalJobId, artifactId });
     } catch {
       throw this.artifactNotFound();
     }
@@ -532,14 +536,17 @@ export class ImportService {
     if (owned.status !== 'confirmed') {
       throw this.conflict('IMPORT_NOT_CONFIRMED', 'Import job is not ready for acknowledgement');
     }
-    if (new Set(artifactIds).size !== artifactIds.length) {
+    // ACK ids are canonicalized to lowercase before duplicate detection and
+    // delegation; the persisted artifact rows are always lowercase UUIDs.
+    const canonicalIds = artifactIds.map((id) => id.toLowerCase());
+    if (new Set(canonicalIds).size !== canonicalIds.length) {
       throw this.badRequest('INVALID_ARTIFACT_SET', 'Artifact acknowledgement contains duplicates');
     }
     const now = new Date();
     let plan;
     try {
       plan = await this.repository.prepareArtifactAck(
-        userId, deviceId, canonicalJobId, artifactIds, now
+        userId, deviceId, canonicalJobId, canonicalIds, now
       );
     } catch (error: unknown) {
       throw this.mapRepositoryError(error);

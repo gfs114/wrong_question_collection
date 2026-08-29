@@ -2,6 +2,7 @@ import {
   CanActivate,
   ExecutionContext,
   INestApplication,
+  RequestTimeoutException,
   UnauthorizedException
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -108,7 +109,13 @@ describe('ImportController', () => {
         { provide: ImportService, useValue: service },
         {
           provide: ConfigService,
-          useValue: { getOrThrow: (key: string) => key === 'IMPORT_PART_BYTES' ? 4_194_304 : undefined }
+          useValue: {
+            getOrThrow: (key: string) => {
+              if (key === 'IMPORT_PART_BYTES') return 4_194_304;
+              if (key === 'IMPORT_CONFIRM_MAX_BYTES') return 2 * 1024 * 1024;
+              return undefined;
+            }
+          }
         },
         ...admissionProviders
       ]
@@ -493,7 +500,13 @@ describe('ImportController', () => {
         { provide: ImportService, useValue: service },
         {
           provide: ConfigService,
-          useValue: { getOrThrow: (key: string) => key === 'IMPORT_PART_BYTES' ? 65_536 : undefined }
+          useValue: {
+            getOrThrow: (key: string) => {
+              if (key === 'IMPORT_PART_BYTES') return 65_536;
+              if (key === 'IMPORT_CONFIRM_MAX_BYTES') return 2 * 1024 * 1024;
+              return undefined;
+            }
+          }
         },
         ...admissionProviders
       ]
@@ -565,6 +578,79 @@ describe('ImportController', () => {
     expect(service.cancel).toHaveBeenCalledWith(
       'server-user', 'server-device', JOB_ID, expect.any(AbortSignal)
     );
+  });
+
+  it('closes the opened artifact handle when the client disconnects during lookup', async () => {
+    const controller = new ImportController(service as unknown as ImportService);
+    const incoming = Object.assign(new EventEmitter(), {
+      headers: { authorization: 'Bearer valid' },
+      auth: {
+        userId: 'server-user',
+        deviceId: 'server-device',
+        sessionGeneration: 'generation-1'
+      },
+      res: new EventEmitter()
+    });
+    const close = jest.fn().mockResolvedValue(undefined);
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    service.downloadArtifact.mockImplementationOnce(async () => {
+      await gate;
+      return { stream: Readable.from([]), size: 0, sha256: 'b'.repeat(64), close };
+    });
+    const response = { setHeader: jest.fn() };
+
+    const pending = controller.downloadArtifact(
+      incoming,
+      response,
+      { jobId: JOB_ID, artifactId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' }
+    );
+    incoming.res.emit('close');  // client disconnects while the file is being opened
+    release!();
+
+    await expect(pending).rejects.toBeInstanceOf(RequestTimeoutException);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts a confirmation body larger than the global JSON limit via the endpoint parser', async () => {
+    // 10 questions at the DTO's 20000-char question cap exceed the global 100 KiB
+    // JSON limit while staying valid for the endpoint parser and DTO.
+    const bigQuestion = 'x'.repeat(20_000);
+    const response = await request(app.getHttpServer())
+      .post(`/v1/imports/pdf/${JOB_ID}/confirm`)
+      .set('Authorization', 'Bearer valid')
+      .send({
+        bankName: 'Bank', subject: 'Math',
+        questions: Array.from({ length: 10 }, (_, index) => ({
+          draftQuestionId: `aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa${index}`.slice(0, 36),
+          type: 'short_answer' as const,
+          question: bigQuestion,
+          options: null,
+          answer: null,
+          analysis: null,
+          reviewed: true
+        }))
+      });
+    expect(response.status).toBe(201);
+    expect(service.confirm).toHaveBeenCalledWith(
+      'server-user', 'server-device', JOB_ID, expect.objectContaining({ subject: 'Math' })
+    );
+  });
+
+  it('rejects an oversized confirmation body with a stable 413 code before validation', async () => {
+    const bigQuestion = 'x'.repeat(3 * 1024 * 1024);  // exceeds the 2 MiB endpoint cap
+    const response = await request(app.getHttpServer())
+      .post(`/v1/imports/pdf/${JOB_ID}/confirm`)
+      .set('Authorization', 'Bearer valid')
+      .send({
+        bankName: 'Bank', subject: 'Math', questions: [{
+          draftQuestionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          type: 'short_answer', question: bigQuestion, options: null, answer: null, analysis: null, reviewed: true
+        }]
+      });
+    expect(response.status).toBe(413);
+    expect(response.body.code).toBe('CONFIRM_TOO_LARGE');
+    expect(service.confirm).not.toHaveBeenCalled();
   });
 
   it('aborts an in-flight service wait when the client response closes', async () => {

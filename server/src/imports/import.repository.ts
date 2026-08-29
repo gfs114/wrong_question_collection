@@ -588,7 +588,9 @@ export class TypeOrmImportRepository implements ImportRepository {
         where: { jobId, type: 'question_image', draftQuestionId: In(draftIds) }, order: { id: 'ASC' }
       });
       const expected = images.map((artifact) => artifact.id).sort();
-      const received = [...artifactIds].sort();
+      // Client-supplied ids are canonicalized to lowercase so an uppercase ACK
+      // matches the persisted lowercase artifact rows.
+      const received = [...artifactIds].map((id) => id.toLowerCase()).sort();
       if (new Set(received).size !== received.length || expected.length !== received.length ||
         expected.some((id, index) => id !== received[index])) {
         throw new ImportRepositoryError('INVALID_ARTIFACT_SET');
@@ -661,12 +663,28 @@ export class TypeOrmImportRepository implements ImportRepository {
         lock: { mode: 'pessimistic_read' }
       });
       if (job === null) throw new ImportRepositoryError('INVALID_STATE');
-      const parts = await manager.find(ImportUploadPartEntity, { where: { jobId }, order: { partNumber: 'ASC' } });
-      const artifacts = await manager.find(ImportArtifactEntity, { where: { jobId }, order: { id: 'ASC' } });
-      return [
-        ...parts.map((part) => ({ kind: 'part' as const, id: part.id, storageKey: part.storageKey })),
-        ...artifacts.map((artifact) => ({ kind: 'artifact' as const, id: artifact.id, storageKey: artifact.storageKey }))
-      ].slice(offset, offset + limit);
+      // Bounded keyset pagination: only the requested window is fetched, never
+      // the whole part/artifact set (a 3200-part job must not be rescanned per
+      // page).
+      const partCount = await manager.count(ImportUploadPartEntity, { where: { jobId } });
+      let categoryOffset = offset;
+      const parts = categoryOffset < partCount
+        ? await manager.find(ImportUploadPartEntity, {
+          where: { jobId }, order: { partNumber: 'ASC' }, skip: categoryOffset, take: limit
+        })
+        : [];
+      const records: ImportCleanupRecord[] = parts.map((part) => ({
+        kind: 'part' as const, id: part.id, storageKey: part.storageKey
+      }));
+      if (records.length >= limit) return records;
+      categoryOffset = Math.max(0, categoryOffset - partCount);
+      const artifacts = await manager.find(ImportArtifactEntity, {
+        where: { jobId }, order: { id: 'ASC' }, skip: categoryOffset, take: limit - records.length
+      });
+      records.push(...artifacts.map((artifact) => ({
+        kind: 'artifact' as const, id: artifact.id, storageKey: artifact.storageKey
+      })));
+      return records;
     });
   }
 

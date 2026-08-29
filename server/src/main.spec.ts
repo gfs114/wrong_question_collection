@@ -102,7 +102,7 @@ describe('production bootstrap', () => {
 
       await production.bootstrap?.();
 
-      expect(create).toHaveBeenCalledWith(AppModule, { bufferLogs: true });
+      expect(create).toHaveBeenCalledWith(AppModule, { bufferLogs: true, bodyParser: false });
       expect(httpServer.set).toHaveBeenCalledWith('trust proxy', 1);
       expect(app.use).toHaveBeenCalledWith(
         '/v1/imports/pdf/:jobId/parts/:partIndex',
@@ -110,6 +110,13 @@ describe('production bootstrap', () => {
         expect.any(Function),
         expect.any(Function)
       );
+      expect(app.use).toHaveBeenCalledWith(
+        '/v1/imports/pdf/:jobId/confirm',
+        expect.any(Function),
+        expect.any(Function),
+        expect.any(Function)
+      );
+      expect(app.use).toHaveBeenCalledWith(expect.any(Function));
       expect(app.useGlobalPipes).toHaveBeenCalledTimes(1);
       expect(app.enableShutdownHooks).toHaveBeenCalledTimes(1);
       expect(app.listen).toHaveBeenCalledWith(3000, '0.0.0.0');

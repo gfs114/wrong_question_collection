@@ -22,6 +22,7 @@ export interface EnvironmentConfig {
   IMPORT_STORAGE_ROOT: string;
   IMPORT_MAX_PDF_BYTES: number;
   IMPORT_PART_BYTES: number;
+  IMPORT_CONFIRM_MAX_BYTES: number;
   IMPORT_ARTIFACT_TTL_HOURS: number;
   IMPORT_MIN_FREE_BYTES: number;
 }
@@ -144,6 +145,14 @@ export function validateEnvironment(environment: Record<string, unknown>): Envir
   if (partBytes > maxPdfBytes) {
     throw new Error('IMPORT_PART_BYTES must not exceed IMPORT_MAX_PDF_BYTES');
   }
+  const confirmMaxBytes = parseIntegerWithDefault(
+    environment,
+    'IMPORT_CONFIRM_MAX_BYTES',
+    2 * 1024 * 1024,
+    64 * 1024,
+    10 * 1024 * 1024,
+    'IMPORT_CONFIRM_MAX_BYTES must be an integer between 65536 and 10485760'
+  );
   const artifactTtlHours = parseIntegerWithDefault(
     environment,
     'IMPORT_ARTIFACT_TTL_HOURS',
@@ -180,6 +189,7 @@ export function validateEnvironment(environment: Record<string, unknown>): Envir
     IMPORT_STORAGE_ROOT: importStorageRoot(environment),
     IMPORT_MAX_PDF_BYTES: maxPdfBytes,
     IMPORT_PART_BYTES: partBytes,
+    IMPORT_CONFIRM_MAX_BYTES: confirmMaxBytes,
     IMPORT_ARTIFACT_TTL_HOURS: artifactTtlHours,
     IMPORT_MIN_FREE_BYTES: minFreeBytes
   };

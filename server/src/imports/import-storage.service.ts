@@ -217,11 +217,14 @@ export class ImportStorageService {
     });
   }
 
-  async openReadStream(storageKey: string, expectedSize: number,
+  async openReadStream(storageKey: string, expectedSize: number, expectedSha256: string,
     expected: ImportArtifactBinding): Promise<OpenedImportFile> {
     return this.publicCall(async () => {
       if (!Number.isSafeInteger(expectedSize) || expectedSize < 1) {
         throw this.error('FILE_SIZE_MISMATCH');
+      }
+      if (!SHA256_PATTERN.test(expectedSha256)) {
+        throw this.error('FILE_HASH_MISMATCH');
       }
       const expectedKey = this.artifactKey(expected.jobId, expected.artifactId);
       if (storageKey !== expectedKey) throw this.error('Invalid storage key');
@@ -239,6 +242,13 @@ export class ImportStorageService {
         const info = await handle.stat();
         if (!info.isFile() || Number(info.size) !== expectedSize) {
           throw this.error('FILE_SIZE_MISMATCH');
+        }
+        // Verify the file's actual content before any byte is handed to the
+        // client: the same O_NOFOLLOW handle is read once with an explicit
+        // position (the handle position is unchanged), so a same-size corrupt
+        // file can never be served with a 200.
+        if (await this.hashHandle(handle) !== expectedSha256.toLowerCase()) {
+          throw this.error('FILE_HASH_MISMATCH');
         }
         await this.revalidateTaskDirectory(task);
         const ownedHandle = handle;
