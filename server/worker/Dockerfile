@@ -26,7 +26,8 @@ FROM python:3.11-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    OCR_MODEL_HOME=/opt/ocr-models
+    OCR_MODEL_HOME=/opt/ocr-models \
+    PADDLE_PDX_OCR_MODEL_HOME=/opt/ocr-models
 
 WORKDIR /work
 

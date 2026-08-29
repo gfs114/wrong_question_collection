@@ -201,3 +201,134 @@ def test_clock_is_injected_for_deterministic_tokens(store):
     claimed = imports.claim_next("worker-1")
 
     assert claimed.claimed_at == now
+
+
+def test_claim_resolves_the_source_pdf_storage_key(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    database.artifacts["source-1"] = {
+        "id": "source-1",
+        "job_id": "job-1",
+        "draft_question_id": None,
+        "type": "source_pdf",
+        "storage_key": "job-1/source.pdf",
+        "sha256": "a" * 64,
+        "size": 8,
+        "expires_at": None,
+    }
+
+    claimed = imports.claim_next("worker-1")
+
+    assert claimed is not None
+    assert claimed.source_storage_key == "job-1/source.pdf"
+
+
+def test_claim_without_a_source_row_still_returns_the_job(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+
+    claimed = imports.claim_next("worker-1")
+
+    assert claimed is not None
+    assert claimed.source_storage_key is None
+
+
+def make_draft_rows():
+    return [
+        {
+            "id": "draft-1", "position": 1, "type": "single_choice",
+            "question": "求极限", "options": {"A": "0"}, "answer": None,
+            "analysis": None, "page_start": 1, "page_end": 1,
+            "confidence": 0.95, "review_required": False,
+        },
+        {
+            "id": "draft-2", "position": 2, "type": "blank",
+            "question": "填空：x = （ ）", "options": None, "answer": None,
+            "analysis": None, "page_start": 1, "page_end": 1,
+            "confidence": 0.9, "review_required": False,
+        },
+    ]
+
+
+def image_artifact(artifact_id: str, draft_id: str) -> dict:
+    return {
+        "id": artifact_id, "draft_question_id": draft_id,
+        "storage_key": f"job-1/artifact-{artifact_id}.bin", "sha256": "b" * 64,
+        "size": 1024, "expires_at": T0,
+    }
+
+
+def test_replace_draft_atomically_writes_drafts_artifacts_and_review(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+
+    imports.replace_draft(
+        "job-1", claimed.claimed_at, make_draft_rows(), [image_artifact("image-1", "draft-1")]
+    )
+
+    assert database.jobs["job-1"][COLUMN_INDEX["status"]] == "review"
+    assert set(database.drafts) == {"draft-1", "draft-2"}
+    assert database.drafts["draft-1"]["question"] == "求极限"
+    assert database.drafts["draft-2"]["type"] == "blank"
+    assert database.artifacts["image-1"]["type"] == "question_image"
+    assert database.artifacts["image-1"]["draft_question_id"] == "draft-1"
+    assert database.artifacts["image-1"]["sha256"] == "b" * 64
+
+
+def test_replace_draft_is_idempotent_for_a_retry(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+    imports.replace_draft(
+        "job-1", claimed.claimed_at, make_draft_rows(), [image_artifact("image-1", "draft-1")]
+    )
+    questions = make_draft_rows()
+    questions[1]["question"] = "填空：y = （ ）"
+
+    imports.replace_draft(
+        "job-1", claimed.claimed_at, questions, [image_artifact("image-2", "draft-1")]
+    )
+
+    assert set(database.drafts) == {"draft-1", "draft-2"}
+    assert database.drafts["draft-2"]["question"] == "填空：y = （ ）"
+    assert set(database.artifacts) == {"image-2"}
+
+
+def test_replace_draft_rolls_back_everything_when_an_insert_fails(store):
+    from job_store import DRAFT_INSERT
+
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+    # Inject a mid-transaction crash on the second draft insert.
+    database.fail_on = DRAFT_INSERT
+
+    with pytest.raises(RuntimeError, match="injected statement failure"):
+        imports.replace_draft(
+            "job-1", claimed.claimed_at, make_draft_rows(), [image_artifact("image-1", "draft-1")]
+        )
+
+    # No half-written state: no drafts, no artifacts, still processing.
+    assert database.drafts == {}
+    assert database.artifacts == {}
+    assert database.jobs["job-1"][COLUMN_INDEX["status"]] == "processing"
+
+
+def test_replace_draft_is_fenced_by_the_claim_token(store):
+    imports, database = store
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    claimed = imports.claim_next("worker-1")
+    stale = claimed.claimed_at - timedelta(seconds=1)
+
+    with pytest.raises(JobStoreError, match="not processing under this token"):
+        imports.replace_draft("job-1", stale, make_draft_rows(), [])
+
+    assert database.drafts == {}
+    assert database.jobs["job-1"][COLUMN_INDEX["status"]] == "processing"
+
+
+def test_replace_draft_rejects_an_empty_payload(store):
+    imports, _database = store
+    with pytest.raises(JobStoreError, match="invalid draft payload"):
+        imports.replace_draft("job-1", T0, [], [])

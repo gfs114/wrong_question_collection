@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from main import PipelineError, RetryablePipelineError
+from errors import PipelineError, RetryablePipelineError
 from pdf_pipeline import DEFAULT_MAX_LONG_EDGE, PdfPipeline
 from question_parser import OcrLine
 from tests.fake_engines import FakeCropper, FakeOcr, FakeRenderer

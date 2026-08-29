@@ -56,6 +56,40 @@ REQUEUE_UPDATE = (
 )
 GET_SELECT = "SELECT " + JOB_COLUMNS + " FROM import_jobs WHERE id = %s"
 
+# The worker consumes source.pdf through the manifest-first artifact row written by
+# the API's complete step; the row is the tombstone covering the published file.
+SOURCE_KEY_SELECT = (
+    "SELECT storage_key FROM import_artifacts "
+    "WHERE job_id = %s AND type = 'source_pdf' ORDER BY id ASC LIMIT 1"
+)
+# Draft replacement is one atomic transaction: stale image rows and drafts are
+# deleted, new drafts and image artifact rows are inserted, then the job moves
+# processing -> review. Any failure rolls the whole transaction back, so the
+# database never observes a half-written draft set.
+DRAFT_IMAGE_DELETE = (
+    "DELETE FROM import_artifacts WHERE job_id = %s AND type = 'question_image'"
+)
+DRAFT_DELETE = "DELETE FROM import_draft_questions WHERE job_id = %s"
+DRAFT_INSERT = (
+    "INSERT INTO import_draft_questions "
+    "(id, job_id, position, type, question, options, answer, analysis, "
+    "page_start, page_end, confidence, review_required) "
+    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+)
+ARTIFACT_INSERT = (
+    "INSERT INTO import_artifacts "
+    "(id, job_id, draft_question_id, type, storage_key, sha256, size, expires_at) "
+    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+)
+DRAFT_JOB_LOCK = (
+    "SELECT id FROM import_jobs "
+    "WHERE id = %s AND claimed_at = %s AND status IN ('processing', 'review') FOR UPDATE"
+)
+REVIEW_UPDATE = (
+    "UPDATE import_jobs SET status = 'review' "
+    "WHERE id = %s AND claimed_at = %s AND status IN ('processing', 'review')"
+)
+
 MAX_AUTOMATIC_RETRIES = 2
 
 
@@ -86,6 +120,7 @@ class Job:
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     status: str = field(default="queued")
+    source_storage_key: Optional[str] = None
 
 
 def utcnow() -> datetime:
@@ -115,7 +150,9 @@ class JobStore:
 
         The claimed_at token is monotonic: when the previous token is still in the
         future (clock skew or a fast requeue), it is bumped by one millisecond so
-        stale rounds can never match a newer claim.
+        stale rounds can never match a newer claim. The manifest-first source_pdf
+        artifact row written by the API's complete step is resolved in the same
+        transaction, so a claimed job always carries the key of the file to read.
         """
         del worker_id  # single-concurrency worker; the lease token is claimed_at
         connection = self._connect()
@@ -139,6 +176,11 @@ class JobStore:
                     # by the rollback and the loser retries on the next loop.
                     connection.rollback()
                     return None
+                source_storage_key: Optional[str] = None
+                cursor.execute(SOURCE_KEY_SELECT, (row[0],))
+                source_row = cursor.fetchone()
+                if source_row is not None:
+                    source_storage_key = source_row[0]
                 connection.commit()
                 # The SELECT snapshot predates the conditional update; return the job
                 # exactly as the API would see it after a successful claim.
@@ -146,6 +188,7 @@ class JobStore:
                     self._job_from_row(row),
                     claimed_at=claimed_at,
                     status="processing",
+                    source_storage_key=source_storage_key,
                 )
             finally:
                 cursor.close()
@@ -166,6 +209,75 @@ class JobStore:
                 affected = cursor.rowcount
                 connection.commit()
                 return affected == 1
+            finally:
+                cursor.close()
+        finally:
+            connection.close()
+
+    def replace_draft(
+        self,
+        job_id: str,
+        claimed_at: datetime,
+        questions: list[dict],
+        artifacts: list[dict],
+    ) -> None:
+        """Atomically replace the job's draft rows and move processing → review.
+
+        One transaction deletes stale question_image rows and drafts, inserts the
+        new drafts and image artifact rows (manifest-first: rows precede file
+        publication), then flips the job to review. Any failure rolls everything
+        back — the database never observes a half-written draft set. The
+        claimed_at token fences the write: a stale round raises JobStoreError.
+        The call is idempotent within the same token while the job is still
+        processing *or* review, so a retry after a failed image-file publication
+        rewrites the rows without changing the state.
+        """
+        if not questions or not isinstance(questions, list):
+            raise JobStoreError("invalid draft payload")
+        connection = self._connect()
+        try:
+            cursor = connection.cursor()
+            try:
+                cursor.execute(DRAFT_JOB_LOCK, (job_id, claimed_at))
+                if cursor.fetchone() is None:
+                    raise JobStoreError("job is not processing under this token")
+                cursor.execute(DRAFT_IMAGE_DELETE, (job_id,))
+                cursor.execute(DRAFT_DELETE, (job_id,))
+                cursor.executemany(
+                    DRAFT_INSERT,
+                    [
+                        (
+                            q["id"], job_id, q["position"], q["type"], q["question"],
+                            q.get("options"), q.get("answer"), q.get("analysis"),
+                            q["page_start"], q["page_end"], q["confidence"],
+                            bool(q["review_required"]),
+                        )
+                        for q in questions
+                    ],
+                )
+                if artifacts:
+                    cursor.executemany(
+                        ARTIFACT_INSERT,
+                        [
+                            (
+                                a["id"], job_id, a["draft_question_id"], "question_image",
+                                a["storage_key"], a["sha256"], a["size"], a["expires_at"],
+                            )
+                            for a in artifacts
+                        ],
+                    )
+                cursor.execute(REVIEW_UPDATE, (job_id, claimed_at))
+                if cursor.rowcount != 1:
+                    raise JobStoreError("job state changed during draft replacement")
+                connection.commit()
+            except Exception:
+                # Mirror mysql-connector's requirement: a failed transaction must
+                # be explicitly rolled back before the connection is reused/closed.
+                try:
+                    connection.rollback()
+                except Exception:  # noqa: BLE001 - preserve the original failure
+                    pass
+                raise
             finally:
                 cursor.close()
         finally:

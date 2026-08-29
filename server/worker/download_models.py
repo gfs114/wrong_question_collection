@@ -20,6 +20,9 @@ LANGUAGE = os.environ.get("WQC_OCR_LANGUAGE", "ch")
 
 def main() -> int:
     MODEL_HOME.mkdir(parents=True, exist_ok=True)
+    # PaddleOCR 3.x resolves its model cache through PADDLE_PDX_OCR_MODEL_HOME;
+    # point it at the stage-local model home so the runtime image can copy it.
+    os.environ["PADDLE_PDX_OCR_MODEL_HOME"] = str(MODEL_HOME)
     # Importing and instantiating PaddleOCR downloads/initializes the language
     # models into its model home; a first OCR call forces eager initialization.
     from paddleocr import PaddleOCR  # noqa: PLC0415

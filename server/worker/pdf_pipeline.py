@@ -23,7 +23,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
-from main import PipelineError, RetryablePipelineError
+from errors import PipelineError, RetryablePipelineError
 from question_parser import OcrLine, QuestionDraft, QuestionParser
 
 logger = logging.getLogger("wqc.worker.pipeline")
@@ -195,13 +195,17 @@ class PdfPipeline:
         page_start: int = 1,
         page_end: Optional[int] = None,
         maximum_pages: int = MAX_PAGES_PER_JOB,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> ProcessResult:
         """Validate the page range, OCR one page at a time, then crop images.
 
         Pass 1 renders and OCRs each page once, feeding the parser and releasing
-        the bitmap before the next page. Pass 2 renders each page that carries a
-        question region once and crops every region on it — so memory stays
-        bounded to one page while cross-page questions still get accurate crops.
+        the bitmap before the next page; ``progress_callback(current, total)`` is
+        invoked after every page so the worker can persist progress under its
+        claimed_at token (a callback raising JobStoreError aborts processing).
+        Pass 2 renders each page that carries a question region once and crops
+        every region on it — so memory stays bounded to one page while
+        cross-page questions still get accurate crops.
         """
         if not isinstance(page_start, int) or page_start < 1:
             raise PipelineError("PAGE_RANGE_INVALID", "page_start must be a positive integer")
@@ -225,6 +229,7 @@ class PdfPipeline:
                 )
 
             parser = self._parser_factory()
+            page_total = last - page_start + 1
             for page_number in range(page_start, last + 1):
                 page = self._renderer.render(document, page_number - 1, DEFAULT_MAX_LONG_EDGE)
                 try:
@@ -234,10 +239,12 @@ class PdfPipeline:
                 finally:
                     page.pixels = None  # release the bitmap before the next page
                 parser.feed(page_number, lines)
+                if progress_callback is not None:
+                    progress_callback(page_number - page_start + 1, page_total)
 
             questions = parser.finish()
             self._crop_questions(document, questions)
-            return ProcessResult(questions=questions, page_count=last - page_start + 1)
+            return ProcessResult(questions=questions, page_count=page_total)
         finally:
             self._renderer.close(document)
 
