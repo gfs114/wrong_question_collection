@@ -42,7 +42,11 @@ def main() -> int:
     import numpy as np  # noqa: PLC0415
     from paddleocr import PaddleOCR  # noqa: PLC0415
 
-    engine = PaddleOCR(lang=LANGUAGE, use_textline_orientation=True)
+    engine = PaddleOCR(
+        lang=LANGUAGE,
+        use_textline_orientation=True,
+        enable_mkldnn=False,
+    )
     # PaddleOCR 3.x predict() is eager (it returns a list), and exercising it
     # also proves the downloaded models can be initialized by Paddle Inference.
     engine.predict(np.zeros((32, 128, 3), dtype=np.uint8))

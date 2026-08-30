@@ -138,6 +138,7 @@ class PaddleOcrEngine(OcrEngine):
             self._engine = PaddleOCR(
                 lang=self._language,
                 use_textline_orientation=True,
+                enable_mkldnn=False,
             )
         return self._engine
 

@@ -13,7 +13,22 @@
 
 FROM python:3.11-slim AS models
 
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    OCR_MODEL_HOME=/opt/ocr-models \
+    PADDLE_PDX_OCR_MODEL_HOME=/opt/ocr-models \
+    PADDLE_PDX_ENABLE_MKLDNN_BYDEFAULT=0
+
 WORKDIR /build
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 \
+        libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
 RUN pip install --require-hashes -r requirements.txt
@@ -27,11 +42,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     OCR_MODEL_HOME=/opt/ocr-models \
-    PADDLE_PDX_OCR_MODEL_HOME=/opt/ocr-models
+    PADDLE_PDX_OCR_MODEL_HOME=/opt/ocr-models \
+    PADDLE_PDX_ENABLE_MKLDNN_BYDEFAULT=0
 
 WORKDIR /work
 
-RUN groupadd --system ocr \
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 \
+        libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system ocr \
     && useradd --system --gid ocr --home-dir /work --shell /usr/sbin/nologin ocr
 
 COPY --from=models /opt/ocr-models /opt/ocr-models

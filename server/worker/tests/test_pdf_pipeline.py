@@ -202,7 +202,11 @@ def test_paddle_adapter_initializes_with_3_x_options_and_shared_cache(monkeypatc
     engine = PaddleOcrEngine(language="ch")
 
     assert isinstance(engine._ensure(), FakePaddleOCR)  # noqa: SLF001 - adapter seam
-    assert calls["init"] == {"lang": "ch", "use_textline_orientation": True}
+    assert calls["init"] == {
+        "lang": "ch",
+        "use_textline_orientation": True,
+        "enable_mkldnn": False,
+    }
     assert os.environ["OCR_MODEL_HOME"] == OCR_MODEL_HOME
     assert os.environ["PADDLE_PDX_OCR_MODEL_HOME"] == OCR_MODEL_HOME
     assert os.environ["PADDLE_PDX_CACHE_HOME"] == OCR_MODEL_HOME

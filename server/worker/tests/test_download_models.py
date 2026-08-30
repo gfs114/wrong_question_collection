@@ -35,7 +35,11 @@ def test_download_models_uses_predict_and_materializes_configured_cache(monkeypa
     monkeypatch.setitem(sys.modules, "paddleocr", SimpleNamespace(PaddleOCR=FakePaddleOCR))
 
     assert download_models.main() == 0
-    assert calls["init"] == {"lang": "ch", "use_textline_orientation": True}
+    assert calls["init"] == {
+        "lang": "ch",
+        "use_textline_orientation": True,
+        "enable_mkldnn": False,
+    }
     assert calls["predict_shape"] == (32, 128, 3)
     assert os.environ["OCR_MODEL_HOME"] == str(model_home)
     assert os.environ["PADDLE_PDX_OCR_MODEL_HOME"] == str(model_home)
