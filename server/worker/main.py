@@ -139,14 +139,20 @@ def _process_job(
 
 
 def build_store() -> JobStore:
-    connect = default_connect()
-    connect(  # validate configuration eagerly so a misconfigured worker fails fast
-        host=os.environ["DB_HOST"],
-        port=int(os.environ.get("DB_PORT", "3306")),
-        user=os.environ["DB_RUNTIME_USER"],
-        password=os.environ["DB_RUNTIME_PASSWORD"],
-        database=os.environ["DB_NAME"],
-    ).close()
+    mysql_connect = default_connect()
+    connection_config = {
+        "host": os.environ["DB_HOST"],
+        "port": int(os.environ.get("DB_PORT", "3306")),
+        "user": os.environ["DB_RUNTIME_USER"],
+        "password": os.environ["DB_RUNTIME_PASSWORD"],
+        "database": os.environ["DB_NAME"],
+    }
+
+    def connect():
+        return mysql_connect(**connection_config)
+
+    # Validate configuration eagerly so a misconfigured worker fails fast.
+    connect().close()
     return JobStore(connect)
 
 

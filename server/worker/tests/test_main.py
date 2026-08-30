@@ -10,9 +10,10 @@ import pytest
 from errors import PipelineError, RetryablePipelineError
 from import_writer import ImportWriterError
 from job_store import Job, JobStoreError
-from main import _Stopper, run_once
+from main import _Stopper, build_store, run_once
 from pdf_pipeline import ProcessResult
 from question_parser import QuestionDraft
+from tests.fake_mysql import FakeConnection, FakeDatabase, job_row
 
 T0 = datetime(2026, 8, 27, 0, 0, 0, tzinfo=timezone.utc)
 
@@ -101,6 +102,111 @@ def make_draft(question: str = "求极限") -> QuestionDraft:
         page_start=1, page_end=1, confidence=0.95, review_required=False,
         artifacts=[{"type": "question_image", "jpeg": b"jpeg-1"}],
     )
+
+
+def db_config(monkeypatch) -> dict:
+    values = {
+        "DB_HOST": "mysql.internal",
+        "DB_PORT": "3307",
+        "DB_RUNTIME_USER": "worker-user",
+        "DB_RUNTIME_PASSWORD": "worker-password",
+        "DB_NAME": "wrong_questions",
+    }
+    for name, value in values.items():
+        monkeypatch.setenv(name, value)
+    return {
+        "host": values["DB_HOST"],
+        "port": 3307,
+        "user": values["DB_RUNTIME_USER"],
+        "password": values["DB_RUNTIME_PASSWORD"],
+        "database": values["DB_NAME"],
+    }
+
+
+def test_build_store_factory_reuses_full_config_for_claim(monkeypatch):
+    expected = db_config(monkeypatch)
+    database = FakeDatabase()
+    calls: list[dict] = []
+    connections: list[FakeConnection] = []
+
+    def mysql_connect(**kwargs):
+        calls.append(kwargs)
+        assert kwargs == expected
+        connection = FakeConnection(database)
+        connections.append(connection)
+        return connection
+
+    monkeypatch.setattr("main.default_connect", lambda: mysql_connect)
+
+    store = build_store()
+    assert store.claim_next("worker-1") is None
+
+    assert calls == [expected, expected]
+    assert len({id(connection) for connection in connections}) == 2
+    assert all(connection.closed for connection in connections)
+
+
+def test_build_store_factory_opens_configured_connection_for_each_write(monkeypatch):
+    expected = db_config(monkeypatch)
+    database = FakeDatabase(
+        [
+            job_row("progress-job", status="processing", claimed_at=T0, created_at=T0),
+            job_row("draft-job", status="processing", claimed_at=T0, created_at=T0),
+            job_row("fail-job", status="processing", claimed_at=T0, created_at=T0),
+        ]
+    )
+    calls: list[dict] = []
+    connections: list[FakeConnection] = []
+
+    def mysql_connect(**kwargs):
+        calls.append(kwargs)
+        assert kwargs == expected
+        connection = FakeConnection(database)
+        connections.append(connection)
+        return connection
+
+    monkeypatch.setattr("main.default_connect", lambda: mysql_connect)
+    store = build_store()
+
+    assert store.update_progress("progress-job", T0, 1, 2) is True
+    store.replace_draft(
+        "draft-job",
+        T0,
+        [
+            {
+                "id": "draft-1",
+                "position": 1,
+                "type": "blank",
+                "question": "x = （ ）",
+                "options": None,
+                "answer": None,
+                "analysis": None,
+                "page_start": 1,
+                "page_end": 1,
+                "confidence": 0.95,
+                "review_required": False,
+            }
+        ],
+        [],
+    )
+    store.fail("fail-job", T0, "OCR_FAILED", retryable=False)
+
+    assert calls == [expected, expected, expected, expected]
+    assert len({id(connection) for connection in connections}) == 4
+    assert all(connection.closed for connection in connections)
+
+
+def test_build_store_fails_fast_when_database_configuration_is_rejected(monkeypatch):
+    expected = db_config(monkeypatch)
+
+    def mysql_connect(**kwargs):
+        assert kwargs == expected
+        raise ConnectionError("database configuration rejected")
+
+    monkeypatch.setattr("main.default_connect", lambda: mysql_connect)
+
+    with pytest.raises(ConnectionError, match="configuration rejected"):
+        build_store()
 
 
 def test_run_once_returns_false_without_work_when_the_queue_is_empty():
