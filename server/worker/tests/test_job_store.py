@@ -80,7 +80,24 @@ def test_retryable_failure_requeues_once(store):
     assert after[COLUMN_INDEX["status"]] == "queued"
     assert after[COLUMN_INDEX["retry_count"]] == 1
     assert after[COLUMN_INDEX["error_code"]] == "OCR_FAILED"
-    assert after[COLUMN_INDEX["claimed_at"]] is None
+    assert after[COLUMN_INDEX["claimed_at"]] == claimed.claimed_at
+
+
+def test_retryable_reclaim_advances_the_preserved_token_by_one_millisecond():
+    database = FakeDatabase()
+    now = T0 + timedelta(hours=1)
+    database.jobs["job-1"] = job_row("job-1", created_at=T0)
+    imports = JobStore(fake_connect(database), clock=lambda: now)
+
+    first = imports.claim_next("worker-1")
+    imports.fail("job-1", first.claimed_at, "OCR_FAILED", retryable=True)
+    second = imports.claim_next("worker-1")
+
+    assert second is not None
+    assert second.claimed_at == first.claimed_at + timedelta(microseconds=1000)
+    assert second.claimed_at > first.claimed_at
+    assert imports.update_progress("job-1", first.claimed_at, 1, 2) is False
+    assert imports.update_progress("job-1", second.claimed_at, 1, 2) is True
 
 
 def test_retryable_failure_stops_after_two_retries(store):
@@ -187,8 +204,8 @@ def test_all_writes_are_parameterized_and_use_utc(store):
         assert "2026" not in sql
         # Parameterized statements carry placeholders; pure reads may have none.
         assert "%s" in sql or params == ()
-    # Requeue clears the claim token so the next claim can pick the job up again.
-    assert database.jobs["job-1"][COLUMN_INDEX["claimed_at"]] is None
+    # Requeue preserves the token so the next claim can strictly advance it.
+    assert database.jobs["job-1"][COLUMN_INDEX["claimed_at"]] == claimed.claimed_at
     assert imports.get("job-1").status == "queued"
 
 

@@ -211,7 +211,6 @@ class _FakeCursor:
                 and row[COLUMN_INDEX["retry_count"]] == retry_count
             ):
                 row[COLUMN_INDEX["status"]] = "queued"
-                row[COLUMN_INDEX["claimed_at"]] = None
                 self.rowcount = 1
         elif sql is GET_SELECT:
             (job_id,) = params
