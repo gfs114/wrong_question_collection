@@ -16,21 +16,53 @@ from pathlib import Path
 
 MODEL_HOME = Path(os.environ.get("OCR_MODEL_HOME", "/opt/ocr-models"))
 LANGUAGE = os.environ.get("WQC_OCR_LANGUAGE", "ch")
+REQUIRED_CHINESE_MODEL_NAMES = (
+    "PP-LCNet_x1_0_doc_ori",
+    "UVDoc",
+    "PP-LCNet_x1_0_textline_ori",
+    "PP-OCRv6_medium_det",
+    "PP-OCRv6_medium_rec",
+)
+
+
+def configure_model_home() -> None:
+    """Point both the deployment contract and PaddleX's real cache at one directory."""
+    model_home = str(MODEL_HOME)
+    os.environ["OCR_MODEL_HOME"] = model_home
+    os.environ["PADDLE_PDX_OCR_MODEL_HOME"] = model_home
+    # PaddleX 3.7.2 reads this variable when paddlex.utils.cache is imported.
+    os.environ["PADDLE_PDX_CACHE_HOME"] = model_home
 
 
 def main() -> int:
     MODEL_HOME.mkdir(parents=True, exist_ok=True)
-    # PaddleOCR 3.x resolves its model cache through PADDLE_PDX_OCR_MODEL_HOME;
-    # point it at the stage-local model home so the runtime image can copy it.
-    os.environ["PADDLE_PDX_OCR_MODEL_HOME"] = str(MODEL_HOME)
-    # Importing and instantiating PaddleOCR downloads/initializes the language
-    # models into its model home; a first OCR call forces eager initialization.
+    configure_model_home()
+    # Configure the cache before importing PaddleOCR: PaddleX resolves and
+    # freezes PADDLE_PDX_CACHE_HOME during module import.
+    import numpy as np  # noqa: PLC0415
     from paddleocr import PaddleOCR  # noqa: PLC0415
 
-    engine = PaddleOCR(lang=LANGUAGE, use_angle_cls=True)
-    # Force any lazy model materialization before the build stage ends.
-    engine.ocr([[0, 0, 1, 1]], cls=True)
-    print(f"paddleocr models initialized under {MODEL_HOME}", flush=True)
+    engine = PaddleOCR(lang=LANGUAGE, use_textline_orientation=True)
+    # PaddleOCR 3.x predict() is eager (it returns a list), and exercising it
+    # also proves the downloaded models can be initialized by Paddle Inference.
+    engine.predict(np.zeros((32, 128, 3), dtype=np.uint8))
+
+    official_models = MODEL_HOME / "official_models"
+    missing_models = [
+        name
+        for name in REQUIRED_CHINESE_MODEL_NAMES
+        if not any(path.is_file() for path in (official_models / name).rglob("*"))
+    ]
+    if missing_models:
+        raise RuntimeError(
+            "missing PaddleX model files under "
+            f"{official_models}: {', '.join(missing_models)}"
+        )
+    print(
+        f"paddleocr models initialized under {MODEL_HOME} "
+        f"({len(REQUIRED_CHINESE_MODEL_NAMES)} model directories)",
+        flush=True,
+    )
     return 0
 
 

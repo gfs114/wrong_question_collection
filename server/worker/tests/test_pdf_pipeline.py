@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
+import os
+import sys
+from types import SimpleNamespace
+
 import pytest
 
 from errors import PipelineError, RetryablePipelineError
-from pdf_pipeline import DEFAULT_MAX_LONG_EDGE, PdfPipeline
+from pdf_pipeline import (
+    DEFAULT_MAX_LONG_EDGE,
+    OCR_MODEL_HOME,
+    PaddleOcrEngine,
+    PdfPipeline,
+    RenderedPage,
+)
 from question_parser import OcrLine
 from tests.fake_engines import FakeCropper, FakeOcr, FakeRenderer
 
@@ -152,6 +162,93 @@ def test_ocr_engine_failure_is_retryable():
 
     with pytest.raises(RetryablePipelineError) as error:
         make_pipeline(ocr=ocr).process_file("fixture.pdf")
+
+    assert error.value.code == "OCR_FAILED"
+
+
+class FakePaddleOcr3:
+    """Minimal PaddleOCR 3.x predict adapter returning result mappings."""
+
+    def __init__(self, results=None, error: Exception | None = None):
+        self.results = [] if results is None else results
+        self.error = error
+        self.inputs = []
+
+    def predict(self, image):
+        self.inputs.append(image)
+        if self.error is not None:
+            raise self.error
+        return self.results
+
+
+def make_paddle_engine(results=None, error: Exception | None = None):
+    engine = PaddleOcrEngine()
+    engine._engine = FakePaddleOcr3(results, error)  # noqa: SLF001 - adapter seam
+    return engine
+
+
+def paddle_result(texts, scores, boxes):
+    return {"rec_texts": texts, "rec_scores": scores, "rec_boxes": boxes}
+
+
+def test_paddle_adapter_initializes_with_3_x_options_and_shared_cache(monkeypatch):
+    calls = {}
+
+    class FakePaddleOCR:
+        def __init__(self, **kwargs):
+            calls["init"] = kwargs
+
+    monkeypatch.setitem(sys.modules, "paddleocr", SimpleNamespace(PaddleOCR=FakePaddleOCR))
+    engine = PaddleOcrEngine(language="ch")
+
+    assert isinstance(engine._ensure(), FakePaddleOCR)  # noqa: SLF001 - adapter seam
+    assert calls["init"] == {"lang": "ch", "use_textline_orientation": True}
+    assert os.environ["OCR_MODEL_HOME"] == OCR_MODEL_HOME
+    assert os.environ["PADDLE_PDX_OCR_MODEL_HOME"] == OCR_MODEL_HOME
+    assert os.environ["PADDLE_PDX_CACHE_HOME"] == OCR_MODEL_HOME
+
+
+def test_paddle_adapter_parses_empty_paddleocr_3_result():
+    engine = make_paddle_engine([paddle_result([], [], [])])
+
+    assert engine.recognize(RenderedPage(10, 10, [[0]])) == []
+
+
+def test_paddle_adapter_parses_single_paddleocr_3_result():
+    engine = make_paddle_engine(
+        [paddle_result(["1. 求极限"], [0.97], [[10, 20, 210, 48]])]
+    )
+
+    lines = engine.recognize(RenderedPage(220, 60, [[0]]))
+
+    assert lines == [OcrLine("1. 求极限", 0.97, (10.0, 20.0, 210.0, 48.0))]
+
+
+def test_paddle_adapter_parses_multiple_paddleocr_3_results():
+    engine = make_paddle_engine(
+        [
+            paddle_result(
+                ["1. 题干", "A. 选项"],
+                [0.98, 0.91],
+                [[5, 8, 105, 28], [12, 35, 95, 55]],
+            )
+        ]
+    )
+
+    lines = engine.recognize(RenderedPage(120, 70, [[0]]))
+
+    assert lines == [
+        OcrLine("1. 题干", 0.98, (5.0, 8.0, 105.0, 28.0)),
+        OcrLine("A. 选项", 0.91, (12.0, 35.0, 95.0, 55.0)),
+    ]
+
+
+def test_paddle_adapter_failure_keeps_existing_retryable_ocr_semantics():
+    renderer = FakeRenderer(page_count=1)
+    paddle = make_paddle_engine(error=RuntimeError("paddle inference failed"))
+
+    with pytest.raises(RetryablePipelineError) as error:
+        make_pipeline(renderer=renderer, ocr=paddle).process_file("fixture.pdf")
 
     assert error.value.code == "OCR_FAILED"
 

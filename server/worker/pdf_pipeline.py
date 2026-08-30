@@ -32,6 +32,7 @@ MAX_PAGES_PER_JOB = 20
 DEFAULT_MAX_LONG_EDGE = 4096
 JPEG_QUALITY = 88
 OCR_LANGUAGE = os.environ.get("WQC_OCR_LANGUAGE", "ch")
+OCR_MODEL_HOME = os.environ.get("OCR_MODEL_HOME", "/opt/ocr-models")
 
 
 @dataclass
@@ -125,29 +126,48 @@ class PaddleOcrEngine(OcrEngine):
 
     def _ensure(self):
         if self._engine is None:
+            # PaddleX 3.7.2 reads PADDLE_PDX_CACHE_HOME at import time. Keep its
+            # actual cache rooted at the directory copied by the Docker model
+            # stage; PADDLE_PDX_OCR_MODEL_HOME remains aligned with the existing
+            # deployment contract even though PaddleX does not consume it.
+            os.environ["OCR_MODEL_HOME"] = OCR_MODEL_HOME
+            os.environ["PADDLE_PDX_OCR_MODEL_HOME"] = OCR_MODEL_HOME
+            os.environ["PADDLE_PDX_CACHE_HOME"] = OCR_MODEL_HOME
             from paddleocr import PaddleOCR  # noqa: PLC0415
 
-            self._engine = PaddleOCR(lang=self._language, use_angle_cls=True)
+            self._engine = PaddleOCR(
+                lang=self._language,
+                use_textline_orientation=True,
+            )
         return self._engine
 
     def recognize(self, page: RenderedPage) -> list[OcrLine]:
         import numpy as np  # noqa: PLC0415
 
-        result = self._ensure().ocr(np.asarray(page.pixels), cls=True)
+        results = self._ensure().predict(np.asarray(page.pixels))
         lines: list[OcrLine] = []
-        for item in result or []:
-            if item is None:
+        for result in results or []:
+            if result is None:
                 continue
-            box, (text, score) = item
-            xs = [point[0] for point in box]
-            ys = [point[1] for point in box]
-            lines.append(
-                OcrLine(
-                    text=str(text),
-                    confidence=float(score),
-                    bbox=(min(xs), min(ys), max(xs), max(ys)),
+            try:
+                texts = result["rec_texts"]
+                scores = result["rec_scores"]
+                boxes = result["rec_boxes"]
+            except (KeyError, TypeError) as exc:
+                raise ValueError("invalid PaddleOCR 3.x result object") from exc
+            if not (len(texts) == len(scores) == len(boxes)):
+                raise ValueError("inconsistent PaddleOCR 3.x result lengths")
+            for text, score, box in zip(texts, scores, boxes):
+                if len(box) != 4:
+                    raise ValueError("invalid PaddleOCR 3.x rec_box")
+                x0, y0, x1, y1 = (float(value) for value in box)
+                lines.append(
+                    OcrLine(
+                        text=str(text),
+                        confidence=float(score),
+                        bbox=(x0, y0, x1, y1),
+                    )
                 )
-            )
         return lines
 
 
