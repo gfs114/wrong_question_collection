@@ -22,72 +22,89 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional, Tuple
 
-JOB_COLUMNS = (
-    "id, user_id, device_id, bank_name, subject, page_start, page_end, "
-    "source_sha256, source_size, part_count, retry_count, "
-    "progress_current, progress_total, error_code, claimed_at, expires_at, "
-    "created_at, updated_at, status"
+JOB_COLUMN_SPECS = (
+    ("id", "id"),
+    ("user_id", "userId"),
+    ("device_id", "deviceId"),
+    ("bank_name", "bankName"),
+    ("subject", "subject"),
+    ("page_start", "pageStart"),
+    ("page_end", "pageEnd"),
+    ("source_sha256", "sourceSha256"),
+    ("source_size", "sourceSize"),
+    ("part_count", "partCount"),
+    ("retry_count", "retryCount"),
+    ("progress_current", "progressCurrent"),
+    ("progress_total", "progressTotal"),
+    ("error_code", "errorCode"),
+    ("claimed_at", "claimedAt"),
+    ("expires_at", "expiresAt"),
+    ("created_at", "createdAt"),
+    ("updated_at", "updatedAt"),
+    ("status", "status"),
 )
+JOB_FIELDS = tuple(field for field, _column in JOB_COLUMN_SPECS)
+JOB_COLUMNS = ", ".join(f"`{column}`" for _field, column in JOB_COLUMN_SPECS)
 
 # Short-transaction claim: lock the oldest queued row without waiting on others.
 CLAIM_SELECT = (
-    "SELECT " + JOB_COLUMNS + " FROM import_jobs "
-    "WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED"
+    "SELECT " + JOB_COLUMNS + " FROM `import_jobs` "
+    "WHERE `status` = 'queued' ORDER BY `createdAt` ASC LIMIT 1 FOR UPDATE SKIP LOCKED"
 )
 CLAIM_UPDATE = (
-    "UPDATE import_jobs SET status = 'processing', claimed_at = %s, "
-    "updated_at = %s, error_code = NULL WHERE id = %s AND status = 'queued'"
+    "UPDATE `import_jobs` SET `status` = 'processing', `claimedAt` = %s, "
+    "`updatedAt` = %s, `errorCode` = NULL WHERE `id` = %s AND `status` = 'queued'"
 )
 PROGRESS_UPDATE = (
-    "UPDATE import_jobs SET progress_current = %s, progress_total = %s "
-    "WHERE id = %s AND status = 'processing' AND claimed_at = %s"
+    "UPDATE `import_jobs` SET `progressCurrent` = %s, `progressTotal` = %s "
+    "WHERE `id` = %s AND `status` = 'processing' AND `claimedAt` = %s"
 )
 FAIL_SELECT = (
-    "SELECT retry_count FROM import_jobs "
-    "WHERE id = %s AND status = 'processing' AND claimed_at = %s FOR UPDATE"
+    "SELECT `retryCount` FROM `import_jobs` "
+    "WHERE `id` = %s AND `status` = 'processing' AND `claimedAt` = %s FOR UPDATE"
 )
 FAIL_UPDATE = (
-    "UPDATE import_jobs SET status = 'failed', retry_count = %s, error_code = %s, "
-    "updated_at = %s WHERE id = %s AND status = 'processing' AND claimed_at = %s"
+    "UPDATE `import_jobs` SET `status` = 'failed', `retryCount` = %s, `errorCode` = %s, "
+    "`updatedAt` = %s WHERE `id` = %s AND `status` = 'processing' AND `claimedAt` = %s"
 )
 REQUEUE_UPDATE = (
-    "UPDATE import_jobs SET status = 'queued' "
-    "WHERE id = %s AND status = 'failed' AND retry_count = %s"
+    "UPDATE `import_jobs` SET `status` = 'queued' "
+    "WHERE `id` = %s AND `status` = 'failed' AND `retryCount` = %s"
 )
-GET_SELECT = "SELECT " + JOB_COLUMNS + " FROM import_jobs WHERE id = %s"
+GET_SELECT = "SELECT " + JOB_COLUMNS + " FROM `import_jobs` WHERE `id` = %s"
 
 # The worker consumes source.pdf through the manifest-first artifact row written by
 # the API's complete step; the row is the tombstone covering the published file.
 SOURCE_KEY_SELECT = (
-    "SELECT storage_key FROM import_artifacts "
-    "WHERE job_id = %s AND type = 'source_pdf' ORDER BY id ASC LIMIT 1"
+    "SELECT `storageKey` FROM `import_artifacts` "
+    "WHERE `jobId` = %s AND `type` = 'source_pdf' ORDER BY `id` ASC LIMIT 1"
 )
 # Draft replacement is one atomic transaction: stale image rows and drafts are
 # deleted, new drafts and image artifact rows are inserted, then the job moves
 # processing -> review. Any failure rolls the whole transaction back, so the
 # database never observes a half-written draft set.
 DRAFT_IMAGE_DELETE = (
-    "DELETE FROM import_artifacts WHERE job_id = %s AND type = 'question_image'"
+    "DELETE FROM `import_artifacts` WHERE `jobId` = %s AND `type` = 'question_image'"
 )
-DRAFT_DELETE = "DELETE FROM import_draft_questions WHERE job_id = %s"
+DRAFT_DELETE = "DELETE FROM `import_draft_questions` WHERE `jobId` = %s"
 DRAFT_INSERT = (
-    "INSERT INTO import_draft_questions "
-    "(id, job_id, position, type, question, options, answer, analysis, "
-    "page_start, page_end, confidence, review_required) "
+    "INSERT INTO `import_draft_questions` "
+    "(`id`, `jobId`, `position`, `type`, `question`, `options`, `answer`, `analysis`, "
+    "`pageStart`, `pageEnd`, `confidence`, `reviewRequired`) "
     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 )
 ARTIFACT_INSERT = (
-    "INSERT INTO import_artifacts "
-    "(id, job_id, draft_question_id, type, storage_key, sha256, size, expires_at) "
+    "INSERT INTO `import_artifacts` "
+    "(`id`, `jobId`, `draftQuestionId`, `type`, `storageKey`, `sha256`, `size`, `expiresAt`) "
     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
 )
 DRAFT_JOB_LOCK = (
-    "SELECT id FROM import_jobs "
-    "WHERE id = %s AND claimed_at = %s AND status IN ('processing', 'review') FOR UPDATE"
+    "SELECT `id` FROM `import_jobs` "
+    "WHERE `id` = %s AND `claimedAt` = %s AND `status` IN ('processing', 'review') FOR UPDATE"
 )
 REVIEW_UPDATE = (
-    "UPDATE import_jobs SET status = 'review' "
-    "WHERE id = %s AND claimed_at = %s AND status IN ('processing', 'review')"
+    "UPDATE `import_jobs` SET `status` = 'review' "
+    "WHERE `id` = %s AND `claimedAt` = %s AND `status` IN ('processing', 'review')"
 )
 
 MAX_AUTOMATIC_RETRIES = 2

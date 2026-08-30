@@ -24,14 +24,14 @@ from job_store import (
     FAIL_SELECT,
     FAIL_UPDATE,
     GET_SELECT,
-    JOB_COLUMNS,
+    JOB_FIELDS,
     PROGRESS_UPDATE,
     REQUEUE_UPDATE,
     REVIEW_UPDATE,
     SOURCE_KEY_SELECT,
 )
 
-COLUMN_INDEX = {name: index for index, name in enumerate(JOB_COLUMNS.split(", "))}
+COLUMN_INDEX = {name: index for index, name in enumerate(JOB_FIELDS)}
 
 
 def job_row(
