@@ -11,11 +11,14 @@ import {
   COLOR_TEXT_PRIMARY,
   PAGE_PADDING
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { HomeDashboardSnapshot } from '../models/HomeDashboard'
 import { QuestionBankSummary } from '../models/QuestionBank'
 import { Statistics } from '../models/Statistics'
 import { WrongQuestionSummary } from '../models/WrongQuestion'
-import { HomeDashboardService } from '../services/HomeDashboardService'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 
 @Component
 export struct HomePage {
@@ -25,6 +28,9 @@ export struct HomePage {
     new Statistics(0, 0, 0, 0), new Array<QuestionBankSummary>(), new Array<WrongQuestionSummary>())
   @State loading: boolean = false
   @State errorMessage: string = ''
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   @Prop syncLabel: string = '本地模式'
   onSelectTab: (index: number) => void = () => {
   }
@@ -67,12 +73,41 @@ export struct HomePage {
   }
 
   private async loadDashboard(token: number): Promise<void> {
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.dashboard = new HomeDashboardSnapshot(
+        new Statistics(0, 0, 0, 0), new Array<QuestionBankSummary>(),
+        new Array<WrongQuestionSummary>())
+      this.loading = false
+      return
+    }
     try {
-      const dashboard: HomeDashboardSnapshot = await HomeDashboardService.load()
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
       if (token !== this.requestToken) {
         return
       }
-      this.dashboard = dashboard
+      this.offline = false
+    } catch {
+      if (token !== this.requestToken) {
+        return
+      }
+      this.offline = true
+    }
+    try {
+      const statistics: Statistics = await CloudQuestionRepository.statistics(this.accountId)
+      const banks: Array<QuestionBankSummary> =
+        await CloudQuestionRepository.listCachedBanks(this.accountId)
+      const wrongQuestions: Array<WrongQuestionSummary> =
+        await CloudQuestionRepository.listCachedWrongQuestions(this.accountId)
+      if (token !== this.requestToken) {
+        return
+      }
+      this.dashboard = new HomeDashboardSnapshot(statistics, banks, wrongQuestions)
       this.loading = false
     } catch (err) {
       if (token !== this.requestToken) {
@@ -86,6 +121,20 @@ export struct HomePage {
   private retry(): void {
     this.hasRequested = false
     this.refreshWhenActive()
+  }
+
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.offline) {
+      return '离线浏览：当前仅可查看缓存，修改需联网'
+    }
+    return ''
+  }
+
+  private canMutate(): boolean {
+    return ConnectivityPolicy.canMutate(this.signedIn, !this.offline)
   }
 
   private bankLabels(): Array<string> {
@@ -113,6 +162,17 @@ export struct HomePage {
   build() {
     Column() {
       AppHeader({ title: '首页' })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       if (this.loading) {
         Column({ space: 14 }) {
@@ -193,8 +253,9 @@ export struct HomePage {
             .width('100%')
             .height(54)
             .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
+            .backgroundColor(this.canMutate() ? COLOR_PRIMARY : '#8E99AA')
             .borderRadius(18)
+            .enabled(this.canMutate())
             .onClick(() => {
               this.onStartImport()
             })

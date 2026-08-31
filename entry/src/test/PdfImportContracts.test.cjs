@@ -985,15 +985,15 @@ test('saved question editor clones all editable fields but preserves source imag
   assertOrdered(save, [
     'new Question(',
     'this.sourceImages.slice()',
-    'QuestionBankService.updateQuestion(updatedQuestion)',
+    'CloudQuestionRepository.updateQuestion(updatedQuestion, getContext(this))',
     "this.showToast('修改已保存')",
     'this.getUIContext().getRouter().back()'
   ])
-  assert.doesNotMatch(source, /QuestionImageService|deletePaths|commitImages/)
+  assert.doesNotMatch(source, /QuestionImageService|deletePaths|commitImages|QuestionBankService/)
   assert.match(source, /if \(this\.pending \|\| this\.navigationPending\)/)
 })
 
-test('bank deletion commits database first then tracks only structured image cleanup failures', () => {
+test('bank deletion is server-first and refreshes the cache only after server success', () => {
   const imageSource = fs.readFileSync('entry/src/main/ets/services/QuestionImageService.ets', 'utf8')
   assert.match(imageSource, /export class QuestionImageCleanupError extends Error/)
   assert.match(imageSource, /readonly paths:\s*Array<string>/)
@@ -1003,16 +1003,14 @@ test('bank deletion commits database first then tracks only structured image cle
   assert.match(deletion, /throw new QuestionImageCleanupError\(/)
 
   const books = fs.readFileSync('entry/src/main/ets/pages/BooksPage.ets', 'utf8')
-  assert.match(books, /QuestionImageCleanupError/)
+  assert.match(books, /CloudQuestionRepository\.deleteBank/)
   const persist = extractMethod(books, 'private async persistBankDeletion')
   assertOrdered(persist, [
-    'QuestionBankService.deleteBank(bankId)',
-    'QuestionImageService.deletePaths(getContext(this), imagePaths)',
-    'QuestionImageService.rememberCleanupDebt(err.paths)',
-    "this.showToast('题库已删除，部分缓存稍后清理')",
+    'CloudQuestionRepository.deleteBank(bankUuid, getContext(this))',
+    "this.showToast('题库已删除')",
     'this.refreshWhenActive()'
   ])
-  assert.doesNotMatch(persist, /rememberCleanupDebt\(imagePaths\)/)
+  assert.doesNotMatch(persist, /QuestionImageService|QuestionBankService\.deleteBank|rememberCleanupDebt/)
 })
 
 test('question list reloads the active query on page show and lazily renders a fully notified data source', () => {

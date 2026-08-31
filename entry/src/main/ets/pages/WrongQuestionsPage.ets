@@ -14,14 +14,14 @@ import {
   COLOR_TEXT_CAPTION,
   PAGE_PADDING
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { Statistics } from '../models/Statistics'
-import { WrongQuestionFilter, WrongQuestionSummary } from '../models/WrongQuestion'
-import { StatisticsService } from '../services/StatisticsService'
-import { WrongQuestionService } from '../services/WrongQuestionService'
+import { WrongQuestionSummary } from '../models/WrongQuestion'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
-
-const PAGE_SIZE: number = 50
 
 @Component
 export struct WrongQuestionsPage {
@@ -32,14 +32,14 @@ export struct WrongQuestionsPage {
   @State selectedSubject: string = ''
   @State items: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()
   @State loading: boolean = false
-  @State loadingMore: boolean = false
-  @State hasMore: boolean = false
   @State errorMessage: string = ''
   @State navigationPending: boolean = false
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
-  private nextOffset: number = 0
 
   aboutToAppear(): void {
     this.refreshWhenActive()
@@ -67,32 +67,51 @@ export struct WrongQuestionsPage {
     this.requestToken = this.requestToken + 1
     const token: number = this.requestToken
     this.loading = true
-    this.loadingMore = false
-    this.hasMore = false
     this.items = new Array<WrongQuestionSummary>()
-    this.nextOffset = 0
     this.errorMessage = ''
     this.loadContent(token)
   }
 
   private async loadContent(token: number): Promise<void> {
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.statistics = new Statistics(0, 0, 0, 0)
+      this.subjects = new Array<string>()
+      this.items = new Array<WrongQuestionSummary>()
+      this.loading = false
+      return
+    }
     try {
-      const statistics: Statistics = await StatisticsService.load()
-      const subjects: Array<string> = await WrongQuestionService.listSubjects()
-      if (this.selectedSubject.length > 0 && !this.containsSubject(subjects, this.selectedSubject)) {
-        this.selectedSubject = ''
-      }
-      const filter: WrongQuestionFilter = new WrongQuestionFilter(this.selectedSubject)
-      const items: Array<WrongQuestionSummary> = await WrongQuestionService.listSummaries(
-        filter, PAGE_SIZE + 1, 0)
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
       if (token !== this.requestToken) {
         return
       }
+      this.offline = false
+    } catch {
+      if (token !== this.requestToken) {
+        return
+      }
+      this.offline = true
+    }
+    try {
+      const statistics: Statistics = await CloudQuestionRepository.statistics(this.accountId)
+      const items: Array<WrongQuestionSummary> =
+        await CloudQuestionRepository.listCachedWrongQuestions(this.accountId)
+      const subjects: Array<string> = this.deriveSubjects(items)
+      if (token !== this.requestToken) {
+        return
+      }
+      if (this.selectedSubject.length > 0 && !this.containsSubject(subjects, this.selectedSubject)) {
+        this.selectedSubject = ''
+      }
       this.statistics = statistics
       this.subjects = subjects
-      this.items = this.takeVisiblePage(items)
-      this.nextOffset = this.items.length
-      this.hasMore = items.length > PAGE_SIZE
+      this.items = this.filterBySubject(items)
       this.loading = false
     } catch (err) {
       if (token !== this.requestToken) {
@@ -101,6 +120,31 @@ export struct WrongQuestionsPage {
       this.errorMessage = '错题数据加载失败，请稍后重试'
       this.loading = false
     }
+  }
+
+  private deriveSubjects(items: Array<WrongQuestionSummary>): Array<string> {
+    const subjects: Array<string> = new Array<string>()
+    for (let index: number = 0; index < items.length; index++) {
+      const subject: string = items[index].subject
+      if (subject.length > 0 && !this.containsSubject(subjects, subject)) {
+        subjects.push(subject)
+      }
+    }
+    subjects.sort()
+    return subjects
+  }
+
+  private filterBySubject(items: Array<WrongQuestionSummary>): Array<WrongQuestionSummary> {
+    if (this.selectedSubject.length === 0) {
+      return items.slice()
+    }
+    const filtered: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()
+    for (let index: number = 0; index < items.length; index++) {
+      if (items[index].subject === this.selectedSubject) {
+        filtered.push(items[index])
+      }
+    }
+    return filtered
   }
 
   private retry(): void {
@@ -126,62 +170,14 @@ export struct WrongQuestionsPage {
     this.refreshWhenActive()
   }
 
-  private takeVisiblePage(items: Array<WrongQuestionSummary>): Array<WrongQuestionSummary> {
-    const page: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()
-    const count: number = items.length > PAGE_SIZE ? PAGE_SIZE : items.length
-    for (let index: number = 0; index < count; index++) {
-      page.push(items[index])
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
     }
-    return page
-  }
-
-  private mergeUnique(items: Array<WrongQuestionSummary>,
-    nextPage: Array<WrongQuestionSummary>): Array<WrongQuestionSummary> {
-    const merged: Array<WrongQuestionSummary> = items.slice()
-    const ids: Set<string> = new Set<string>()
-    for (let index: number = 0; index < items.length; index++) {
-      ids.add(items[index].id)
+    if (this.offline) {
+      return '离线浏览：当前仅可查看缓存，修改需联网'
     }
-    for (let index: number = 0; index < nextPage.length; index++) {
-      const item: WrongQuestionSummary = nextPage[index]
-      if (!ids.has(item.id)) {
-        ids.add(item.id)
-        merged.push(item)
-      }
-    }
-    return merged
-  }
-
-  private loadMore(): void {
-    if (this.loading || this.loadingMore || !this.hasMore) {
-      return
-    }
-    const token: number = this.requestToken
-    const offset: number = this.nextOffset
-    this.loadingMore = true
-    this.loadMorePage(token, offset)
-  }
-
-  private async loadMorePage(token: number, offset: number): Promise<void> {
-    try {
-      const filter: WrongQuestionFilter = new WrongQuestionFilter(this.selectedSubject)
-      const items: Array<WrongQuestionSummary> = await WrongQuestionService.listSummaries(
-        filter, PAGE_SIZE + 1, offset)
-      if (token !== this.requestToken) {
-        return
-      }
-      const nextPage: Array<WrongQuestionSummary> = this.takeVisiblePage(items)
-      this.items = this.mergeUnique(this.items, nextPage)
-      this.nextOffset = offset + nextPage.length
-      this.hasMore = items.length > PAGE_SIZE
-      this.loadingMore = false
-    } catch (err) {
-      if (token !== this.requestToken) {
-        return
-      }
-      this.loadingMore = false
-      this.showToast('加载更多失败，请稍后重试')
-    }
+    return ''
   }
 
   private showToast(message: string): void {
@@ -210,6 +206,17 @@ export struct WrongQuestionsPage {
   build() {
     Column() {
       AppHeader({ title: '错题收集' })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       if (this.loading) {
         Column({ space: 14 }) {
@@ -349,26 +356,6 @@ export struct WrongQuestionsPage {
                 })
               }
             }, (item: WrongQuestionSummary): string => item.id)
-
-            if (this.hasMore) {
-              ListItem() {
-                Button() {
-                  Text(this.loadingMore ? '正在加载...' : '加载更多')
-                    .fontSize(15)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor('#FFFFFF')
-                }
-                .type(ButtonType.Normal)
-                .width('100%')
-                .height(48)
-                .backgroundColor(COLOR_PRIMARY)
-                .borderRadius(16)
-                .enabled(!this.loadingMore)
-                .onClick(() => {
-                  this.loadMore()
-                })
-              }
-            }
           }
         }
         .layoutWeight(1)

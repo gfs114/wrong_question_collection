@@ -41,6 +41,7 @@ import { CloudImportService } from '../main/ets/services/CloudImportService';
 import { SyncOperationType, SyncOutboxPolicy, SyncSequence } from '../main/ets/models/SyncModels';
 import { CacheVersionPolicy } from '../main/ets/models/CloudCacheModels';
 import { DeviceImageScope } from '../main/ets/services/DeviceImageStore';
+import { ConnectivityPolicy } from '../main/ets/services/ConnectivityPolicy';
 
 class ParserAssertions {
   static expectRejected(text: string): void {
@@ -100,6 +101,26 @@ class JsonSamples {
 }
 
 export default function localUnitTest(): void {
+  describe('connectivityPolicy', () => {
+    it('allows mutation only when signed in and online', 0, () => {
+      expect(ConnectivityPolicy.canMutate(true, true)).assertTrue()
+      expect(ConnectivityPolicy.canMutate(true, false)).assertFalse()
+      expect(ConnectivityPolicy.canMutate(false, true)).assertFalse()
+      expect(ConnectivityPolicy.canMutate(false, false)).assertFalse()
+    })
+
+    it('classifies offline browsing and read-only states for pages', 0, () => {
+      expect(ConnectivityPolicy.isOfflineBrowsing(true, false)).assertTrue()
+      expect(ConnectivityPolicy.isOfflineBrowsing(true, true)).assertFalse()
+      expect(ConnectivityPolicy.isOfflineBrowsing(false, false)).assertFalse()
+      expect(ConnectivityPolicy.isReadOnly(true, false)).assertTrue()
+      expect(ConnectivityPolicy.isReadOnly(false, true)).assertTrue()
+      expect(ConnectivityPolicy.isReadOnly(true, true)).assertFalse()
+      expect(ConnectivityPolicy.statusLabel(true, false)).assertEqual('离线浏览')
+      expect(ConnectivityPolicy.statusLabel(false, true)).assertEqual('未登录')
+    })
+  })
+
   describe('cloudCachePolicies', () => {
     it('allows only newer server cursors to replace cache', 0, () => {
       expect(CacheVersionPolicy.shouldReplace('12', '13')).assertTrue()

@@ -12,9 +12,12 @@ import {
   COLOR_TEXT_PRIMARY,
   PAGE_PADDING
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
-import { QuestionBank } from '../models/QuestionBank'
-import { QuestionBankService } from '../services/QuestionBankService'
+import { QuestionBankSummary } from '../models/QuestionBank'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { NavigationState } from '../utils/NavigationState'
 
 class QuestionListDataSource implements IDataSource {
@@ -60,8 +63,13 @@ struct QuestionListPage {
   @State loading: boolean = false
   @State errorMessage: string = ''
   @State navigationPending: boolean = false
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   private bankId: string = ''
+  private cachedBankId: string = ''
   private requestToken: number = 0
+  private bankQuestions: Array<Question> = new Array<Question>()
   private readonly questionDataSource: QuestionListDataSource = new QuestionListDataSource()
 
   onPageShow(): void {
@@ -70,6 +78,7 @@ struct QuestionListPage {
       this.bankId = selectedBankId
       this.bankName = '题目列表'
       this.query = ''
+      this.cachedBankId = ''
     }
     if (this.query.trim().length === 0) {
       this.loadBank()
@@ -83,6 +92,16 @@ struct QuestionListPage {
       return
     }
     this.getUIContext().getRouter().back()
+  }
+
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.offline) {
+      return '离线浏览：当前仅可查看缓存，修改需联网'
+    }
+    return ''
   }
 
   private loadBank(): void {
@@ -102,18 +121,64 @@ struct QuestionListPage {
       }
       return
     }
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.replaceQuestions(new Array<Question>())
+      this.loading = false
+      return
+    }
+    await this.refreshCloud(token)
+    await this.loadCachedQuestions(token)
+  }
+
+  private async refreshCloud(token: number): Promise<void> {
     try {
-      const bank: QuestionBank | null = await QuestionBankService.getBank(this.bankId)
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
+      if (token === this.requestToken) {
+        this.offline = false
+      }
+    } catch {
+      if (token === this.requestToken) {
+        this.offline = true
+      }
+    }
+  }
+
+  private async loadCachedQuestions(token: number): Promise<void> {
+    try {
+      const banks: Array<QuestionBankSummary> =
+        await CloudQuestionRepository.listCachedBanks(this.accountId)
       if (token !== this.requestToken) {
         return
       }
-      if (bank === null) {
+      let bankName: string = '题目列表'
+      let foundBank: boolean = false
+      for (let index: number = 0; index < banks.length; index++) {
+        if (banks[index].id === this.bankId) {
+          bankName = banks[index].bankName
+          foundBank = true
+          break
+        }
+      }
+      if (!foundBank) {
         this.errorMessage = '该题库不存在或已被删除'
         this.loading = false
         return
       }
-      this.bankName = bank.bankName
-      this.replaceQuestions(bank.questions)
+      this.bankName = bankName
+      const questions: Array<Question> =
+        await CloudQuestionRepository.listCachedQuestions(this.accountId, this.bankId)
+      if (token !== this.requestToken) {
+        return
+      }
+      this.bankQuestions = questions.slice()
+      this.cachedBankId = this.bankId
+      this.replaceQuestions(questions)
       this.loading = false
     } catch {
       if (token !== this.requestToken) {
@@ -142,20 +207,48 @@ struct QuestionListPage {
       }
       return
     }
-    try {
-      const questions: Array<Question> = await QuestionBankService.searchQuestions(this.bankId, value)
+    if (this.cachedBankId !== this.bankId || this.bankQuestions.length === 0) {
+      const session: AccountSessionState = await AccountSessionService.state(getContext(this))
       if (token !== this.requestToken) {
         return
       }
-      this.replaceQuestions(questions)
-      this.loading = false
-    } catch {
-      if (token !== this.requestToken) {
+      this.signedIn = session.signedIn
+      this.accountId = session.userId
+      if (!this.signedIn) {
+        this.replaceQuestions(new Array<Question>())
+        this.loading = false
         return
       }
-      this.errorMessage = '搜索失败，请稍后重试'
-      this.loading = false
+      await this.refreshCloud(token)
+      try {
+        const questions: Array<Question> =
+          await CloudQuestionRepository.listCachedQuestions(this.accountId, this.bankId)
+        if (token !== this.requestToken) {
+          return
+        }
+        this.bankQuestions = questions.slice()
+        this.cachedBankId = this.bankId
+      } catch {
+        if (token !== this.requestToken) {
+          return
+        }
+        this.errorMessage = '搜索失败，请稍后重试'
+        this.loading = false
+        return
+      }
     }
+    const needle: string = value.trim()
+    const filtered: Array<Question> = new Array<Question>()
+    for (let index: number = 0; index < this.bankQuestions.length; index++) {
+      if (needle.length === 0 || this.bankQuestions[index].question.indexOf(needle) >= 0) {
+        filtered.push(this.bankQuestions[index])
+      }
+    }
+    if (token !== this.requestToken) {
+      return
+    }
+    this.replaceQuestions(filtered)
+    this.loading = false
   }
 
   private retry(): void {
@@ -207,6 +300,17 @@ struct QuestionListPage {
           this.goBack()
         }
       })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       Row({ space: 10 }) {
         Text('搜')

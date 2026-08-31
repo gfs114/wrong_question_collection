@@ -10,9 +10,12 @@ import {
   COLOR_TEXT_PRIMARY,
   PAGE_PADDING
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
 import { QuestionImage } from '../models/QuestionImage'
-import { QuestionBankService } from '../services/QuestionBankService'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { NavigationState } from '../utils/NavigationState'
 
 @Entry
@@ -30,6 +33,9 @@ struct EditQuestionPage {
   @State pending: boolean = false
   @State navigationPending: boolean = false
   @State errorMessage: string = ''
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   private requestToken: number = 0
 
   aboutToAppear(): void {
@@ -53,6 +59,20 @@ struct EditQuestionPage {
     }
   }
 
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.offline) {
+      return '离线浏览：当前处于只读状态，仅可查看缓存'
+    }
+    return ''
+  }
+
+  private canMutate(): boolean {
+    return ConnectivityPolicy.canMutate(this.signedIn, !this.offline)
+  }
+
   private loadSelectedQuestion(): void {
     if (this.pending || this.navigationPending) {
       return
@@ -74,8 +94,32 @@ struct EditQuestionPage {
       }
       return
     }
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.loading = false
+      this.errorMessage = '请先登录华为账号后编辑题目'
+      return
+    }
     try {
-      const question: Question | null = await QuestionBankService.getQuestion(questionId)
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
+      if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
+        return
+      }
+      this.offline = false
+    } catch {
+      if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
+        return
+      }
+      this.offline = true
+    }
+    try {
+      const question: Question | null =
+        await CloudQuestionRepository.cachedQuestion(this.accountId, questionId)
       if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
         return
       }
@@ -126,6 +170,17 @@ struct EditQuestionPage {
       this.showToast('题干不能为空')
       return
     }
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.showToast('未登录，无法保存修改，请先登录')
+      return
+    }
+    if (this.offline) {
+      this.showToast('离线浏览：当前处于只读状态，无法保存')
+      return
+    }
     this.pending = true
     const token: number = this.requestToken
     const questionId: string = this.currentQuestion.id
@@ -142,7 +197,7 @@ struct EditQuestionPage {
       this.currentQuestion.reviewState,
       this.sourceImages.slice())
     try {
-      await QuestionBankService.updateQuestion(updatedQuestion)
+      await CloudQuestionRepository.updateQuestion(updatedQuestion, getContext(this))
       if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
         return
       }
@@ -161,7 +216,7 @@ struct EditQuestionPage {
         return
       }
       this.pending = false
-      this.showToast('保存失败，请稍后重试')
+      this.showToast('保存失败，请检查网络后重试')
     }
   }
 
@@ -181,6 +236,17 @@ struct EditQuestionPage {
           this.goBack()
         }
       })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       if (this.loading) {
         Column({ space: 14 }) {
@@ -343,9 +409,10 @@ struct EditQuestionPage {
           .fontSize(BODY_FONT_SIZE)
           .fontWeight(FontWeight.Bold)
           .fontColor('#FFFFFF')
-          .backgroundColor(this.pending || this.navigationPending ? '#8E99AA' : COLOR_PRIMARY)
+          .backgroundColor(this.pending || this.navigationPending || !this.canMutate() ?
+            '#8E99AA' : COLOR_PRIMARY)
           .borderRadius(14)
-          .enabled(!this.pending && !this.navigationPending)
+          .enabled(!this.pending && !this.navigationPending && this.canMutate())
           .onClick(() => {
             this.saveQuestion()
           })

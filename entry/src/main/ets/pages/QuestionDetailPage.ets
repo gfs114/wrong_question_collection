@@ -14,9 +14,11 @@ import {
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
-import { QuestionBankService } from '../services/QuestionBankService'
-import { WrongQuestionService } from '../services/WrongQuestionService'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { NavigationState } from '../utils/NavigationState'
 
 @Entry
@@ -29,6 +31,9 @@ struct QuestionDetailPage {
   @State adding: boolean = false
   @State navigationPending: boolean = false
   @State errorMessage: string = ''
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   private requestToken: number = 0
 
   onPageShow(): void {
@@ -40,6 +45,20 @@ struct QuestionDetailPage {
       return
     }
     this.getUIContext().getRouter().back()
+  }
+
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.offline) {
+      return '离线浏览：当前仅可查看缓存，修改需联网'
+    }
+    return ''
+  }
+
+  private canMutate(): boolean {
+    return ConnectivityPolicy.canMutate(this.signedIn, !this.offline)
   }
 
   private openEditor(): void {
@@ -82,8 +101,32 @@ struct QuestionDetailPage {
       }
       return
     }
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.errorMessage = '请先登录华为账号后查看题目'
+      this.loading = false
+      return
+    }
     try {
-      const question: Question | null = await QuestionBankService.getQuestion(questionId)
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
+      if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
+        return
+      }
+      this.offline = false
+    } catch {
+      if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
+        return
+      }
+      this.offline = true
+    }
+    try {
+      const question: Question | null =
+        await CloudQuestionRepository.cachedQuestion(this.accountId, questionId)
       if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
         return
       }
@@ -92,7 +135,7 @@ struct QuestionDetailPage {
         this.loading = false
         return
       }
-      const isWrong: boolean = await WrongQuestionService.containsQuestion(questionId)
+      const isWrong: boolean = await CloudQuestionRepository.containsWrong(this.accountId, questionId)
       if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
         return
       }
@@ -127,30 +170,31 @@ struct QuestionDetailPage {
     if (this.adding || this.navigationPending || this.isWrong || !this.found) {
       return
     }
+    if (!this.canMutate()) {
+      this.showToast(ConnectivityPolicy.mutationBlockedMessage(this.signedIn, !this.offline))
+      return
+    }
     this.adding = true
     const token: number = this.requestToken
     const questionId: string = this.currentQuestion.id
-    const bankId: string = this.currentQuestion.bankId
-    this.addWrongQuestion(token, questionId, bankId)
+    this.addWrongQuestion(token, questionId)
   }
 
-  private async addWrongQuestion(token: number, questionId: string, bankId: string): Promise<void> {
+  private async addWrongQuestion(token: number, questionId: string): Promise<void> {
     try {
-      const added: boolean = await WrongQuestionService.add(questionId, bankId, '')
+      await CloudQuestionRepository.setWrongState(questionId, 'pending', getContext(this))
       if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
         return
       }
       this.isWrong = true
       this.adding = false
-      if (added) {
-        this.showToast('已加入错题本')
-      }
+      this.showToast('已加入错题本')
     } catch {
       if (token !== this.requestToken || questionId !== NavigationState.shared().selectedQuestionId) {
         return
       }
       this.adding = false
-      this.showToast('加入错题失败，请稍后重试')
+      this.showToast('加入错题失败，请检查网络后重试')
     }
   }
 
@@ -170,6 +214,17 @@ struct QuestionDetailPage {
           this.goBack()
         }
       })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       if (this.loading) {
         Column({ space: 14 }) {
@@ -333,7 +388,7 @@ struct QuestionDetailPage {
           .height(48)
           .backgroundColor(this.isWrong || this.adding ? '#8E99AA' : COLOR_PRIMARY)
           .borderRadius(14)
-          .enabled(!this.isWrong && !this.adding)
+          .enabled(!this.isWrong && !this.adding && this.canMutate())
           .onClick(() => {
             this.addToWrongQuestions()
           })

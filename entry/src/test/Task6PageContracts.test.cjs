@@ -33,14 +33,14 @@ expectIncludes(importPage, 'result.cancelled', 'cancelled import must be handled
 expectExcludes(importPage, 'result.message', 'raw service details must not be rendered')
 
 const listPage = readPage('QuestionListPage')
-expectIncludes(listPage, 'QuestionBankService.searchQuestions', 'search must use the service')
+expectIncludes(listPage, 'CloudQuestionRepository.listCachedQuestions', 'search must use the cloud cache')
 expectIncludes(listPage, 'NavigationState.shared().selectQuestion', 'question order must be saved before routing')
 expectIncludes(listPage, '(question: Question): string => question.id', 'list must use stable question ids')
 expectIncludes(listPage, 'navigationPending', 're-entrant navigation must be guarded')
 
 const detailPage = readPage('QuestionDetailPage')
-expectIncludes(detailPage, 'WrongQuestionService.containsQuestion', 'wrong-question status must be loaded')
-expectIncludes(detailPage, 'WrongQuestionService.add', 'add action must use the service')
+expectIncludes(detailPage, 'CloudQuestionRepository.containsWrong', 'wrong-question status must be loaded')
+expectIncludes(detailPage, 'CloudQuestionRepository.setWrongState', 'add action must be server-first')
 expectIncludes(detailPage, '上一题', 'previous action must be visible')
 expectIncludes(detailPage, '下一题', 'next action must be visible')
 expectIncludes(detailPage, 'requestToken', 'stale async loads must be rejected')

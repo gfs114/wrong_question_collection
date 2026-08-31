@@ -10,12 +10,11 @@ import {
   COLOR_TEXT_CAPTION,
   PAGE_PADDING
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { QuestionBankSummary } from '../models/QuestionBank'
-import { QuestionBankService } from '../services/QuestionBankService'
-import {
-  QuestionImageCleanupError,
-  QuestionImageService
-} from '../services/QuestionImageService'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
 
@@ -29,6 +28,9 @@ export struct BooksPage {
   @State navigationPending: boolean = false
   @State dialogPending: boolean = false
   @State deletingBankId: string = ''
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
@@ -64,8 +66,32 @@ export struct BooksPage {
   }
 
   private async loadBanks(token: number): Promise<void> {
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.banks = new Array<QuestionBankSummary>()
+      this.loading = false
+      return
+    }
     try {
-      const banks: Array<QuestionBankSummary> = await QuestionBankService.listBanks()
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
+      if (token !== this.requestToken) {
+        return
+      }
+      this.offline = false
+    } catch {
+      if (token !== this.requestToken) {
+        return
+      }
+      this.offline = true
+    }
+    try {
+      const banks: Array<QuestionBankSummary> =
+        await CloudQuestionRepository.listCachedBanks(this.accountId)
       if (token !== this.requestToken) {
         return
       }
@@ -85,8 +111,26 @@ export struct BooksPage {
     this.refreshWhenActive()
   }
 
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.offline) {
+      return '离线浏览：当前仅可查看缓存，修改需联网'
+    }
+    return ''
+  }
+
+  private canMutate(): boolean {
+    return ConnectivityPolicy.canMutate(this.signedIn, !this.offline)
+  }
+
   private openImportPage(): void {
     if (this.navigationPending || this.dialogPending || this.deletingBankId.length > 0) {
+      return
+    }
+    if (!this.canMutate()) {
+      this.showToast(ConnectivityPolicy.mutationBlockedMessage(this.signedIn, !this.offline))
       return
     }
     this.navigationPending = true
@@ -120,11 +164,15 @@ export struct BooksPage {
     if (this.navigationPending || this.dialogPending || this.deletingBankId.length > 0) {
       return
     }
+    if (!this.canMutate()) {
+      this.showToast(ConnectivityPolicy.mutationBlockedMessage(this.signedIn, !this.offline))
+      return
+    }
     this.dialogPending = true
     try {
       this.getUIContext().showAlertDialog({
         title: '删除题库？',
-        message: '“' + bank.bankName + '”及其关联错题将从本机删除。',
+        message: '“' + bank.bankName + '”将从云端删除，本机缓存同步移除。',
         autoCancel: false,
         primaryButton: {
           value: '删除',
@@ -154,36 +202,22 @@ export struct BooksPage {
     this.persistBankDeletion(bankId)
   }
 
-  private async persistBankDeletion(bankId: string): Promise<void> {
-    let imagePaths: Array<string> = new Array<string>()
+  private async persistBankDeletion(bankUuid: string): Promise<void> {
     try {
-      imagePaths = await QuestionBankService.deleteBank(bankId)
+      await CloudQuestionRepository.deleteBank(bankUuid, getContext(this))
     } catch {
-      if (this.deletingBankId !== bankId) {
+      if (this.deletingBankId !== bankUuid) {
         return
       }
       this.deletingBankId = ''
-      this.showToast('删除题库失败，请稍后重试')
+      this.showToast('删除题库失败，请检查网络后重试')
       return
     }
-    let cleanupFailed: boolean = false
-    try {
-      await QuestionImageService.deletePaths(getContext(this), imagePaths)
-    } catch (err) {
-      cleanupFailed = true
-      if (err instanceof QuestionImageCleanupError) {
-        QuestionImageService.rememberCleanupDebt(err.paths)
-      }
-    }
-    if (this.deletingBankId !== bankId) {
+    if (this.deletingBankId !== bankUuid) {
       return
     }
     this.deletingBankId = ''
-    if (cleanupFailed) {
-      this.showToast('题库已删除，部分缓存稍后清理')
-    } else {
-      this.showToast('题库已删除')
-    }
+    this.showToast('题库已删除')
     this.hasRequested = false
     this.refreshWhenActive()
   }
@@ -205,6 +239,17 @@ export struct BooksPage {
           this.openImportPage()
         }
       })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       if (this.loading) {
         Column({ space: 14 }) {
@@ -235,12 +280,14 @@ export struct BooksPage {
       } else if (this.banks.length === 0) {
         EmptyState({
           glyph: '书',
-          title: '还没有题库',
-          description: '点击右上角导入你的第一个题库',
-          actionLabel: '导入题库',
-          showAction: true,
+          title: this.signedIn ? '还没有题库' : '未登录',
+          description: this.signedIn ? '点击右上角导入你的第一个题库' : '登录后即可查看云端题库与离线缓存',
+          actionLabel: this.signedIn ? '导入题库' : '去登录',
+          showAction: this.signedIn,
           onAction: () => {
-            this.openImportPage()
+            if (this.signedIn) {
+              this.openImportPage()
+            }
           }
         })
         .layoutWeight(1)

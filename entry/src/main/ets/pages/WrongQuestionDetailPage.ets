@@ -13,8 +13,11 @@ import {
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import { WrongQuestionListItem } from '../models/WrongQuestion'
-import { WrongQuestionService } from '../services/WrongQuestionService'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
 
@@ -30,6 +33,9 @@ struct WrongQuestionDetailPage {
   @State removing: boolean = false
   @State dialogPending: boolean = false
   @State errorMessage: string = ''
+  @State signedIn: boolean = false
+  @State offline: boolean = false
+  @State accountId: string = ''
   private requestToken: number = 0
 
   aboutToAppear(): void {
@@ -44,6 +50,20 @@ struct WrongQuestionDetailPage {
       this.getUIContext().getRouter().back()
     } catch {
     }
+  }
+
+  private bannerMessage(): string {
+    if (!this.signedIn) {
+      return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.offline) {
+      return '离线浏览：当前仅可查看缓存，修改需联网'
+    }
+    return ''
+  }
+
+  private canMutate(): boolean {
+    return ConnectivityPolicy.canMutate(this.signedIn, !this.offline)
   }
 
   private loadDetail(): void {
@@ -65,8 +85,32 @@ struct WrongQuestionDetailPage {
       }
       return
     }
+    const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+    if (token !== this.requestToken || wrongId !== NavigationState.shared().selectedWrongQuestionId) {
+      return
+    }
+    this.signedIn = session.signedIn
+    this.accountId = session.userId
+    if (!this.signedIn) {
+      this.errorMessage = '请先登录华为账号后查看错题'
+      this.loading = false
+      return
+    }
     try {
-      const detail: WrongQuestionListItem | null = await WrongQuestionService.getDetail(wrongId)
+      await CloudQuestionRepository.refresh(this.accountId, getContext(this))
+      if (token !== this.requestToken || wrongId !== NavigationState.shared().selectedWrongQuestionId) {
+        return
+      }
+      this.offline = false
+    } catch {
+      if (token !== this.requestToken || wrongId !== NavigationState.shared().selectedWrongQuestionId) {
+        return
+      }
+      this.offline = true
+    }
+    try {
+      const detail: WrongQuestionListItem | null =
+        await CloudQuestionRepository.cachedWrongDetail(this.accountId, wrongId)
       if (token !== this.requestToken || wrongId !== NavigationState.shared().selectedWrongQuestionId) {
         return
       }
@@ -92,13 +136,17 @@ struct WrongQuestionDetailPage {
     if (!this.found || this.mastered || this.marking || this.removing) {
       return
     }
+    if (!this.canMutate()) {
+      this.showToast(ConnectivityPolicy.mutationBlockedMessage(this.signedIn, !this.offline))
+      return
+    }
     this.marking = true
     this.persistMastered(this.detail.id, this.requestToken)
   }
 
   private async persistMastered(wrongId: string, token: number): Promise<void> {
     try {
-      await WrongQuestionService.markMastered(wrongId)
+      await CloudQuestionRepository.setWrongState(wrongId, 'mastered', getContext(this))
       if (token !== this.requestToken || wrongId !== this.detail.id) {
         return
       }
@@ -110,7 +158,7 @@ struct WrongQuestionDetailPage {
         return
       }
       this.marking = false
-      this.showToast('标记失败，请稍后重试')
+      this.showToast('标记失败，请检查网络后重试')
     }
   }
 
@@ -118,11 +166,15 @@ struct WrongQuestionDetailPage {
     if (!this.found || this.marking || this.removing || this.dialogPending) {
       return
     }
+    if (!this.canMutate()) {
+      this.showToast(ConnectivityPolicy.mutationBlockedMessage(this.signedIn, !this.offline))
+      return
+    }
     this.dialogPending = true
     try {
       this.getUIContext().showAlertDialog({
         title: '移出错题本？',
-        message: '确定要将这道题移出错题本吗？',
+        message: '确定要将这道题从云端错题本移出吗？',
         autoCancel: false,
         primaryButton: {
           value: '移出',
@@ -154,7 +206,7 @@ struct WrongQuestionDetailPage {
 
   private async persistRemoval(wrongId: string, token: number): Promise<void> {
     try {
-      await WrongQuestionService.remove(wrongId)
+      await CloudQuestionRepository.setWrongState(wrongId, 'removed', getContext(this))
       if (token !== this.requestToken || wrongId !== this.detail.id) {
         return
       }
@@ -166,7 +218,7 @@ struct WrongQuestionDetailPage {
         return
       }
       this.removing = false
-      this.showToast('移出失败，请稍后重试')
+      this.showToast('移出失败，请检查网络后重试')
     }
   }
 
@@ -190,6 +242,17 @@ struct WrongQuestionDetailPage {
           this.goBack()
         }
       })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor('#8A5A00')
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor('#FFF4D6')
+      }
 
       if (this.loading) {
         Column({ space: 14 }) {
@@ -320,7 +383,7 @@ struct WrongQuestionDetailPage {
                   .fontSize(BODY_FONT_SIZE)
                   .fontColor(COLOR_TEXT_CAPTION)
               }
-              Text('所有操作仅影响本机数据')
+              Text('修改将同步到云端，离线时仅可查看缓存')
                 .fontSize(BODY_FONT_SIZE)
                 .fontColor(COLOR_TEXT_CAPTION)
                 .margin({ top: 4 })
@@ -348,9 +411,10 @@ struct WrongQuestionDetailPage {
           .type(ButtonType.Normal)
           .layoutWeight(1)
           .height(48)
-          .backgroundColor(this.mastered || this.marking ? '#8E99AA' : COLOR_PRIMARY)
+          .backgroundColor(this.mastered || this.marking || !this.canMutate() ? '#8E99AA' : COLOR_PRIMARY)
           .borderRadius(14)
-          .enabled(!this.mastered && !this.marking && !this.removing && !this.dialogPending)
+          .enabled(!this.mastered && !this.marking && !this.removing && !this.dialogPending &&
+            this.canMutate())
           .onClick(() => {
             this.markMastered()
           })
@@ -366,7 +430,7 @@ struct WrongQuestionDetailPage {
           .height(48)
           .backgroundColor(COLOR_CARD_BG)
           .borderRadius(14)
-          .enabled(!this.marking && !this.removing && !this.dialogPending)
+          .enabled(!this.marking && !this.removing && !this.dialogPending && this.canMutate())
           .onClick(() => {
             this.confirmRemove()
           })

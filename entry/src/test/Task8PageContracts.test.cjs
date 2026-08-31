@@ -31,7 +31,7 @@ expectIncludes(bankCard, 'onDelete', 'bank card must expose a typed delete actio
 expectIncludes(bankCard, "Text('删除')", 'delete action must be visible')
 
 const booksPage = read('pages/BooksPage.ets')
-expectIncludes(booksPage, 'QuestionBankService.deleteBank', 'bank deletion must use the transactional service')
+expectIncludes(booksPage, 'CloudQuestionRepository.deleteBank', 'bank deletion must be server-first')
 expectIncludes(booksPage, 'confirmDelete', 'bank deletion must require confirmation')
 expectIncludes(booksPage, "value: '删除'", 'bank dialog must name the destructive action')
 expectIncludes(booksPage, "'题库已删除'", 'bank deletion success feedback must be stable')
