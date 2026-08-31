@@ -47,6 +47,8 @@ interface DisconnectEvents {
 
 interface DisconnectAwareRequest extends AuthenticatedRequest, DisconnectEvents {
   aborted?: boolean;
+  complete?: boolean;
+  readableEnded?: boolean;
   res?: DisconnectEvents;
 }
 
@@ -365,8 +367,19 @@ export class ImportController {
     const abort = () => controller.abort();
     request.once?.('aborted', abort);
     request.res?.once?.('close', abort);
-    if (request.aborted === true || request.destroyed === true ||
-      (request.res?.destroyed === true && request.res.writableEnded !== true)) {
+    const requestDisconnected =
+      request.aborted === true ||
+      (
+        request.destroyed === true &&
+        request.complete !== true &&
+        request.readableEnded !== true
+      );
+
+    const responseDisconnected =
+      request.res?.destroyed === true &&
+      request.res.writableEnded !== true;
+
+    if (requestDisconnected || responseDisconnected) {
       controller.abort();
     }
     return {
@@ -378,3 +391,4 @@ export class ImportController {
     };
   }
 }
+

@@ -181,12 +181,36 @@ class JobStore:
                 if row is None:
                     connection.commit()
                     return None
+                # MySQL `claimedAt` is DATETIME(3), so the fencing token must
+                # be generated at millisecond precision. Otherwise Python may
+                # retain microseconds that MySQL discards/rounds and subsequent
+                # `WHERE claimedAt = %s` progress updates lose the lease.
                 now = self._clock()
+                now = now.replace(
+                    microsecond=(now.microsecond // 1000) * 1000
+                )
                 claimed_at = row[14]
-                if claimed_at is not None and claimed_at >= now:
-                    claimed_at = claimed_at + timedelta(microseconds=1000)
+
+                if claimed_at is not None:
+                    # mysql-connector returns DATETIME as a naive datetime while
+                    # the injected clock may be UTC-aware. Align only for the
+                    # comparison; all persisted timestamps still represent UTC.
+                    compare_now = now
+                    if claimed_at.tzinfo is None and now.tzinfo is not None:
+                        compare_now = now.astimezone(timezone.utc).replace(tzinfo=None)
+                    elif claimed_at.tzinfo is not None and now.tzinfo is None:
+                        compare_now = now.replace(tzinfo=timezone.utc)
+
+                    if claimed_at >= compare_now:
+                        claimed_at = claimed_at + timedelta(milliseconds=1)
+                    else:
+                        claimed_at = now
                 else:
                     claimed_at = now
+
+                claimed_at = claimed_at.replace(
+                    microsecond=(claimed_at.microsecond // 1000) * 1000
+                )
                 cursor.execute(CLAIM_UPDATE, (claimed_at, now, row[0]))
                 if cursor.rowcount != 1:
                     # Another worker won the conditional update; the lock is released

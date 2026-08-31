@@ -62,6 +62,7 @@ services:
     image: wrong-question-api:local
     build: *api-build
     restart: unless-stopped
+    user: "999:999"
     environment:
       NODE_ENV: production
       PORT: "3000"

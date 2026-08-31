@@ -30,6 +30,7 @@ logger = logging.getLogger("wqc.worker.pipeline")
 
 MAX_PAGES_PER_JOB = 20
 DEFAULT_MAX_LONG_EDGE = 4096
+DEFAULT_RENDER_SCALE = 2.0
 JPEG_QUALITY = 88
 OCR_LANGUAGE = os.environ.get("WQC_OCR_LANGUAGE", "ch")
 OCR_MODEL_HOME = os.environ.get("OCR_MODEL_HOME", "/opt/ocr-models")
@@ -102,12 +103,18 @@ class PdfiumRenderer(Renderer):
 
         page = document[page_index]  # type: ignore[arg-type]
         width_pt, height_pt = page.get_size()
-        scale = min(1.0, max_long_edge / max(width_pt, height_pt))
+        scale = min(
+            DEFAULT_RENDER_SCALE,
+            max_long_edge / max(width_pt, height_pt),
+        )
         bitmap = page.render(scale=scale)
         width, height = bitmap.width, bitmap.height
         pixels = bitmap.to_numpy()
         page.close()
         return RenderedPage(width=width, height=height, pixels=pixels, scale=scale)
+
+    def close(self, document: object) -> None:
+        document.close()  # type: ignore[attr-defined]
 
 
 class OcrEngine:
@@ -169,6 +176,16 @@ class PaddleOcrEngine(OcrEngine):
                         bbox=(x0, y0, x1, y1),
                     )
                 )
+
+        # PaddleOCR's returned sequence is not guaranteed to be stable reading
+        # order for formula-heavy layouts. Sort primarily top-to-bottom and
+        # secondarily left-to-right.
+        lines.sort(
+            key=lambda line: (
+                (line.bbox[1] + line.bbox[3]) / 2.0,
+                line.bbox[0],
+            )
+        )
         return lines
 
 
@@ -183,10 +200,12 @@ def default_cropper(page: RenderedPage, bbox: tuple[float, float, float, float])
     from PIL import Image  # noqa: PLC0415
 
     x0, y0, x1, y1 = bbox
-    x0 = max(0, int(x0 * page.scale))
-    y0 = max(0, int(y0 * page.scale))
-    x1 = min(page.width, int(x1 * page.scale))
-    y1 = min(page.height, int(y1 * page.scale))
+    # PaddleOCR rec_boxes are already expressed in rendered-image pixels.
+    # Multiplying by page.scale again would double-scale crop coordinates.
+    x0 = max(0, int(x0))
+    y0 = max(0, int(y0))
+    x1 = min(page.width, int(x1))
+    y1 = min(page.height, int(y1))
     if x1 <= x0 or y1 <= y0:
         return b""
     image = Image.fromarray(np.asarray(page.pixels)[y0:y1, x0:x1])
