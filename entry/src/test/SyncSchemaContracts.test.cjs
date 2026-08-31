@@ -6,10 +6,10 @@ const assert = require('node:assert/strict')
 const root = path.resolve(__dirname, '..', 'main', 'ets')
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8')
 
-test('database schema version five owns sync identity, outbox and cursor tables', () => {
+test('database schema version six retains sync identity, outbox and cursor tables', () => {
   const source = read('services/DatabaseService.ets')
 
-  assert.match(source, /const SCHEMA_VERSION:\s*number\s*=\s*5/)
+  assert.match(source, /const SCHEMA_VERSION:\s*number\s*=\s*6/)
   assert.match(source, /CREATE TABLE IF NOT EXISTS sync_identity/i)
   assert.match(source, /PRIMARY KEY\s*\(entity_type,\s*local_id\)/i)
   assert.match(source, /UNIQUE\s*\(entity_type,\s*client_uuid\)/i)

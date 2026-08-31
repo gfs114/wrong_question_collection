@@ -1,4 +1,8 @@
+import { Context } from '@kit.AbilityKit'
 import { router } from '@kit.ArkUI'
+import { BusinessError } from '@kit.BasicServicesKit'
+import { connection } from '@kit.NetworkKit'
+import fs from '@ohos.file.fs'
 import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
@@ -12,13 +16,14 @@ import {
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE
 } from '../constants/AppTheme'
-import {
-  PdfFileSelection,
-  PdfImportSettings,
-  PdfPageRangeValidation
-} from '../models/PdfImportModels'
-import { PdfImportService } from '../services/PdfImportService'
-import { PdfImportState } from '../utils/PdfImportState'
+import { AccountSessionState } from '../models/AccountSession'
+import { ApiHttpError } from '../models/ApiModels'
+import { CloudImportJob, CloudImportUploadRequest } from '../models/CloudImportModels'
+import { PdfPageRangeValidation } from '../models/PdfImportModels'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { ApiHttpClient } from '../services/ApiHttpClient'
+import { CloudImportService } from '../services/CloudImportService'
+import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
 import { PdfImportValidator } from '../utils/PdfImportValidator'
 
 @Entry
@@ -26,31 +31,37 @@ import { PdfImportValidator } from '../utils/PdfImportValidator'
 struct PdfImportSetupPage {
   @State bankName: string = ''
   @State subject: string = ''
-  @State startPageText: string = ''
-  @State endPageText: string = ''
+  @State startPageText: string = '1'
+  @State endPageText: string = '1'
   @State errorMessage: string = ''
   @State fileName: string = ''
-  @State pageCount: number = 0
+  @State fileSize: number = 0
   @State customSubject: boolean = false
   @State selectionReady: boolean = false
-  @State navigating: boolean = false
-  @State cleaning: boolean = false
-  @State cleanupPending: boolean = false
+  @State creating: boolean = false
+  @State leaving: boolean = false
   private subjects: Array<string> = ['数学', '语文', '英语', '物理', '化学', '其他']
 
   aboutToAppear(): void {
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
+    const state: PdfImportState = PdfImportState.shared()
+    const selection: CloudPdfSelection | null = state.getCloudSelection()
     if (selection === null) {
       this.selectionReady = false
       this.errorMessage = '未找到已选择的 PDF，请返回重新选择'
       return
     }
     this.fileName = selection.fileName
-    this.pageCount = Number.isFinite(selection.pageCount) && Number.isSafeInteger(selection.pageCount) &&
-      selection.pageCount > 0 ? selection.pageCount : 0
-    this.bankName = PdfImportValidator.bankNameFromFileName(selection.fileName)
-    this.startPageText = selection.startPage.toString()
-    this.endPageText = selection.endPage.toString()
+    this.fileSize = selection.sourceSize
+    const job: CloudImportJob | null = state.getCloudJob()
+    if (job === null) {
+      this.bankName = PdfImportValidator.bankNameFromFileName(selection.fileName)
+    } else {
+      this.bankName = job.bankName
+      this.subject = job.subject
+      this.startPageText = job.pageStart.toString()
+      this.endPageText = job.pageEnd.toString()
+      this.customSubject = this.subjects.indexOf(job.subject) < 0
+    }
     this.selectionReady = true
     this.errorMessage = ''
   }
@@ -61,7 +72,7 @@ struct PdfImportSetupPage {
   }
 
   private selectSubject(value: string): void {
-    if (this.navigating || this.cleaning || this.cleanupPending) {
+    if (this.creating || this.leaving) {
       return
     }
     this.customSubject = value === '其他'
@@ -89,112 +100,147 @@ struct PdfImportSetupPage {
     return true
   }
 
-  private selectedPageCount(): number {
-    if (!this.isPositiveIntegerText(this.startPageText) ||
-      !this.isPositiveIntegerText(this.endPageText)) {
-      return 0
-    }
-    const startPage: number = Number.parseInt(this.startPageText, 10)
-    const endPage: number = Number.parseInt(this.endPageText, 10)
-    if (!Number.isFinite(startPage) || !Number.isFinite(endPage) ||
-      !Number.isSafeInteger(startPage) || !Number.isSafeInteger(endPage) || endPage < startPage) {
-      return 0
-    }
-    const selectedCount: number = endPage - startPage + 1
-    return Number.isSafeInteger(selectedCount) && selectedCount > 0 ? selectedCount : 0
-  }
-
-  private startRecognition(): void {
-    if (this.navigating || this.cleaning || this.cleanupPending) {
+  private startCloudImport(): void {
+    if (this.creating || this.leaving) {
       return
     }
-    const state: PdfImportState = PdfImportState.shared()
-    const selection: PdfFileSelection | null = state.getSelection()
-    if (selection === null) {
-      this.errorMessage = '未找到已选择的 PDF，请返回重新选择'
-      return
-    }
-    const trimmedBankName: string = this.bankName.trim()
-    const trimmedSubject: string = this.subject.trim()
-    if (trimmedBankName.length === 0) {
-      this.errorMessage = '请填写题库名'
-      return
-    }
-    if (trimmedSubject.length === 0) {
-      this.errorMessage = '请选择或填写科目'
-      return
-    }
-    if (!this.isPositiveIntegerText(this.startPageText) ||
-      !this.isPositiveIntegerText(this.endPageText)) {
-      this.errorMessage = '页码必须是从 1 开始的正整数'
-      return
-    }
-    const startPage: number = Number.parseInt(this.startPageText, 10)
-    const endPage: number = Number.parseInt(this.endPageText, 10)
-    const validation: PdfPageRangeValidation = PdfImportValidator.validatePageRange(
-      startPage, endPage, selection.pageCount)
-    if (!validation.valid) {
-      this.errorMessage = validation.message
-      return
-    }
-    const settings: PdfImportSettings = new PdfImportSettings(
-      trimmedBankName, trimmedSubject, startPage, endPage)
-    state.setSettings(settings)
-    state.clearCancelRequest()
+    this.creating = true
     this.errorMessage = ''
-    this.navigating = true
-    const options: router.RouterOptions = {
-      url: 'pages/PdfImportProgressPage'
-    }
-    this.getUIContext().getRouter().pushUrl(options).catch(() => {
-      this.errorMessage = '识别页面暂不可用，请稍后重试'
+    this.prepareCloudImport().catch((err: Error) => {
+      this.errorMessage = this.messageForError(err)
     }).finally(() => {
-      this.navigating = false
+      this.creating = false
     })
   }
 
-  private async leaveImport(): Promise<void> {
-    if (this.navigating || this.cleaning) {
-      return
+  private async prepareCloudImport(): Promise<void> {
+    const context: Context = getContext(this)
+    const state: PdfImportState = PdfImportState.shared()
+    const selection: CloudPdfSelection | null = state.getCloudSelection()
+    if (selection === null) {
+      throw new Error('未找到已选择的 PDF，请返回重新选择')
     }
-    this.cleaning = true
-    this.errorMessage = ''
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
+    const session: AccountSessionState = await AccountSessionService.state(context)
+    if (!session.signedIn || session.userId.trim().length === 0) {
+      throw new Error('请先登录华为账号')
+    }
+    if (!(await this.hasUsableNetwork())) {
+      throw new Error('当前网络不可用，请连接网络后重试')
+    }
+    const trimmedBankName: string = this.bankName.trim()
+    const trimmedSubject: string = this.subject.trim()
+    if (trimmedBankName.length === 0 || trimmedBankName.length > 255) {
+      throw new Error('题库名称无效，请输入 1 至 255 个字符')
+    }
+    if (trimmedSubject.length === 0 || trimmedSubject.length > 64) {
+      throw new Error('学科无效，请输入 1 至 64 个字符')
+    }
+    if (!this.isPositiveIntegerText(this.startPageText) ||
+      !this.isPositiveIntegerText(this.endPageText)) {
+      throw new Error('页码必须是从 1 开始的正整数')
+    }
+    const pageStart: number = Number.parseInt(this.startPageText, 10)
+    const pageEnd: number = Number.parseInt(this.endPageText, 10)
+    const validation: PdfPageRangeValidation = PdfImportValidator.validatePageRange(
+      pageStart, pageEnd, 20)
+    if (!validation.valid) {
+      throw new Error(validation.message)
+    }
+    await this.validatePdfFile(selection)
+    let job: CloudImportJob | null = state.getCloudJob()
+    if (job !== null && state.getCloudAccountId() !== session.userId) {
+      throw new Error('当前账号与云端导入任务不一致，请返回重新选择')
+    }
+    if (job === null) {
+      const request: CloudImportUploadRequest = new CloudImportUploadRequest(selection.pdfPath,
+        trimmedBankName, trimmedSubject, pageStart, pageEnd)
+      job = await CloudImportService.createJob(context, request)
+      state.setCloudAccountId(session.userId)
+      state.setCloudJob(job)
+      state.setFirstMissingPart(0)
+      state.setCloudReviewDraft(null)
+      state.setConfirmResult(null)
+    }
+    const options: router.RouterOptions = {
+      url: 'pages/PdfImportProgressPage'
+    }
+    await this.getUIContext().getRouter().pushUrl(options)
+  }
+
+  private async hasUsableNetwork(): Promise<boolean> {
     try {
-      if (selection !== null) {
-        await PdfImportService.removeTemporaryPdf(selection.uri)
+      if (connection.hasDefaultNetSync()) {
+        return true
       }
     } catch {
-      this.cleanupPending = true
-      this.errorMessage = 'PDF 临时文件清理失败，请重试，或稍后清理并返回'
-      this.cleaning = false
-      return
     }
-    this.cleanupPending = false
-    await this.navigateBack()
-  }
-
-  private async abandonAndLeave(): Promise<void> {
-    if (this.navigating || this.cleaning || !this.cleanupPending) {
-      return
-    }
-    this.cleaning = true
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
-    if (selection !== null) {
-      PdfImportService.abandonTemporaryPdf(selection.uri)
-    }
-    await this.navigateBack()
-  }
-
-  private async navigateBack(): Promise<void> {
     try {
-      this.getUIContext().getRouter().back()
-      PdfImportState.shared().reset()
-    } catch {
-      this.errorMessage = '导入页面暂不可用，PDF 导入信息仍已保留'
-    } finally {
-      this.cleaning = false
+      await ApiHttpClient.get<void>('/v1/imports/pdf')
+      return true
+    } catch (err) {
+      if (err instanceof ApiHttpError && err.statusCode > 0) {
+        return true
+      }
+      return false
     }
+  }
+
+  private async validatePdfFile(selection: CloudPdfSelection): Promise<void> {
+    const info: fs.Stat = await fs.lstat(selection.pdfPath)
+    if (info.isSymbolicLink() || !info.isFile() || !Number.isSafeInteger(info.size) ||
+      info.size <= 0 || info.size !== selection.sourceSize) {
+      throw new Error('PDF 文件不存在或已发生变化，请返回重新选择')
+    }
+  }
+
+  private leaveImport(): void {
+    if (this.creating || this.leaving) {
+      return
+    }
+    this.leaving = true
+    this.finishLeaving().catch(() => {
+      this.errorMessage = 'PDF 临时文件清理失败，请稍后重试'
+    }).finally(() => {
+      this.leaving = false
+    })
+  }
+
+  private async finishLeaving(): Promise<void> {
+    const state: PdfImportState = PdfImportState.shared()
+    if (state.getCloudJob() === null) {
+      const selection: CloudPdfSelection | null = state.getCloudSelection()
+      if (selection !== null) {
+        const info: fs.Stat | null = await this.lstatIfPresent(selection.pdfPath)
+        if (info !== null && !info.isSymbolicLink() && info.isFile()) {
+          await fs.unlink(selection.pdfPath)
+        }
+      }
+      state.reset()
+    }
+    this.getUIContext().getRouter().back()
+  }
+
+  private async lstatIfPresent(path: string): Promise<fs.Stat | null> {
+    return new Promise<fs.Stat | null>((resolve, reject): void => {
+      fs.lstat(path, (err: BusinessError, info: fs.Stat): void => {
+        if (err) {
+          if (err.code === 13900002) {
+            resolve(null)
+            return
+          }
+          reject(new Error(err.message.length > 0 ? err.message : '文件状态读取失败'))
+          return
+        }
+        resolve(info)
+      })
+    })
+  }
+
+  private messageForError(err: Error): string {
+    if (err instanceof Error && err.message.length > 0) {
+      return err.message
+    }
+    return '云端导入任务创建失败，请稍后重试'
   }
 
   build() {
@@ -239,7 +285,11 @@ struct PdfImportSetupPage {
                 .fontColor(COLOR_TEXT_PRIMARY)
                 .maxLines(2)
 
-              Text('共 ' + this.pageCount.toString() + ' 页')
+              Text('文件大小 ' + Math.ceil(this.fileSize / 1024).toString() + ' KB')
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor(COLOR_TEXT_CAPTION)
+
+              Text('PDF 将上传到服务器识别，单次最多识别 20 页')
                 .fontSize(BODY_FONT_SIZE)
                 .fontColor(COLOR_TEXT_CAPTION)
             }
@@ -317,60 +367,44 @@ struct PdfImportSetupPage {
             .backgroundColor(COLOR_CARD_BG)
             .borderRadius(CARD_RADIUS)
 
-            Column({ space: 12 }) {
-              Row({ space: 12 }) {
-                Column({ space: 8 }) {
-                  Text('起始页')
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor(COLOR_TEXT_PRIMARY)
-
-                  TextInput({ placeholder: '1', text: this.startPageText })
-                    .width('100%')
-                    .height(48)
-                    .type(InputType.Number)
-                    .backgroundColor(COLOR_PAGE_BG)
-                    .borderRadius(14)
-                    .onChange((value: string) => {
-                      this.startPageText = value
-                      this.errorMessage = ''
-                    })
-                }
-                .layoutWeight(1)
-                .alignItems(HorizontalAlign.Start)
-
-                Column({ space: 8 }) {
-                  Text('结束页')
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor(COLOR_TEXT_PRIMARY)
-
-                  TextInput({ placeholder: this.pageCount.toString(), text: this.endPageText })
-                    .width('100%')
-                    .height(48)
-                    .type(InputType.Number)
-                    .backgroundColor(COLOR_PAGE_BG)
-                    .borderRadius(14)
-                    .onChange((value: string) => {
-                      this.endPageText = value
-                      this.errorMessage = ''
-                    })
-                }
-                .layoutWeight(1)
-                .alignItems(HorizontalAlign.Start)
+            Row({ space: 12 }) {
+              Column({ space: 8 }) {
+                Text('起始页')
+                  .fontSize(BODY_FONT_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(COLOR_TEXT_PRIMARY)
+                TextInput({ placeholder: '1', text: this.startPageText })
+                  .type(InputType.Number)
+                  .height(48)
+                  .backgroundColor(COLOR_PAGE_BG)
+                  .borderRadius(14)
+                  .onChange((value: string) => {
+                    this.startPageText = value
+                    this.errorMessage = ''
+                  })
               }
-              .width('100%')
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
 
-              Text('已选 ' + this.selectedPageCount().toString() + ' 页 / 共 ' + this.pageCount.toString() + ' 页')
-                .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
-
-              Text('单次最多识别 20 页')
-                .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_PRIMARY)
+              Column({ space: 8 }) {
+                Text('结束页')
+                  .fontSize(BODY_FONT_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(COLOR_TEXT_PRIMARY)
+                TextInput({ placeholder: '1', text: this.endPageText })
+                  .type(InputType.Number)
+                  .height(48)
+                  .backgroundColor(COLOR_PAGE_BG)
+                  .borderRadius(14)
+                  .onChange((value: string) => {
+                    this.endPageText = value
+                    this.errorMessage = ''
+                  })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
             }
             .width('100%')
-            .alignItems(HorizontalAlign.Start)
             .padding(18)
             .backgroundColor(COLOR_CARD_BG)
             .borderRadius(CARD_RADIUS)
@@ -378,29 +412,14 @@ struct PdfImportSetupPage {
             if (this.errorMessage.length > 0) {
               Text(this.errorMessage)
                 .width('100%')
-                .padding(14)
+                .padding(16)
                 .fontSize(BODY_FONT_SIZE)
                 .fontColor(COLOR_DANGER)
                 .backgroundColor('#FFF2F2')
                 .borderRadius(14)
             }
 
-            if (this.cleanupPending) {
-              Button('稍后清理并返回')
-                .type(ButtonType.Normal)
-                .width('100%')
-                .height(50)
-                .fontColor(COLOR_PRIMARY)
-                .backgroundColor(COLOR_CARD_BG)
-                .border({ width: 1, color: COLOR_PRIMARY })
-                .borderRadius(15)
-                .enabled(!this.cleaning)
-                .onClick(() => {
-                  this.abandonAndLeave()
-                })
-            }
-
-            Button(this.navigating ? '正在进入识别…' : '开始识别')
+            Button(this.creating ? '正在创建云端任务…' : '开始云端识别')
               .type(ButtonType.Normal)
               .width('100%')
               .height(52)
@@ -409,9 +428,9 @@ struct PdfImportSetupPage {
               .fontColor('#FFFFFF')
               .backgroundColor(COLOR_PRIMARY)
               .borderRadius(16)
-              .enabled(!this.navigating && !this.cleaning && !this.cleanupPending)
+              .enabled(!this.creating && !this.leaving)
               .onClick(() => {
-                this.startRecognition()
+                this.startCloudImport()
               })
           }
           .width('100%')

@@ -33,7 +33,7 @@ function assertOrdered(source, fragments) {
 
 test('current schema contains question image storage and durable cleanup debt', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/DatabaseService.ets', 'utf8')
-  assert.match(source, /SCHEMA_VERSION:\s*number\s*=\s*5/)
+  assert.match(source, /SCHEMA_VERSION:\s*number\s*=\s*6/)
   assert.match(source, /CREATE TABLE IF NOT EXISTS question_image/)
   assert.match(source, /CREATE TABLE IF NOT EXISTS question_image_cleanup_debt/)
   assert.match(source, /path TEXT PRIMARY KEY/)
@@ -606,7 +606,7 @@ test('PDF import device pipeline stays offline even with app-level INTERNET perm
   assert.doesNotMatch(source, /@kit\.NetworkKit|ohos\.permission\.INTERNET|\bhttp\b|\bhttps\b|HttpClient|createHttp/)
 })
 
-test('PDF import routes and visible flow copy are registered', () => {
+test('PDF import routes and cloud setup copy are registered', () => {
   const routes = JSON.parse(fs.readFileSync(
     'entry/src/main/resources/base/profile/main_pages.json', 'utf8')).src
   assert.ok(routes.includes('pages/PdfImportSetupPage'))
@@ -619,39 +619,42 @@ test('PDF import routes and visible flow copy are registered', () => {
     'entry/src/main/ets/pages/PdfImportSetupPage.ets',
     'entry/src/main/ets/pages/PdfImportProgressPage.ets'
   ].map((path) => fs.readFileSync(path, 'utf8')).join('\n')
-  for (const copy of ['导入 PDF', '选择科目', '起始页', '结束页', '单次最多识别 20 页', '正在识别第', '取消识别']) {
+  for (const copy of ['导入 PDF', '选择科目', '起始页', '结束页', '单次最多识别 20 页']) {
     assert.match(source, new RegExp(copy))
   }
+  assert.doesNotMatch(source, /正在识别第|取消识别/)
 })
 
-test('import page preserves JSON import and stages a guarded PDF selection before setup routing', () => {
+test('import page preserves JSON import and stages a guarded cloud PDF selection before setup routing', () => {
   const source = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
   const jsonImport = extractMethod(source, 'private startImport')
   const selectPdf = extractMethod(source, 'private async selectPdf')
   assert.match(jsonImport, /ImportService\.selectAndImport|this\.importBank\(\)/)
   assert.match(source, /选择 JSON 文件/)
   assert.match(source, /\.enabled\(!this\.importing && !this\.pdfSelecting\)/)
-  assert.match(source, /PdfImportService/)
+  assert.match(source, /CloudPdfSelection/)
   assert.match(source, /PdfImportState/)
+  assert.doesNotMatch(selectPdf,
+    /PdfImportService|QuestionImageService|OnDeviceOcrService|PdfImportCoordinator|\bpdfService\b/)
   assertOrdered(selectPdf, [
     'if (this.importing || this.pdfSelecting)',
     'this.pdfSelecting = true',
     "this.errorMessage = ''",
-    'await QuestionImageService.retryCleanupDebt(getContext(this), this.activeDraftImagePaths())',
-    'await PdfImportService.selectPdf(getContext(this))',
-    'if (selection === null)',
-    'PdfImportState.shared().reset()',
-    'PdfImportState.shared().setSelection(selection)',
+    'const sourceFile: fs.File = await fs.open',
+    'await this.copyPdf(sourceFile.fd, stagedPath, sourceSize)',
+    'const stagedInfo: fs.Stat = await fs.lstat(stagedPath)',
+    'state.reset()',
+    'state.setCloudSelection(new CloudPdfSelection',
     "url: 'pages/PdfImportSetupPage'"
   ])
   assert.match(selectPdf, /finally\s*{[\s\S]*this\.pdfSelecting = false/)
   assert.match(selectPdf, /let selectionStored:\s*boolean\s*=\s*false/)
   assert.match(selectPdf,
-    /catch \(err\)[\s\S]*let selectedPdfRemoved:\s*boolean\s*=\s*true[\s\S]*selectedPdfRemoved = false[\s\S]*if \(selectionStored && selectedPdfRemoved\)[\s\S]*PdfImportState\.shared\(\)\.reset\(\)/)
-  assert.match(source, /不支持加密 PDF|PDF 文件无法解析|PDF 文件大小/)
+    /catch \(err\)[\s\S]*removeStagedPdf\(getContext\(this\)\.cacheDir, stagedPath\)[\s\S]*if \(selectionStored\)[\s\S]*PdfImportState\.shared\(\)\.reset\(\)/)
+  assert.match(source, /PDF 文件不能超过 200 MB|PDF 暂存失败/)
 })
 
-test('PDF setup validates trimmed settings and pure positive page text before progress routing', () => {
+test('PDF setup validates cloud metadata and page range before progress routing', () => {
   const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportSetupPage.ets', 'utf8')
   assert.match(source, /@Entry[\s\S]*@Component/)
   assert.match(source, /@State bankName:\s*string/)
@@ -660,105 +663,38 @@ test('PDF setup validates trimmed settings and pure positive page text before pr
   assert.match(source, /@State endPageText:\s*string/)
   assert.match(source, /@State errorMessage:\s*string/)
   const appear = extractMethod(source, 'aboutToAppear')
-  assert.match(appear, /PdfImportState\.shared\(\)\.getSelection\(\)/)
+  assert.match(appear, /PdfImportState\.shared\(\)/)
+  assert.match(appear, /getCloudSelection\(\)/)
   assert.match(appear, /PdfImportValidator\.bankNameFromFileName/)
-  const start = extractMethod(source, 'private startRecognition')
+  const start = extractMethod(source, 'private async prepareCloudImport')
   assert.match(start, /\.trim\(\)/)
   assert.match(start, /isPositiveIntegerText/)
   assert.match(start, /Number\.parseInt/)
   assert.match(start, /PdfImportValidator\.validatePageRange/)
   assertOrdered(start, [
-    'if (!validation.valid)',
-    'new PdfImportSettings',
-    'state.setSettings(settings)',
-    'state.clearCancelRequest()',
+    'const session: AccountSessionState = await AccountSessionService.state(context)',
+    'if (!session.signedIn',
+    'if (!(await this.hasUsableNetwork()))',
+    'await this.validatePdfFile(selection)',
+    'new CloudImportUploadRequest',
+    'CloudImportService.createJob(context, request)',
+    'state.setCloudAccountId(session.userId)',
+    'state.setCloudJob(job)',
     "url: 'pages/PdfImportProgressPage'"
   ])
-  const back = extractMethod(source, 'private async leaveImport')
+  const back = extractMethod(source, 'private async finishLeaving')
   assertOrdered(back, [
-    'await PdfImportService.removeTemporaryPdf(selection.uri)',
-    'this.cleanupPending = false',
-    'await this.navigateBack()'
+    'if (state.getCloudJob() === null)',
+    'await fs.unlink(selection.pdfPath)',
+    'state.reset()',
+    'this.getUIContext().getRouter().back()'
   ])
-  const navigateBack = extractMethod(source, 'private async navigateBack')
-  assertOrdered(navigateBack, [
-    'this.getUIContext().getRouter().back()',
-    'PdfImportState.shared().reset()'
-  ])
+  assert.doesNotMatch(source, /CloudImportService\.cancel/)
   assert.match(source, /题库名/)
   assert.match(source, /数学[\s\S]*语文[\s\S]*英语[\s\S]*物理[\s\S]*化学[\s\S]*其他/)
 })
 
-test('PDF progress runs exactly once and separates completion cancellation retry and cleanup', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  assert.match(source, /@Entry[\s\S]*@Component/)
-  assert.match(source, /private started:\s*boolean\s*=\s*false/)
-  const appear = extractMethod(source, 'aboutToAppear')
-  assertOrdered(appear, ['if (this.started)', 'this.started = true', 'this.runImport()'])
-  const run = extractMethod(source, 'private async runImport')
-  assert.match(run, /PdfImportCoordinator\.run/)
-  assert.match(run, /PdfImportState\.shared\(\)\.isCancelRequested\(\)/)
-  assert.match(run, /this\.currentPage = progress\.currentPage/)
-  assert.match(run, /this\.processedPageCount = progress\.processedPageCount/)
-  assert.match(run, /state\.setDrafts\(result\.drafts\)/)
-  assert.match(run, /state\.setFailures\(result\.failures\)/)
-  assertOrdered(run, [
-    'state.setDrafts(result.drafts)',
-    'state.setFailures(result.failures)',
-    'this.completed = true',
-    'this.navigateToReview()'
-  ])
-  const completionStart = run.indexOf('state.setDrafts(result.drafts)')
-  const cancellationStart = run.indexOf('if (err instanceof PdfImportCancelledError)')
-  assert.doesNotMatch(run.slice(completionStart, cancellationStart), /removeTemporaryPdf|abandonTemporaryPdf/)
-  assert.doesNotMatch(run, /pages\/PdfImportReviewPage/)
-  assert.match(run, /PdfImportCancelledError/)
-  assert.match(run,
-    /if \(err instanceof PdfImportCancelledError\)[\s\S]*try\s*{\s*await PdfImportService\.removeTemporaryPdf\(selection\.uri\)\s*}\s*catch\s*{[\s\S]*this\.cleanupPending = true[\s\S]*return\s*}[\s\S]*await this\.navigateToImportBank\(\)/)
-  const cancel = extractMethod(source, 'private cancelImport')
-  assert.match(cancel, /requestCancel\(\)/)
-  assert.match(cancel, /this\.cancelDisabled = true/)
-  const retry = extractMethod(source, 'private retryImport')
-  assertOrdered(retry, [
-    'clearCancelRequest()',
-    "this.errorMessage = ''",
-    'this.started = false',
-    'this.running = false',
-    'this.startRun()'
-  ])
-  const finishCleanup = extractMethod(source, 'private async finishCleanup')
-  assert.doesNotMatch(finishCleanup, /this\.navigateToReview\(\)/)
-  assert.doesNotMatch(finishCleanup, /pages\/PdfImportReviewPage/)
-  const continueReview = extractMethod(source, 'private continueReview')
-  assert.match(continueReview, /this\.navigateToReview\(\)/)
-  assert.doesNotMatch(continueReview, /pages\/PdfImportReviewPage|replaceUrl/)
-  const navigateToReview = extractMethod(source, 'private async navigateToReview')
-  assertOrdered(navigateToReview, [
-    'if (this.reviewNavigationPending || this.reviewNavigationCompleted)',
-    'this.reviewNavigationPending = true',
-    "url: 'pages/PdfImportReviewPage'",
-    'await this.getUIContext().getRouter().replaceUrl(options)',
-    'this.reviewNavigationCompleted = true',
-    '} catch {',
-    'this.reviewNavigationPending = false'
-  ])
-  assert.equal((source.match(/pages\/PdfImportReviewPage/g) || []).length, 1)
-  assert.equal((source.match(/this\.reviewNavigationPending = false/g) || []).length, 1)
-  assert.match(source, /\.enabled\(!this\.reviewNavigationPending && !this\.cleaning\)/)
-  const leave = extractMethod(source, 'private async leaveImport')
-  assertOrdered(leave, [
-    'await PdfImportService.removeTemporaryPdf(selection.uri)',
-    'await this.navigateToImportBank()'
-  ])
-  const navigateToImport = extractMethod(source, 'private async navigateToImportBank')
-  assertOrdered(navigateToImport, [
-    "url: 'pages/ImportBankPage'",
-    'await this.getUIContext().getRouter().replaceUrl(options)',
-    'PdfImportState.shared().reset()'
-  ])
-  assert.match(source, /当前设备不支持端侧文字识别，请使用鸿蒙真机重试/)
-  assert.match(source, /继续审核|重试清理/)
-})
+// Task 11 cloud progress page behavior is covered by CloudImportPageContracts.test.cjs.
 
 test('resource route contract requires the exact unique nine route registry', () => {
   const source = fs.readFileSync('entry/src/test/Task9ResourceContracts.test.cjs', 'utf8')
@@ -777,7 +713,7 @@ test('resource route contract requires the exact unique nine route registry', ()
   ])
 })
 
-test('import entry serializes JSON and PDF work, blocks back, retries image cleanup debt, and grows errors', () => {
+test('import entry serializes JSON and cloud PDF selection, blocks back, and grows errors', () => {
   const source = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
   const back = extractMethod(source, 'private goBack')
   const jsonImport = extractMethod(source, 'private startImport')
@@ -786,55 +722,13 @@ test('import entry serializes JSON and PDF work, blocks back, retries image clea
   assert.match(back, /if \(this\.importing \|\| this\.pdfSelecting\)/)
   assert.match(jsonImport, /if \(this\.importing \|\| this\.pdfSelecting\)/)
   assert.match(selectPdf, /if \(this\.importing \|\| this\.pdfSelecting\)/)
-  assertOrdered(selectPdf, [
-    'this.pdfSelecting = true',
-    'await QuestionImageService.retryCleanupDebt(getContext(this), this.activeDraftImagePaths())',
-    'await PdfImportService.selectPdf(getContext(this))'
-  ])
-  assert.match(selectPdf,
-    /retryCleanupDebt[\s\S]*catch[\s\S]*题图清理仍待处理[\s\S]*PdfImportService\.selectPdf/)
+  assert.doesNotMatch(selectPdf, /QuestionImageService|PdfImportService/)
   assertOrdered(hardwareBack, ['this.goBack()', 'return true'])
   assert.match(source, /\.constraintSize\(\{ minHeight: 48 \}\)/)
   assert.doesNotMatch(source, /Text\(this\.errorMessage\)[\s\S]{0,180}\.height\(48\)/)
 })
 
-test('review discard owns every unique draft image and resets only after replacement navigation', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  const collect = extractMethod(source, 'private collectDraftImagePaths')
-  const discard = extractMethod(source, 'private async performDiscard')
-  const defer = extractMethod(source, 'private async rememberDebtAndDiscard')
-  const back = extractMethod(source, 'private async discardImport')
-  const hardwareBack = extractMethod(source, 'onBackPress')
-  assertOrdered(collect, [
-    'PdfImportState.shared().getDrafts()',
-    'draft.imagePaths',
-    'paths.indexOf(path) < 0',
-    'paths.push(path)'
-  ])
-  assertOrdered(discard, [
-    'this.collectDraftImagePaths()',
-    'await QuestionImageService.deletePaths(getContext(this), paths)',
-    'this.navigateAfterDiscard()'
-  ])
-  assert.match(discard,
-    /this\.cleanupPaths = paths\.slice\(\)[\s\S]*catch[\s\S]*this\.cleanupPaths = err\.paths\.slice\(\)[\s\S]*this\.cleanupPending = true[\s\S]*return/)
-  assertOrdered(defer, [
-    'QuestionImageService.rememberCleanupDebt(this.cleanupPaths)',
-    'this.navigateAfterDiscard()'
-  ])
-  const navigation = extractMethod(source, 'private async navigateAfterDiscard')
-  assertOrdered(navigation, [
-    "url: 'pages/ImportBankPage'",
-    'await this.getUIContext().getRouter().replaceUrl(options)'
-  ])
-  assert.match(discard, /PdfImportState\.shared\(\)\.reset\(\)/)
-  assert.match(navigation, /catch[\s\S]*识别结果已丢弃，请重试返回导入页面/)
-  assert.doesNotMatch(navigation.slice(navigation.indexOf('catch')), /reset\(\)/)
-  assert.match(back, /this\.performDiscard\(\)/)
-  assertOrdered(hardwareBack, ['this.discardImport()', 'return true'])
-  assert.doesNotMatch(source, /getRouter\(\)\.back\(/)
-  assert.match(source, /丢弃识别结果|稍后清理并返回/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('coordinator exports structured cleanup errors with copied reachable paths', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
@@ -882,38 +776,7 @@ test('temporary PDF abandonment moves only exact active ownership to retryable o
   assert.match(source, /cleanupStalePdfs[\s\S]*PdfImportService\.stagedPaths\.indexOf\(path\) >= 0[\s\S]*await fs\.unlink\(path\)/)
 })
 
-test('setup and progress separate cleanup, abandonment, navigation, and state reset', () => {
-  const setupSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportSetupPage.ets', 'utf8')
-  const count = extractMethod(setupSource, 'private selectedPageCount')
-  assert.match(count, /Number\.isFinite\(startPage\)/)
-  assert.match(count, /Number\.isSafeInteger\(startPage\)/)
-  assert.match(count, /Number\.isSafeInteger\(selectedCount\)/)
-  const setupLeave = extractMethod(setupSource, 'private async leaveImport')
-  assert.match(setupLeave, /catch[\s\S]*this\.cleanupPending = true[\s\S]*return/)
-  assert.doesNotMatch(setupLeave.slice(setupLeave.indexOf('catch')), /getRouter\(\)\.back|reset\(\)/)
-  const setupDefer = extractMethod(setupSource, 'private async abandonAndLeave')
-  assertOrdered(setupDefer, ['PdfImportService.abandonTemporaryPdf(selection.uri)', 'this.navigateBack()'])
-  const setupNavigate = extractMethod(setupSource, 'private async navigateBack')
-  assertOrdered(setupNavigate, ['this.getUIContext().getRouter().back()', 'PdfImportState.shared().reset()'])
-  assert.doesNotMatch(setupNavigate.slice(setupNavigate.indexOf('catch')), /reset\(\)/)
-  assert.match(setupSource, /稍后清理并返回/)
-
-  const progressSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  assert.match(progressSource, /PdfImportCancelledCleanupError/)
-  assert.match(progressSource, /PdfImportCleanupError/)
-  assert.match(progressSource, /private cleanupPaths:\s*Array<string>/)
-  assert.match(progressSource, /private cleanupMode:\s*string/)
-  const handle = extractMethod(progressSource, 'private handleStructuredCleanupError')
-  assert.match(handle, /this\.cleanupPaths = err\.paths\.slice\(\)/)
-  assert.match(handle, /cancelled-images|fatal-images/)
-  const retry = extractMethod(progressSource, 'private async finishCleanup')
-  assert.match(retry, /QuestionImageService\.deletePaths\(getContext\(this\), this\.cleanupPaths\)/)
-  assert.match(retry, /this\.cleanupMode === 'fatal-images'[\s\S]*this\.cleanupPending = false[\s\S]*return/)
-  const later = extractMethod(progressSource, 'private async abandonCleanupAndContinue')
-  assert.match(later, /QuestionImageService\.rememberCleanupDebt\(this\.cleanupPaths\)/)
-  assert.match(later, /PdfImportService\.abandonTemporaryPdf\(selection\.uri\)/)
-  assert.match(progressSource, /稍后清理并返回|稍后清理并继续审核/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('saveCrop registers only an owned temporary residue when immediate cleanup fails', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/QuestionImageService.ets', 'utf8')
@@ -968,31 +831,7 @@ test('question image debt retry shares one transition and recovers strict direct
   assert.match(nameCheck, /QuestionImageService\.isSafeIdentifierCode\(code\)/)
 })
 
-test('import entry starts background debt recovery, protects active drafts, and preserves cleanup warnings', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
-  assert.match(source, /@State cleanupWarning:\s*string\s*=\s*''/)
-  const appear = extractMethod(source, 'aboutToAppear')
-  assert.match(appear, /this\.retryImageCleanup\(\)/)
-  const active = extractMethod(source, 'private activeDraftImagePaths')
-  assertOrdered(active, [
-    'PdfImportState.shared().getDrafts()',
-    'draft.imagePaths',
-    'paths.indexOf(path) < 0',
-    'paths.push(path)'
-  ])
-  const background = extractMethod(source, 'private retryImageCleanup')
-  assert.match(background,
-    /QuestionImageService\.retryCleanupDebt\(getContext\(this\), this\.activeDraftImagePaths\(\)\)/)
-  assert.match(background, /catch[\s\S]*this\.cleanupWarning = '部分遗留题图清理仍待处理'/)
-  const selectPdf = extractMethod(source, 'private async selectPdf')
-  assertOrdered(selectPdf, [
-    'await QuestionImageService.retryCleanupDebt(getContext(this), this.activeDraftImagePaths())',
-    'await PdfImportService.selectPdf(getContext(this))'
-  ])
-  assert.match(selectPdf, /catch[\s\S]*this\.errorMessage = this\.messageForPdfError\(err\)/)
-  assert.doesNotMatch(selectPdf, /this\.cleanupWarning = this\.messageForPdfError/)
-  assert.match(source, /Text\(this\.cleanupWarning\)/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('PDF stale cleanup isolates per-file failures so picker construction remains reachable', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/PdfImportService.ets', 'utf8')
@@ -1009,105 +848,11 @@ test('PDF stale cleanup isolates per-file failures so picker construction remain
   assert.match(staleCleanup, /await fs\.listFile\(cacheDir, options\)/)
 })
 
-test('progress reports image cleanup retry failures separately from temporary PDF cleanup', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  const retry = extractMethod(source, 'private retryCleanup')
-  assert.match(retry,
-    /this\.cleanupMode === 'fatal-images' \|\| this\.cleanupMode === 'cancelled-images'[\s\S]*题图缓存清理失败/)
-  assert.match(retry, /else[\s\S]*this\.messageForCleanupError\(err\)/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
-test('PDF review renders editable cloned drafts and deletes one draft image set after confirmation', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  assert.match(source, /识别结果/)
-  assert.match(source, /待确认/)
-  assert.match(source, /删除此题/)
-  assert.match(source, /保存题库/)
-  assert.match(source, /答案（选填）/)
-  assert.match(source, /解析（选填）/)
-  assert.match(source, /@State drafts:\s*Array<PdfQuestionDraft>/)
-  const appear = extractMethod(source, 'aboutToAppear')
-  assert.match(appear, /PdfImportState\.shared\(\)\.getDrafts\(\)/)
-  assert.match(appear, /this\.drafts =/)
-  const replace = extractMethod(source, 'private replaceDraft')
-  assert.match(replace, /new PdfQuestionDraft\(/)
-  assert.match(replace, /this\.drafts = nextDrafts/)
-  for (const methodName of [
-    'private updateQuestionText',
-    'private updateOption',
-    'private updateAnswer',
-    'private updateAnalysis',
-    'private updateType'
-  ]) {
-    const method = extractMethod(source, methodName)
-    assert.match(method, /this\.replaceDraft\(/)
-  }
-  assert.match(source, /Image\('file:\/\/' \+ imagePath\)/)
-  assert.match(source, /TextArea\(/)
-  assert.match(source, /TextInput\(/)
-  assert.match(source, /ForEach\(this\.drafts/)
-  assert.match(source, /\(draft: PdfQuestionDraft\): string => draft\.localId/)
-  const confirm = extractMethod(source, 'private confirmDeleteDraft')
-  assert.match(confirm, /showAlertDialog/)
-  assert.match(confirm, /this\.rollbackPending/)
-  assert.match(confirm, /value:\s*'删除'/)
-  assert.match(confirm, /value:\s*'取消'/)
-  const deletion = extractMethod(source, 'private async deleteDraft')
-  assertOrdered(deletion, [
-    'await QuestionImageService.deletePaths(getContext(this), draft.imagePaths)',
-    'this.drafts = nextDrafts',
-    'PdfImportState.shared().setDrafts(nextDrafts)'
-  ])
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
-test('PDF review validates essential content then commits ordered images before one transactional save', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  const validate = extractMethod(source, 'private validateDrafts')
-  assert.match(validate, /this\.drafts\.length === 0/)
-  assert.match(validate, /draft\.question\.trim\(\)\.length === 0/)
-  assert.match(validate, /draft\.type !== 'unclassified'/)
-  assert.match(validate, /draft\.imagePaths\.length > 0/)
-  assert.doesNotMatch(validate, /draft\.answer\.trim|draft\.analysis\.trim/)
-  const save = extractMethod(source, 'private async saveBank')
-  assertOrdered(save, [
-    "IdUtils.create('bank_')",
-    'QuestionImageService.commitImages',
-    'new QuestionImage(',
-    'new Question(',
-    'new QuestionBank(',
-    'QuestionBankService.savePdfBank(bank, bankId)',
-    'this.completeSuccessfulSave(bankId)'
-  ])
-  const complete = extractMethod(source, 'private async completeSuccessfulSave')
-  assertOrdered(complete, [
-    'this.finishSuccessfulPdfOwnership()',
-    'this.finalizeSuccessfulSave()'
-  ])
-  const finalize = extractMethod(source, 'private async finalizeSuccessfulSave')
-  assertOrdered(finalize, [
-    'PdfImportState.shared().reset()',
-    "showToast('题库导入成功')",
-    'NavigationState.shared().selectBank(this.savedBankId)',
-    "url: 'pages/QuestionListPage'",
-    'replaceUrl(options)'
-  ])
-  assert.match(save, /draft\.type === 'unclassified'[\s\S]*'needs_review'/)
-  assert.match(save, /draft\.imagePaths\[imageIndex\]/)
-  assert.match(save, /draft\.crops\[imageIndex\]\.pageNumber/)
-  assertOrdered(save, [
-    'QuestionImageService.commitImages',
-    'this.draftsWithCommittedImagePaths(committedPaths)',
-    'for (let draftIndex: number = 0; draftIndex < committedDrafts.length; draftIndex++)'
-  ])
-  assert.match(save, /catch \(err\)[\s\S]*QuestionImageService\.rollbackCommittedImages/)
-  assert.match(source, /@State pending:\s*boolean/)
-  assert.match(source, /@State saveCompleted:\s*boolean/)
-  assert.match(source, /if \(this\.pending \|\|/)
-  const discard = extractMethod(source, 'private async discardImport')
-  assert.match(discard, /this\.rollbackPending/)
-  assert.match(source,
-    /\.enabled\(!this\.pending && !this\.discarding && !this\.saveCompleted && !this\.rollbackPending\)/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('savePdfBank keeps bank questions and images in one transaction without changing JSON import API', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/QuestionBankService.ets', 'utf8')
@@ -1151,23 +896,18 @@ test('committed PDF image rollback is path-owned idempotent and reports recovera
   assert.match(source, /readonly committedPaths:\s*Array<string>/)
 })
 
-test('partial image commit rollback failure reaches review as a structured recoverable mapping', () => {
+test('partial image commit rollback failure preserves structured recoverable ownership', () => {
   const imageSource = fs.readFileSync('entry/src/main/ets/services/QuestionImageService.ets', 'utf8')
   const commit = extractMethod(imageSource, 'static async commitImages')
   assert.match(commit, /const expectedCommittedPaths:\s*Array<string>/)
   assert.match(commit,
     /rollbackErrors\.length > 0[\s\S]*throw new QuestionImageRollbackError\([\s\S]*bankId[\s\S]*paths[\s\S]*expectedCommittedPaths/)
-  const reviewSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  const save = extractMethod(reviewSource, 'private async saveBank')
-  assert.match(reviewSource, /QuestionImageRollbackError/)
-  assert.match(save,
-    /catch \(err\)[\s\S]*err instanceof QuestionImageRollbackError[\s\S]*this\.rollbackPending = true[\s\S]*err\.bankId[\s\S]*err\.cachePaths\.slice\(\)[\s\S]*err\.committedPaths\.slice\(\)/)
   const rollback = extractMethod(imageSource, 'static async rollbackCommittedImages')
   assert.match(rollback,
     /committedInfo === null[\s\S]*cacheInfo === null[\s\S]*continue[\s\S]*cacheInfo !== null[\s\S]*已被占用/)
 })
 
-test('uncertain PDF bank save exports exact three-state verification and review recovery decisions', () => {
+test('uncertain PDF bank save exports exact three-state verification', () => {
   const serviceSource = fs.readFileSync('entry/src/main/ets/services/QuestionBankService.ets', 'utf8')
   assert.match(serviceSource, /export class PdfBankSaveUncertainError extends Error/)
   assert.match(serviceSource, /readonly bankId:\s*string/)
@@ -1186,49 +926,9 @@ test('uncertain PDF bank save exports exact three-state verification and review 
   assert.match(resolve, /question_image/)
   assert.match(resolve, /image_path/)
   assert.match(resolve, /createImportSnapshot/)
-
-  const reviewSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  assert.match(reviewSource, /@State databaseRecoveryPending:\s*boolean/)
-  const uncertain = extractMethod(reviewSource, 'private async resolveUncertainSave')
-  assertOrdered(uncertain, [
-    'QuestionBankService.resolvePdfBankSave(bank, bankId)',
-    "resolution === 'committed'",
-    'this.completeSuccessfulSave(bankId)',
-    "resolution === 'absent'",
-    'QuestionImageService.rollbackCommittedImages',
-    'this.setDatabaseRecovery'
-  ])
-  assert.match(uncertain, /catch[\s\S]*this\.setDatabaseRecovery/)
-  const setRecovery = extractMethod(reviewSource, 'private setDatabaseRecovery')
-  assert.match(setRecovery, /this\.databaseRecoveryPending = true/)
-  const retry = extractMethod(reviewSource, 'private async retryDatabaseRecovery')
-  assert.match(retry, /this\.resolveUncertainSave/)
-  const discard = extractMethod(reviewSource, 'private async discardImport')
-  assert.match(discard, /this\.databaseRecoveryPending/)
-  assert.match(reviewSource, /重新核验保存状态/)
 })
 
-test('discard completion resets immediately and navigation failure only permits navigation retry', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  assert.match(source, /@State discardCompleted:\s*boolean/)
-  assert.match(source, /@State navigationRetryPending:\s*boolean/)
-  const discard = extractMethod(source, 'private async performDiscard')
-  assertOrdered(discard, [
-    'await QuestionImageService.deletePaths(getContext(this), paths)',
-    'this.discardCompleted = true',
-    'this.drafts = new Array<PdfQuestionDraft>()',
-    'PdfImportState.shared().reset()',
-    'this.navigateAfterDiscard()'
-  ])
-  const navigate = extractMethod(source, 'private async navigateAfterDiscard')
-  assert.match(navigate,
-    /catch[\s\S]*this\.navigationRetryPending = true[\s\S]*识别结果已丢弃，请重试返回导入页面/)
-  assert.doesNotMatch(navigate, /识别结果仍已保留/)
-  assert.doesNotMatch(navigate, /PdfImportState\.shared\(\)\.reset\(\)/)
-  const retry = extractMethod(source, 'private retryDiscardNavigation')
-  assert.match(retry, /this\.navigateAfterDiscard\(\)/)
-  assert.match(source, /if \(this\.navigationRetryPending\)[\s\S]*重试返回导入页面/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('saved question source images render only when present and use stable image identifiers', () => {
   const source = fs.readFileSync('entry/src/main/ets/components/QuestionSourceImages.ets', 'utf8')
@@ -1408,33 +1108,7 @@ test('direct image deletion clears durable debt after safe absence or unlink and
   assert.match(removeDirectory, /entries\.length === 0[\s\S]*await fs\.rmdir\(bankDirectory\)/)
 })
 
-test('review discard retains recoverable ownership until both crop and staged PDF cleanup finish', () => {
-  const source = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  assert.match(source, /private cleanupPdfPath:\s*string/)
-  const discard = extractMethod(source, 'private async performDiscard')
-  assertOrdered(discard, [
-    'PdfImportState.shared().getSelection()',
-    'this.collectDraftImagePaths()',
-    'await QuestionImageService.deletePaths(getContext(this), paths)',
-    'await PdfImportService.removeTemporaryPdf(selection.uri)',
-    'this.cleanupPaths.length > 0 || this.cleanupPdfPath.length > 0',
-    'PdfImportState.shared().reset()',
-    'this.navigateAfterDiscard()'
-  ])
-  const retry = extractMethod(source, 'private async retryDiscardCleanup')
-  assert.match(retry, /QuestionImageService\.deletePaths\(getContext\(this\), this\.cleanupPaths\)/)
-  assert.match(retry, /PdfImportService\.removeTemporaryPdf\(this\.cleanupPdfPath\)/)
-  assert.match(retry, /this\.cleanupPaths\.length > 0 \|\| this\.cleanupPdfPath\.length > 0/)
-  const defer = extractMethod(source, 'private async rememberDebtAndDiscard')
-  assert.match(defer, /QuestionImageService\.rememberCleanupDebt\(this\.cleanupPaths\)/)
-  assert.match(defer, /PdfImportService\.abandonTemporaryPdf\(this\.cleanupPdfPath\)/)
-  assertOrdered(defer, [
-    'QuestionImageService.rememberCleanupDebt(this.cleanupPaths)',
-    'PdfImportService.abandonTemporaryPdf(this.cleanupPdfPath)',
-    'PdfImportState.shared().reset()',
-    'this.navigateAfterDiscard()'
-  ])
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('each acquired crop page is released from its page ownership finally block', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
@@ -1449,35 +1123,7 @@ test('each acquired crop page is released from its page ownership finally block'
     /activeCropPage:\s*pdfService\.PdfPage = pdfDocument\.getPage[\s\S]*finally\s*{[\s\S]*pageToRelease\.release\(\)/)
 })
 
-test('PDF import maps every approved user-visible failure without generic catch replacement', () => {
-  const importPage = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
-  const progressPage = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  const reviewPage = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  assert.ok(importPage.includes('PDF 文件不能超过 200 MB'))
-  assert.ok(importPage.includes('暂不支持加密 PDF'))
-  assert.ok(importPage.includes('PDF 文件损坏或格式不受支持'))
-  assert.ok(progressPage.includes('当前设备不支持端侧文字识别，请使用鸿蒙真机重试'))
-  assert.ok(reviewPage.includes('部分页面识别失败，请检查标记页'))
-  assert.ok(reviewPage.includes('本地空间不足或图片保存失败'))
-  assert.ok(progressPage.includes('PDF 导入失败，请重新选择文件'))
-  const importMapping = extractMethod(importPage, 'private messageForPdfError')
-  assertOrdered(importMapping, [
-    "message.includes('加密')",
-    "return '暂不支持加密 PDF'",
-    "message.includes('解析')",
-    "return 'PDF 文件损坏或格式不受支持'",
-    "message.includes('大小')",
-    "return 'PDF 文件不能超过 200 MB'",
-    "return 'PDF 导入失败，请重新选择文件'"
-  ])
-  const progressMapping = extractMethod(progressPage, 'private messageForError')
-  const progressMessageMapping = extractMethod(progressPage, 'private messageForErrorMessage')
-  assert.match(progressMessageMapping,
-    /当前设备不支持端侧文字识别，请使用鸿蒙真机重试/)
-  assert.match(progressMessageMapping, /PDF 文件损坏或格式不受支持/)
-  assert.match(progressMapping, /本地空间不足或图片保存失败/)
-  assert.match(progressMessageMapping, /PDF 导入失败，请重新选择文件/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('PDF import manifest allows INTERNET but device pipeline contains no network client', () => {
   const moduleSource = fs.readFileSync('entry/src/main/module.json5', 'utf8')
@@ -1592,54 +1238,11 @@ test('unknown or malformed PDF ownership throws and only strict registered stage
     /!PdfImportService\.isDirectTemporaryPdfPath\(cacheDir, path\)[\s\S]{0,100}return/)
 })
 
-test('progress preserves staged PDF through review and review terminates ownership after save or discard', () => {
-  const progressSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  const run = extractMethod(progressSource, 'private async runImport')
-  const completionStart = run.indexOf('state.setDrafts(result.drafts)')
-  const completionEnd = run.indexOf('} catch (err)')
-  assert.ok(completionStart >= 0 && completionEnd > completionStart)
-  const completion = run.slice(completionStart, completionEnd)
-  assert.doesNotMatch(completion, /removeTemporaryPdf|abandonTemporaryPdf/)
-  assert.match(completion, /this\.navigateToReview\(\)/)
-  assert.doesNotMatch(progressSource, /complete-pdf/)
-  assert.match(run,
-    /this\.failed = true\s*this\.cleanupResolvedMessage = this\.messageForError\(err\)[\s\S]*await PdfImportService\.removeTemporaryPdf\(selection\.uri\)[\s\S]*await this\.navigateToImportBank\(\)/)
-  const finishProgressCleanup = extractMethod(progressSource, 'private async finishCleanup')
-  assert.match(finishProgressCleanup,
-    /this\.cleanupMode === 'fatal-images'[\s\S]*this\.cleanupMode = 'fatal-pdf'/)
-
-  const reviewSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  const success = extractMethod(reviewSource, 'private async completeSuccessfulSave')
-  assertOrdered(success, [
-    'this.saveCompleted = true',
-    'await this.finishSuccessfulPdfOwnership()',
-    'await this.finalizeSuccessfulSave()'
-  ])
-  const finalizeSuccess = extractMethod(reviewSource, 'private async finalizeSuccessfulSave')
-  assertOrdered(finalizeSuccess, [
-    'PdfImportState.shared().reset()',
-    "this.showToast('题库导入成功')"
-  ])
-  const ownership = extractMethod(reviewSource, 'private async finishSuccessfulPdfOwnership')
-  assert.match(ownership, /PdfImportState\.shared\(\)\.getSelection\(\)/)
-  assert.match(ownership, /await PdfImportService\.removeTemporaryPdf\(selection\.uri\)/)
-  assert.match(ownership, /catch[\s\S]*PdfImportService\.abandonTemporaryPdf\(selection\.uri\)/)
-  assert.match(ownership, /this\.postSaveWarning = 'PDF 临时文件将在下次选择 PDF 时继续清理'/)
-  const discard = extractMethod(reviewSource, 'private async performDiscard')
-  assertOrdered(discard, [
-    'await QuestionImageService.deletePaths(getContext(this), paths)',
-    'await PdfImportService.removeTemporaryPdf(selection.uri)',
-    'PdfImportState.shared().reset()'
-  ])
-  const uncertain = extractMethod(reviewSource, 'private async resolveUncertainSave')
-  assert.doesNotMatch(uncertain, /removeTemporaryPdf|abandonTemporaryPdf/)
-  const rollback = extractMethod(reviewSource, 'private async retryRollback')
-  assert.doesNotMatch(rollback, /removeTemporaryPdf|abandonTemporaryPdf/)
-})
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
 test('current schema durably records exact rollback mappings and retry restores mappings without committed scans', () => {
   const database = fs.readFileSync('entry/src/main/ets/services/DatabaseService.ets', 'utf8')
-  assert.match(database, /const SCHEMA_VERSION:\s*number = 5/)
+  assert.match(database, /const SCHEMA_VERSION:\s*number = 6/)
   assert.match(database, /CREATE TABLE IF NOT EXISTS question_image_rollback_debt/)
   assert.match(database, /final_path TEXT PRIMARY KEY/)
   assert.match(database, /cache_path TEXT NOT NULL/)
@@ -1675,12 +1278,9 @@ test('current schema durably records exact rollback mappings and retry restores 
     'await QuestionImageService.performRollbackDebtRetry(context)',
     'await QuestionImageService.listPersistentCleanupDebt()'
   ])
-  const importPage = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
-  const appear = extractMethod(importPage, 'aboutToAppear')
-  assert.match(appear, /this\.retryImageCleanup\(\)/)
 })
 
-test('structured PDF storage errors are classified before message heuristics', () => {
+test('structured PDF storage errors are preserved by retained local services', () => {
   const errorSource = fs.readFileSync('entry/src/main/ets/services/PdfStorageError.ets', 'utf8')
   assert.match(errorSource, /export class PdfStorageError extends Error/)
   assert.match(errorSource, /super\('本地空间不足或图片保存失败'\)/)
@@ -1692,24 +1292,6 @@ test('structured PDF storage errors are classified before message heuristics', (
   const coordinatorSource = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
   assert.match(coordinatorSource,
     /primaryError instanceof PdfStorageError[\s\S]*throw new PdfStorageError\(primaryError\.diagnostic\)/)
-  const progressSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  const progressMapping = extractMethod(progressSource, 'private messageForError')
-  const progressMessageMapping = extractMethod(progressSource, 'private messageForErrorMessage')
-  assertOrdered(progressMapping, [
-    'if (err instanceof PdfStorageError)',
-    "return '本地空间不足或图片保存失败'",
-    'return this.messageForErrorMessage(err.message)'
-  ])
-  assertOrdered(progressMessageMapping, [
-    "message.includes('OCR')"
-  ])
-  const importPageSource = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
-  const importMapping = extractMethod(importPageSource, 'private messageForPdfError')
-  assertOrdered(importMapping, [
-    'if (err instanceof PdfStorageError)',
-    "return '本地空间不足或图片保存失败'",
-    "message.includes('加密')"
-  ])
 })
 
 test('crop aggregation preserves PdfStorageError after cancellation and cleanup diagnostics', () => {
@@ -1735,77 +1317,15 @@ test('crop aggregation preserves PdfStorageError after cancellation and cleanup 
     /cropError instanceof PdfStorageError[\s\S]{0,100}new PdfStorageError\(combinedMessage\)/)
 })
 
-test('abandon failures retain ownership and post-save dual failure enters recovery-only state', () => {
-  const progressSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  const abandonProgress = extractMethod(progressSource, 'private async abandonCleanupAndContinue')
-  assert.match(abandonProgress,
-    /try[\s\S]*PdfImportService\.abandonTemporaryPdf\(selection\.uri\)[\s\S]*catch[\s\S]*this\.cleaning = false[\s\S]*PDF 临时文件登记失败[\s\S]*return/)
-  const progressCatchStart = abandonProgress.indexOf('catch')
-  const progressCatchEnd = abandonProgress.indexOf('await this.navigateToImportBank()', progressCatchStart)
-  const progressCatch = abandonProgress.slice(progressCatchStart, progressCatchEnd)
-  assert.doesNotMatch(progressCatch, /navigateToImportBank|reset\(\)|cleanupMode = ''/)
+// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
-  const reviewSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
-  const abandonDiscard = extractMethod(reviewSource, 'private async rememberDebtAndDiscard')
-  assert.match(abandonDiscard,
-    /try[\s\S]*PdfImportService\.abandonTemporaryPdf\(this\.cleanupPdfPath\)[\s\S]*catch[\s\S]*this\.discarding = false[\s\S]*this\.pending = false[\s\S]*return/)
-  const reviewCatchStart = abandonDiscard.indexOf('catch')
-  const reviewCatchEnd = abandonDiscard.indexOf("this.cleanupPaths = new Array<string>()", reviewCatchStart)
-  const reviewCatch = abandonDiscard.slice(reviewCatchStart, reviewCatchEnd)
-  assert.doesNotMatch(reviewCatch, /PdfImportState\.shared\(\)\.reset|navigateAfterDiscard|cleanupPdfPath = ''/)
-
-  assert.match(reviewSource, /@State postSavePdfCleanupPending:\s*boolean = false/)
-  assert.match(reviewSource, /private postSavePdfPath:\s*string = ''/)
-  const complete = extractMethod(reviewSource, 'private async completeSuccessfulSave')
-  assertOrdered(complete, [
-    'this.saveCompleted = true',
-    'const ownershipFinished: boolean = await this.finishSuccessfulPdfOwnership()',
-    'if (!ownershipFinished)',
-    'this.postSavePdfCleanupPending = true',
-    'return',
-    'await this.finalizeSuccessfulSave()'
-  ])
-  assert.doesNotMatch(complete, /PdfImportState\.shared\(\)\.reset|replaceUrl/)
-  const ownership = extractMethod(reviewSource, 'private async finishSuccessfulPdfOwnership')
-  const dualFailure = ownership.slice(ownership.lastIndexOf('catch'))
-  assert.match(dualFailure, /this\.postSavePdfPath = selection\.uri/)
-  assert.match(dualFailure, /return false/)
-  assert.doesNotMatch(dualFailure, /reset\(\)|replaceUrl|postSavePdfPath = ''/)
-  const finalize = extractMethod(reviewSource, 'private async finalizeSuccessfulSave')
-  assertOrdered(finalize, [
-    'this.postSavePdfCleanupPending = false',
-    'PdfImportState.shared().reset()',
-    'NavigationState.shared().selectBank(this.savedBankId)',
-    'replaceUrl(options)'
-  ])
-  const retry = extractMethod(reviewSource, 'private async retryPostSavePdfCleanup')
-  assert.match(retry, /await PdfImportService\.removeTemporaryPdf\(this\.postSavePdfPath\)/)
-  assert.match(retry, /catch[\s\S]*this\.postSavePdfCleanupPending = true[\s\S]*this\.pending = false/)
-  const defer = extractMethod(reviewSource, 'private async deferPostSavePdfCleanup')
-  assertOrdered(defer, [
-    'PdfImportService.abandonTemporaryPdf(this.postSavePdfPath)',
-    "this.postSavePdfPath = ''",
-    'await this.finalizeSuccessfulSave()'
-  ])
-  assert.match(reviewSource, /题库已保存，请完成 PDF 临时文件清理/)
-  assert.match(reviewSource, /Button\(this\.pending \? '正在清理…' : '重试清理并完成'\)/)
-  assert.match(reviewSource, /Button\('稍后处理'\)/)
-})
-
-test('ArkTS compiler blockers use narrowed throws nominal messages and supported text sizing', () => {
-  const progressSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
-  const finishCleanup = extractMethod(progressSource, 'private async finishCleanup')
-  assert.match(finishCleanup,
-    /catch \(err\)[\s\S]*if \(err instanceof Error\)[\s\S]*throw err[\s\S]*throw new Error\('PDF 临时文件清理失败'\)/)
-  const structuredCleanup = extractMethod(progressSource, 'private handleStructuredCleanupError')
-  assert.match(structuredCleanup, /this\.messageForErrorMessage\(err\.message\)/)
-  assert.match(progressSource, /private messageForErrorMessage\(message: string\): string/)
-
+test('PDF page error cards use supported constraint sizing', () => {
   const importSource = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
+  const progressSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportProgressPage.ets', 'utf8')
   const reviewSource = fs.readFileSync('entry/src/main/ets/pages/PdfImportReviewPage.ets', 'utf8')
   assert.doesNotMatch(importSource, /\.minHeight\(/)
+  assert.doesNotMatch(progressSource, /\.minHeight\(/)
   assert.doesNotMatch(reviewSource, /\.minHeight\(/)
   assert.match(importSource, /\.constraintSize\(\{ minHeight: 48 \}\)/)
-  assert.match(importSource, /\.constraintSize\(\{ minHeight: 44 \}\)/)
   assert.match(reviewSource, /\.constraintSize\(\{ minHeight: 48 \}\)/)
 })

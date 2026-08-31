@@ -1,4 +1,8 @@
+import { Context } from '@kit.AbilityKit'
 import { router } from '@kit.ArkUI'
+import { BusinessError } from '@kit.BasicServicesKit'
+import { hash } from '@kit.CoreFileKit'
+import fs from '@ohos.file.fs'
 import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
@@ -7,743 +11,684 @@ import {
   COLOR_DANGER,
   COLOR_PAGE_BG,
   COLOR_PRIMARY,
+  COLOR_TEXT_CAPTION,
   COLOR_TEXT_PRIMARY,
+  COLOR_TEXT_SECONDARY,
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE
 } from '../constants/AppTheme'
-import { PdfFileSelection, PdfImportSettings, PdfPageFailure, PdfQuestionDraft } from '../models/PdfImportModels'
-import { Question } from '../models/Question'
-import { QuestionBank } from '../models/QuestionBank'
-import { QuestionImage } from '../models/QuestionImage'
+import { AccountSessionState } from '../models/AccountSession'
+import { ApiHttpError } from '../models/ApiModels'
+import { DeviceQuestionImage } from '../models/CloudCacheModels'
 import {
-  PdfBankSaveUncertainError,
-  QuestionBankService
-} from '../services/QuestionBankService'
-import {
-  QuestionImageCleanupError,
-  QuestionImageRollbackError,
-  QuestionImageService
-} from '../services/QuestionImageService'
-import { PdfImportService } from '../services/PdfImportService'
-import { PdfStorageError } from '../services/PdfStorageError'
-import { IdUtils } from '../utils/IdUtils'
-import { NavigationState } from '../utils/NavigationState'
+  CloudImportDraft,
+  CloudImportDraftQuestion,
+  CloudImportQuestionType,
+  CloudImportStatus,
+  ConfirmCloudImportQuestion,
+  ConfirmCloudImportRequest,
+  ConfirmedImportArtifact,
+  ConfirmImportQuestionResult,
+  ConfirmImportResult
+} from '../models/CloudImportModels'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudImportService } from '../services/CloudImportService'
+import { DeviceImageScope, DeviceImageStore } from '../services/DeviceImageStore'
 import { PdfImportState } from '../utils/PdfImportState'
 
 @Entry
 @Component
 struct PdfImportReviewPage {
-  @State drafts: Array<PdfQuestionDraft> = new Array<PdfQuestionDraft>()
-  @State failures: Array<PdfPageFailure> = new Array<PdfPageFailure>()
+  @State draftQuestions: Array<CloudImportDraftQuestion> = new Array<CloudImportDraftQuestion>()
+  @State bankName: string = ''
+  @State subject: string = ''
+  @State loading: boolean = true
   @State pending: boolean = false
-  @State dialogOpen: boolean = false
-  @State discarding: boolean = false
-  @State cleanupPending: boolean = false
-  @State rollbackPending: boolean = false
-  @State databaseRecoveryPending: boolean = false
-  @State discardCompleted: boolean = false
-  @State navigationRetryPending: boolean = false
-  @State saveCompleted: boolean = false
-  @State postSavePdfCleanupPending: boolean = false
+  @State navigationPending: boolean = false
+  @State confirmationComplete: boolean = false
+  @State artifactExpired: boolean = false
   @State errorMessage: string = ''
   private initialized: boolean = false
-  private savedBankId: string = ''
-  private postSavePdfPath: string = ''
-  private postSaveWarning: string = ''
-  private successfulSaveFinalized: boolean = false
-  private cleanupPaths: Array<string> = new Array<string>()
-  private cleanupPdfPath: string = ''
-  private rollbackBankId: string = ''
-  private rollbackCachePaths: Array<string> = new Array<string>()
-  private rollbackCommittedPaths: Array<string> = new Array<string>()
-  private recoveryBank: QuestionBank | null = null
-  private recoveryBankId: string = ''
-  private recoveryCachePaths: Array<string> = new Array<string>()
-  private recoveryCommittedPaths: Array<string> = new Array<string>()
+  private jobId: string = ''
+  private accountId: string = ''
+  private confirmedBankId: string = ''
+  private requiredArtifactCount: number = 0
+  private unavailableArtifactCount: number = 0
+  private draftStatus: CloudImportStatus = CloudImportStatus.REVIEW
+  private draftExpiresAt: string = ''
 
   aboutToAppear(): void {
     if (this.initialized) {
       return
     }
     this.initialized = true
-    this.drafts = PdfImportState.shared().getDrafts()
-    this.failures = PdfImportState.shared().getFailures()
-    if (this.drafts.length === 0) {
-      this.errorMessage = '没有可审核的识别题目'
-    }
+    this.loadDraft()
   }
 
   onBackPress(): boolean {
-    this.discardImport()
+    this.returnToImportPage()
     return true
   }
 
-  private replaceDraft(localId: string, type: string, question: string, options: Array<string>,
-    answer: string, analysis: string): void {
-    const index: number = this.findDraftIndex(localId)
+  private async loadDraft(): Promise<void> {
+    if (this.pending) {
+      return
+    }
+    const state: PdfImportState = PdfImportState.shared()
+    const jobId: string = state.getCloudJobId()
+    const accountId: string = state.getCloudAccountId()
+    this.loading = true
+    this.errorMessage = ''
+    try {
+      if (jobId.length === 0 || accountId.length === 0) {
+        throw new Error('云端导入任务信息已失效，请返回重新导入')
+      }
+      const context: Context = getContext(this)
+      await this.requireAccount(context, accountId)
+      const confirmedResult: ConfirmImportResult | null = state.getConfirmResult()
+      if (confirmedResult !== null) {
+        const cachedDraft: CloudImportDraft | null = state.getCloudReviewDraft()
+        this.jobId = jobId
+        this.accountId = accountId
+        this.confirmedBankId = confirmedResult.bankId
+        this.artifactExpired = state.getCloudArtifactExpired()
+        this.bankName = state.getCloudBankName()
+        this.subject = state.getCloudSubject()
+        if (state.getCloudStatus() === CloudImportStatus.CONFIRMED) {
+          this.confirmationComplete = true
+          return
+        }
+        if (cachedDraft !== null && cachedDraft.jobId === jobId) {
+          this.applyDraft(cachedDraft, accountId)
+        } else {
+          this.errorMessage = '题目文字已确认，可继续重试保存原题图片'
+        }
+        return
+      }
+      const draft: CloudImportDraft = await CloudImportService.getDraft(context, jobId)
+      this.applyDraft(draft, accountId)
+      state.setCloudReviewDraft(draft)
+      if (draft.status === CloudImportStatus.EXPIRED) {
+        this.markArtifactExpired()
+      }
+    } catch (err) {
+      if (this.isExpiredHttpError(err)) {
+        const cachedDraft: CloudImportDraft | null = state.getCloudReviewDraft()
+        if (cachedDraft !== null) {
+          this.applyDraft(cachedDraft, accountId)
+          this.markArtifactExpired()
+        } else {
+          this.errorMessage = '云端识别草稿已过期，请返回重新导入'
+        }
+      } else {
+        this.errorMessage = this.errorText(err, '云端识别草稿加载失败，请重试')
+      }
+    } finally {
+      this.loading = false
+    }
+  }
+
+  private applyDraft(draft: CloudImportDraft, accountId: string): void {
+    const copies: Array<CloudImportDraftQuestion> = new Array<CloudImportDraftQuestion>()
+    for (let index: number = 0; index < draft.questions.length; index++) {
+      copies.push(this.copyQuestion(draft.questions[index]))
+    }
+    this.jobId = draft.jobId
+    this.accountId = accountId
+    this.bankName = draft.bankName
+    this.subject = draft.subject
+    this.draftStatus = draft.status
+    this.draftExpiresAt = draft.expiresAt
+    this.draftQuestions = copies
+    if (copies.length === 0) {
+      this.errorMessage = '服务器没有返回可审核的题目'
+    }
+  }
+
+  private copyQuestion(source: CloudImportDraftQuestion): CloudImportDraftQuestion {
+    return new CloudImportDraftQuestion(source.draftQuestionId, source.type, source.question,
+      source.options, source.answer, source.analysis, source.pageStart, source.pageEnd,
+      source.confidence, source.reviewRequired, source.images.slice())
+  }
+
+  private replaceQuestion(draftQuestionId: string, type: string, questionText: string,
+    options: Record<string, string> | null, answer: string | null,
+    analysis: string | null): void {
+    const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const source: PdfQuestionDraft = this.drafts[index]
-    const replacement: PdfQuestionDraft = new PdfQuestionDraft(
-      source.localId, type, question, options.slice(), answer, analysis, source.sourcePageStart,
-      source.sourcePageEnd, source.reviewState, source.crops.slice(), source.imagePaths.slice())
-    const nextDrafts: Array<PdfQuestionDraft> = this.drafts.slice()
-    nextDrafts.splice(index, 1, replacement)
-    this.drafts = nextDrafts
-    PdfImportState.shared().setDrafts(nextDrafts)
+    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    const replacement: CloudImportDraftQuestion = new CloudImportDraftQuestion(
+      source.draftQuestionId, type, questionText, options, answer, analysis,
+      source.pageStart, source.pageEnd, source.confidence, source.reviewRequired,
+      source.images.slice())
+    const nextQuestions: Array<CloudImportDraftQuestion> = this.draftQuestions.slice()
+    nextQuestions.splice(index, 1, replacement)
+    this.draftQuestions = nextQuestions
+    const draft: CloudImportDraft = new CloudImportDraft(this.jobId, this.draftStatus,
+      this.bankName, this.subject, this.draftExpiresAt, nextQuestions)
+    PdfImportState.shared().setCloudReviewDraft(draft)
   }
 
-  private updateQuestionText(localId: string, value: string): void {
-    const index: number = this.findDraftIndex(localId)
+  private updateType(draftQuestionId: string, value: string): void {
+    const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const draft: PdfQuestionDraft = this.drafts[index]
-    this.replaceDraft(localId, draft.type, value, draft.options, draft.answer, draft.analysis)
+    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    this.replaceQuestion(draftQuestionId, value, source.question, source.options,
+      source.answer, source.analysis)
   }
 
-  private updateOption(localId: string, optionIndex: number, value: string): void {
-    const index: number = this.findDraftIndex(localId)
+  private updateQuestionText(draftQuestionId: string, value: string): void {
+    const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const draft: PdfQuestionDraft = this.drafts[index]
-    if (optionIndex < 0 || optionIndex >= draft.options.length) {
-      return
-    }
-    const options: Array<string> = draft.options.slice()
-    options.splice(optionIndex, 1, value)
-    this.replaceDraft(localId, draft.type, draft.question, options, draft.answer, draft.analysis)
+    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    this.replaceQuestion(draftQuestionId, source.type, value, source.options,
+      source.answer, source.analysis)
   }
 
-  private updateAnswer(localId: string, value: string): void {
-    const index: number = this.findDraftIndex(localId)
+  private updateOption(draftQuestionId: string, optionKey: string, value: string): void {
+    const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const draft: PdfQuestionDraft = this.drafts[index]
-    this.replaceDraft(localId, draft.type, draft.question, draft.options, value, draft.analysis)
+    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    const options: Record<string, string> | null = source.options
+    if (options === null || Object.keys(options).indexOf(optionKey) < 0) {
+      return
+    }
+    options[optionKey] = value
+    this.replaceQuestion(draftQuestionId, source.type, source.question, options,
+      source.answer, source.analysis)
   }
 
-  private updateAnalysis(localId: string, value: string): void {
-    const index: number = this.findDraftIndex(localId)
+  private updateAnswer(draftQuestionId: string, value: string): void {
+    const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const draft: PdfQuestionDraft = this.drafts[index]
-    this.replaceDraft(localId, draft.type, draft.question, draft.options, draft.answer, value)
+    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    this.replaceQuestion(draftQuestionId, source.type, source.question, source.options,
+      value, source.analysis)
   }
 
-  private updateType(localId: string, value: string): void {
-    const index: number = this.findDraftIndex(localId)
+  private updateAnalysis(draftQuestionId: string, value: string): void {
+    const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const draft: PdfQuestionDraft = this.drafts[index]
-    this.replaceDraft(localId, value, draft.question, draft.options, draft.answer, draft.analysis)
+    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    this.replaceQuestion(draftQuestionId, source.type, source.question, source.options,
+      source.answer, value)
   }
 
-  private findDraftIndex(localId: string): number {
-    for (let index: number = 0; index < this.drafts.length; index++) {
-      if (this.drafts[index].localId === localId) {
+  private findQuestionIndex(draftQuestionId: string): number {
+    for (let index: number = 0; index < this.draftQuestions.length; index++) {
+      if (this.draftQuestions[index].draftQuestionId === draftQuestionId) {
         return index
       }
     }
     return -1
   }
 
-  private confirmDeleteDraft(localId: string): void {
-    if (this.pending || this.discarding || this.dialogOpen || this.saveCompleted || this.rollbackPending ||
-      this.databaseRecoveryPending || this.discardCompleted) {
-      return
-    }
-    this.dialogOpen = true
-    try {
-      this.getUIContext().showAlertDialog({
-        title: '删除此题',
-        message: '删除后将同时清理这道题的识别图片，是否继续？',
-        autoCancel: false,
-        primaryButton: {
-          value: '删除',
-          action: () => {
-            this.dialogOpen = false
-            this.deleteDraft(localId)
-          }
-        },
-        secondaryButton: {
-          value: '取消',
-          action: () => {
-            this.dialogOpen = false
-          }
-        }
-      })
-    } catch {
-      this.dialogOpen = false
-      this.errorMessage = '删除确认窗口暂不可用'
-    }
-  }
-
-  private async deleteDraft(localId: string): Promise<void> {
-    if (this.pending || this.discarding || this.saveCompleted || this.rollbackPending ||
-      this.databaseRecoveryPending || this.discardCompleted) {
-      return
-    }
-    const index: number = this.findDraftIndex(localId)
-    if (index < 0) {
-      return
-    }
-    const draft: PdfQuestionDraft = this.drafts[index]
-    this.pending = true
-    this.errorMessage = ''
-    try {
-      await QuestionImageService.deletePaths(getContext(this), draft.imagePaths)
-      const nextDrafts: Array<PdfQuestionDraft> = this.drafts.slice()
-      nextDrafts.splice(index, 1)
-      this.drafts = nextDrafts
-      PdfImportState.shared().setDrafts(nextDrafts)
-    } catch {
-      this.errorMessage = '题目图片删除失败，请重试'
-    } finally {
-      this.pending = false
-    }
-  }
-
-  private validateDrafts(): string {
-    if (this.drafts.length === 0) {
+  private validateDraft(): string {
+    if (this.draftQuestions.length === 0) {
       return '请至少保留一道题目'
     }
-    for (let index: number = 0; index < this.drafts.length; index++) {
-      const draft: PdfQuestionDraft = this.drafts[index]
-      const fallbackHasImage: boolean = draft.type === 'unclassified' && draft.imagePaths.length > 0
-      if (draft.question.trim().length === 0 &&
-        (draft.type !== 'unclassified' || !fallbackHasImage)) {
-        return '第 ' + (index + 1).toString() + ' 题缺少题干，请补充后保存'
+    for (let index: number = 0; index < this.draftQuestions.length; index++) {
+      if (this.draftQuestions[index].question.trim().length === 0) {
+        return '第 ' + (index + 1).toString() + ' 题缺少题干，请补充后确认'
       }
     }
     return ''
   }
 
-  private collectLocalImagePaths(): Array<string> {
-    const paths: Array<string> = new Array<string>()
-    for (let draftIndex: number = 0; draftIndex < this.drafts.length; draftIndex++) {
-      const draft: PdfQuestionDraft = this.drafts[draftIndex]
-      for (let imageIndex: number = 0; imageIndex < draft.imagePaths.length; imageIndex++) {
-        paths.push(draft.imagePaths[imageIndex])
-      }
+  private buildConfirmQuestions(): Array<ConfirmCloudImportQuestion> {
+    const questions: Array<ConfirmCloudImportQuestion> = new Array<ConfirmCloudImportQuestion>()
+    for (let index: number = 0; index < this.draftQuestions.length; index++) {
+      const source: CloudImportDraftQuestion = this.draftQuestions[index]
+      questions.push(new ConfirmCloudImportQuestion(source.draftQuestionId,
+        this.questionType(source.type), source.question.trim(), source.options,
+        source.answer, source.analysis, true))
     }
-    return paths
+    return questions
   }
 
-  private draftsWithCommittedImagePaths(committedPaths: Array<string>): Array<PdfQuestionDraft> {
-    const committedDrafts: Array<PdfQuestionDraft> = new Array<PdfQuestionDraft>()
-    let committedIndex: number = 0
-    for (let draftIndex: number = 0; draftIndex < this.drafts.length; draftIndex++) {
-      const draft: PdfQuestionDraft = this.drafts[draftIndex]
-      const imagePaths: Array<string> = new Array<string>()
-      for (let imageIndex: number = 0; imageIndex < draft.imagePaths.length; imageIndex++) {
-        if (committedIndex >= committedPaths.length) {
-          throw new Error('已提交题图数量不足')
-        }
-        imagePaths.push(committedPaths[committedIndex])
-        committedIndex++
-      }
-      committedDrafts.push(new PdfQuestionDraft(
-        draft.localId, draft.type, draft.question, draft.options.slice(), draft.answer, draft.analysis,
-        draft.sourcePageStart, draft.sourcePageEnd, draft.reviewState, draft.crops.slice(), imagePaths))
+  private questionType(value: string): CloudImportQuestionType {
+    if (value === 'single_choice') {
+      return CloudImportQuestionType.SINGLE_CHOICE
     }
-    if (committedIndex !== committedPaths.length) {
-      throw new Error('已提交题图数量不匹配')
+    if (value === 'blank') {
+      return CloudImportQuestionType.BLANK
     }
-    return committedDrafts
+    if (value === 'short_answer') {
+      return CloudImportQuestionType.SHORT_ANSWER
+    }
+    return CloudImportQuestionType.UNKNOWN
   }
 
-  private async saveBank(): Promise<void> {
-    if (this.pending || this.discarding || this.dialogOpen || this.rollbackPending ||
-      this.databaseRecoveryPending || this.discardCompleted) {
+  private async confirmDraft(): Promise<void> {
+    if (this.pending || this.loading || this.navigationPending || this.confirmationComplete) {
       return
     }
-    if (this.saveCompleted) {
-      await this.navigateToSavedBank()
-      return
+    const state: PdfImportState = PdfImportState.shared()
+    const existingResult: ConfirmImportResult | null = state.getConfirmResult()
+    if (existingResult === null) {
+      const validationMessage: string = this.validateDraft()
+      if (validationMessage.length > 0) {
+        this.errorMessage = validationMessage
+        return
+      }
     }
-    const validationMessage: string = this.validateDrafts()
-    if (validationMessage.length > 0) {
-      this.errorMessage = validationMessage
-      return
-    }
-    const settings: PdfImportSettings | null = PdfImportState.shared().getSettings()
-    if (settings === null) {
-      this.errorMessage = 'PDF 导入设置已失效，请重新导入'
+    const jobId: string = state.getCloudJobId()
+    const accountId: string = state.getCloudAccountId()
+    if (jobId.length === 0 || accountId.length === 0) {
+      this.errorMessage = '云端导入任务信息已失效，请返回重新导入'
       return
     }
     this.pending = true
     this.errorMessage = ''
-    const bankId: string = IdUtils.create('bank_')
-    const cachePaths: Array<string> = this.collectLocalImagePaths()
-    let committedPaths: Array<string> = new Array<string>()
-    let bank: QuestionBank | null = null
     try {
-      committedPaths = await QuestionImageService.commitImages(getContext(this), bankId, cachePaths)
-    } catch (err) {
-      if (err instanceof QuestionImageRollbackError) {
-        this.rollbackPending = true
-        this.rollbackBankId = err.bankId
-        this.rollbackCachePaths = err.cachePaths.slice()
-        this.rollbackCommittedPaths = err.committedPaths.slice()
-        this.errorMessage = err.debtRegistered ? '部分题图待恢复，请先重试清理' :
-          '题图恢复记录保存失败，页面已冻结，请勿退出并重试恢复'
-        this.pending = false
-        return
+      const context: Context = getContext(this)
+      await this.requireAccount(context, accountId)
+      let result: ConfirmImportResult | null = existingResult
+      if (result === null) {
+        const request: ConfirmCloudImportRequest = new ConfirmCloudImportRequest(
+          this.bankName.trim(), this.subject.trim(), this.buildConfirmQuestions())
+        result = await CloudImportService.confirm(context, jobId, request)
+        state.setConfirmResult(result)
       }
-      this.errorMessage = err instanceof PdfStorageError ? '本地空间不足或图片保存失败' :
-        'PDF 导入失败，请重新选择文件'
-      this.pending = false
-      return
-    }
-    try {
-      const committedDrafts: Array<PdfQuestionDraft> = this.draftsWithCommittedImagePaths(committedPaths)
-      const questions: Array<Question> = new Array<Question>()
-      for (let draftIndex: number = 0; draftIndex < committedDrafts.length; draftIndex++) {
-        const draft: PdfQuestionDraft = committedDrafts[draftIndex]
-        const images: Array<QuestionImage> = new Array<QuestionImage>()
-        for (let imageIndex: number = 0; imageIndex < draft.imagePaths.length; imageIndex++) {
-          const committedPath: string = draft.imagePaths[imageIndex]
-          const pageNumber: number = imageIndex < draft.crops.length ?
-            draft.crops[imageIndex].pageNumber : draft.sourcePageStart
-          images.push(new QuestionImage(
-            'image_' + draft.localId + '_' + imageIndex.toString(), draft.localId, pageNumber,
-            committedPath, imageIndex))
+      const savedArtifactIds: Array<string> = await this.downloadArtifacts(
+        context, jobId, accountId, result)
+      await this.requireAccount(context, accountId)
+      if (this.unavailableArtifactCount > 0) {
+        this.markArtifactExpired()
+      } else {
+        if (savedArtifactIds.length !== this.requiredArtifactCount) {
+          throw new Error('原题图片保存数量不完整')
         }
-        const storedType: string = draft.type === 'unclassified' ? 'unclassified' : draft.type
-        const storedReviewState: string = draft.type === 'unclassified' ? 'needs_review' : 'confirmed'
-        questions.push(new Question(
-          draft.localId, bankId, storedType, draft.question, draft.options.slice(), draft.answer,
-          draft.analysis, draft.sourcePageStart, draft.sourcePageEnd, storedReviewState, images))
+        try {
+          await CloudImportService.acknowledgeArtifacts(context, jobId, savedArtifactIds)
+        } catch (err) {
+          if (await this.isArtifactUnavailable(context, jobId, err)) {
+            this.markArtifactExpired()
+          } else if (err instanceof Error) {
+            throw err
+          } else {
+            throw new Error('云端图片确认失败')
+          }
+        }
       }
-      bank = new QuestionBank(
-        bankId, settings.bankName, settings.subject, questions.length, Date.now(), false, questions)
-      await QuestionBankService.savePdfBank(bank, bankId)
+      this.confirmedBankId = result.bankId
+      this.confirmationComplete = true
+      state.setCloudArtifactExpired(this.artifactExpired)
+      state.setCloudStatus(CloudImportStatus.CONFIRMED)
+      this.showToast('题目文字已在服务器确认')
     } catch (err) {
-      if (err instanceof PdfBankSaveUncertainError && bank !== null) {
-        await this.resolveUncertainSave(bank, bankId, cachePaths, committedPaths)
-        return
+      if (state.getConfirmResult() !== null) {
+        this.errorMessage = '题目文字已确认，图片下载或保存失败，请重试'
+      } else {
+        this.errorMessage = this.errorText(err, '云端草稿确认失败，请重试')
       }
-      try {
-        await QuestionImageService.rollbackCommittedImages(
-          getContext(this), bankId, cachePaths, committedPaths)
-      } catch (rollbackErr) {
-        this.rollbackPending = true
-        this.rollbackBankId = bankId
-        this.rollbackCachePaths = cachePaths.slice()
-        this.rollbackCommittedPaths = committedPaths.slice()
-        this.errorMessage = rollbackErr instanceof QuestionImageRollbackError && !rollbackErr.debtRegistered ?
-          '题图恢复记录保存失败，页面已冻结，请勿退出并重试恢复' :
-          '题库保存失败，部分题图待恢复，请先重试清理'
-        this.pending = false
-        return
-      }
-      this.errorMessage = '题库保存失败，请稍后重试'
+    } finally {
       this.pending = false
-      return
     }
-    await this.completeSuccessfulSave(bankId)
   }
 
-  private async completeSuccessfulSave(bankId: string): Promise<void> {
-    this.saveCompleted = true
-    this.savedBankId = bankId
-    const ownershipFinished: boolean = await this.finishSuccessfulPdfOwnership()
-    if (!ownershipFinished) {
-      this.postSavePdfCleanupPending = true
-      this.pending = false
-      return
+  private async downloadArtifacts(context: Context, jobId: string, accountId: string,
+    result: ConfirmImportResult): Promise<Array<string>> {
+    const accountDirectory: string = DeviceImageScope.accountDirectory(context.filesDir, accountId)
+    const preparedDirectory: string = await this.ensureAccountDirectory(context.filesDir, accountId)
+    if (preparedDirectory !== accountDirectory) {
+      throw new Error('账号隔离图片目录校验失败')
     }
-    await this.finalizeSuccessfulSave()
+    const savedArtifactIds: Array<string> = new Array<string>()
+    this.requiredArtifactCount = 0
+    this.unavailableArtifactCount = 0
+    for (let questionIndex: number = 0; questionIndex < result.questions.length; questionIndex++) {
+      const question: ConfirmImportQuestionResult = result.questions[questionIndex]
+      for (let imageIndex: number = 0; imageIndex < question.images.length; imageIndex++) {
+        const image: ConfirmedImportArtifact = question.images[imageIndex]
+        this.requiredArtifactCount++
+        if (!/^[a-f0-9]{64}$/.test(image.sha256) || !Number.isSafeInteger(image.size) ||
+          image.size <= 0) {
+          throw new Error('原题图片元数据校验失败')
+        }
+        const fileStem: string = this.artifactFileStem(image.artifactId, image.sha256)
+        const tempPath: string = accountDirectory + '/' + fileStem + '.partial'
+        const finalPath: string = accountDirectory + '/' + fileStem + '.jpg'
+        await this.validateDirectoryChain(context.filesDir, accountDirectory)
+        await this.validateFinalTarget(accountDirectory, finalPath)
+        if (await this.reuseStoredArtifact(context, accountDirectory, finalPath, accountId,
+          question.questionId, image, imageIndex)) {
+          if (savedArtifactIds.indexOf(image.artifactId) < 0) {
+            savedArtifactIds.push(image.artifactId)
+          }
+          continue
+        }
+        let content: ArrayBuffer
+        try {
+          content = await CloudImportService.downloadArtifact(context, jobId, image.artifactId,
+            image.size, image.sha256)
+        } catch (err) {
+          if (await this.isArtifactUnavailable(context, jobId, err)) {
+            this.markArtifactExpired()
+            this.unavailableArtifactCount++
+            continue
+          }
+          if (err instanceof Error) {
+            throw err
+          }
+          throw new Error('原题图片下载失败')
+        }
+        if (content.byteLength !== image.size) {
+          throw new Error('原题图片元数据校验失败')
+        }
+        await this.validateDirectoryChain(context.filesDir, accountDirectory)
+        await this.prepareTemporaryFile(context.filesDir, accountDirectory, tempPath)
+        let moved: boolean = false
+        try {
+          await this.writeArtifact(tempPath, content)
+          await this.verifyArtifactFile(tempPath, image.size, image.sha256)
+          await this.validateFinalTarget(accountDirectory, finalPath)
+          await fs.moveFile(tempPath, finalPath, 0)
+          moved = true
+          await this.validateDirectoryChain(context.filesDir, accountDirectory)
+          await this.verifyArtifactFile(finalPath, image.size, image.sha256)
+          try {
+            await DeviceImageStore.save(context, new DeviceQuestionImage(
+              accountId, question.questionId, finalPath, image.sha256, imageIndex))
+          } catch (err) {
+            await this.tryRemoveOwnedFile(context.filesDir, accountDirectory, finalPath)
+            if (err instanceof Error) {
+              throw err
+            }
+            throw new Error('本地图片映射保存失败')
+          }
+          if (savedArtifactIds.indexOf(image.artifactId) < 0) {
+            savedArtifactIds.push(image.artifactId)
+          }
+        } catch (err) {
+          if (moved) {
+            await this.tryRemoveOwnedFile(context.filesDir, accountDirectory, finalPath)
+          }
+          if (err instanceof Error) {
+            throw err
+          }
+          throw new Error('原题图片保存失败')
+        } finally {
+          await this.tryRemoveOwnedFile(context.filesDir, accountDirectory, tempPath)
+        }
+      }
+    }
+    return savedArtifactIds
   }
 
-  private async finishSuccessfulPdfOwnership(): Promise<boolean> {
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
-    if (selection === null) {
-      this.errorMessage = '题库已保存，但 PDF 临时文件信息已丢失'
+  private async reuseStoredArtifact(context: Context, accountDirectory: string, finalPath: string,
+    accountId: string, questionId: string, image: ConfirmedImportArtifact,
+    sortOrder: number): Promise<boolean> {
+    const info: fs.Stat | null = await this.lstatIfPresent(finalPath)
+    if (info === null) {
       return false
     }
-    this.postSavePdfPath = selection.uri
     try {
-      await PdfImportService.removeTemporaryPdf(selection.uri)
-      this.postSavePdfPath = ''
-      this.postSaveWarning = ''
-      return true
+      await this.verifyArtifactFile(finalPath, image.size, image.sha256)
     } catch {
-      try {
-        PdfImportService.abandonTemporaryPdf(selection.uri)
-        this.postSavePdfPath = ''
-        this.postSaveWarning = 'PDF 临时文件将在下次选择 PDF 时继续清理'
-        return true
-      } catch {
-        this.postSavePdfPath = selection.uri
-        this.errorMessage = '题库已保存，但 PDF 临时文件清理和稍后处理均失败'
-        return false
-      }
+      return false
     }
+    await DeviceImageStore.save(context, new DeviceQuestionImage(
+      accountId, questionId, finalPath, image.sha256, sortOrder))
+    return true
   }
 
-  private async finalizeSuccessfulSave(): Promise<void> {
-    if (this.successfulSaveFinalized) {
-      await this.navigateToSavedBank()
-      return
+  private artifactFileStem(artifactId: string, sha256: string): string {
+    const normalizedId: string = artifactId.toLowerCase()
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(
+      normalizedId)) {
+      throw new Error('原题图片标识无效')
     }
-    this.successfulSaveFinalized = true
-    this.postSavePdfCleanupPending = false
-    PdfImportState.shared().reset()
-    this.showToast('题库导入成功')
-    if (this.postSaveWarning.length > 0) {
-      this.showToast(this.postSaveWarning)
-    }
-    NavigationState.shared().selectBank(this.savedBankId)
-    const options: router.RouterOptions = {
-      url: 'pages/QuestionListPage'
-    }
-    try {
-      await this.getUIContext().getRouter().replaceUrl(options)
-    } catch {
-      this.errorMessage = '题库已保存，题目列表暂不可用，请重试进入'
-    } finally {
-      this.pending = false
-    }
+    return 'cloud_import_' + normalizedId + '_' + sha256
   }
 
-  private async retryPostSavePdfCleanup(): Promise<void> {
-    if (this.pending || !this.postSavePdfCleanupPending || this.postSavePdfPath.length === 0) {
-      return
-    }
-    this.pending = true
-    this.errorMessage = ''
+  private async writeArtifact(tempPath: string, content: ArrayBuffer): Promise<void> {
+    const file: fs.File = await fs.open(tempPath,
+      fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE | fs.OpenMode.TRUNC | fs.OpenMode.NOFOLLOW)
+    let operationError: Error | null = null
     try {
-      await PdfImportService.removeTemporaryPdf(this.postSavePdfPath)
-      this.postSavePdfPath = ''
-      this.postSaveWarning = ''
-      await this.finalizeSuccessfulSave()
-    } catch {
-      this.postSavePdfCleanupPending = true
-      this.errorMessage = '题库已保存，PDF 临时文件清理仍失败，请重试或稍后处理'
-      this.pending = false
-    }
-  }
-
-  private async deferPostSavePdfCleanup(): Promise<void> {
-    if (this.pending || !this.postSavePdfCleanupPending || this.postSavePdfPath.length === 0) {
-      return
-    }
-    this.pending = true
-    this.errorMessage = ''
-    try {
-      PdfImportService.abandonTemporaryPdf(this.postSavePdfPath)
-      this.postSavePdfPath = ''
-      this.postSaveWarning = 'PDF 临时文件将在下次选择 PDF 时继续清理'
-      await this.finalizeSuccessfulSave()
-    } catch {
-      this.postSavePdfCleanupPending = true
-      this.errorMessage = '题库已保存，PDF 临时文件稍后处理登记失败，请重试'
-      this.pending = false
-    }
-  }
-
-  private async resolveUncertainSave(bank: QuestionBank, bankId: string, cachePaths: Array<string>,
-    committedPaths: Array<string>): Promise<void> {
-    try {
-      const resolution: string = await QuestionBankService.resolvePdfBankSave(bank, bankId)
-      if (resolution === 'committed') {
-        this.clearDatabaseRecovery()
-        await this.completeSuccessfulSave(bankId)
-        return
-      }
-      if (resolution === 'absent') {
-        this.clearDatabaseRecovery()
-        try {
-          await QuestionImageService.rollbackCommittedImages(
-            getContext(this), bankId, cachePaths, committedPaths)
-          this.errorMessage = '未发现已保存题库，题图已恢复，可重新保存'
-        } catch (rollbackErr) {
-          this.rollbackPending = true
-          this.rollbackBankId = bankId
-          this.rollbackCachePaths = cachePaths.slice()
-          this.rollbackCommittedPaths = committedPaths.slice()
-          this.errorMessage = rollbackErr instanceof QuestionImageRollbackError && !rollbackErr.debtRegistered ?
-            '题图恢复记录保存失败，页面已冻结，请勿退出并重试恢复' :
-            '数据库未保存，部分题图待恢复，请先重试清理'
+      let written: number = 0
+      while (written < content.byteLength) {
+        const remaining: ArrayBuffer = content.slice(written)
+        const currentWrite: number = await fs.write(file.fd, remaining)
+        if (!Number.isInteger(currentWrite) || currentWrite <= 0 ||
+          currentWrite > remaining.byteLength) {
+          throw new Error('原题图片临时文件写入失败')
         }
-        this.pending = false
-        return
+        written += currentWrite
       }
-      this.setDatabaseRecovery(bank, bankId, cachePaths, committedPaths,
-        '数据库中存在不完整题库，请重新核验保存状态')
-    } catch {
-      this.setDatabaseRecovery(bank, bankId, cachePaths, committedPaths,
-        '数据库保存状态暂无法核验，请重试')
-    }
-  }
-
-  private setDatabaseRecovery(bank: QuestionBank, bankId: string, cachePaths: Array<string>,
-    committedPaths: Array<string>, message: string): void {
-    this.databaseRecoveryPending = true
-    this.recoveryBank = bank
-    this.recoveryBankId = bankId
-    this.recoveryCachePaths = cachePaths.slice()
-    this.recoveryCommittedPaths = committedPaths.slice()
-    this.errorMessage = message
-    this.pending = false
-  }
-
-  private clearDatabaseRecovery(): void {
-    this.databaseRecoveryPending = false
-    this.recoveryBank = null
-    this.recoveryBankId = ''
-    this.recoveryCachePaths = new Array<string>()
-    this.recoveryCommittedPaths = new Array<string>()
-  }
-
-  private async retryDatabaseRecovery(): Promise<void> {
-    if (this.pending || !this.databaseRecoveryPending || this.recoveryBank === null) {
-      return
-    }
-    this.pending = true
-    await this.resolveUncertainSave(
-      this.recoveryBank,
-      this.recoveryBankId,
-      this.recoveryCachePaths,
-      this.recoveryCommittedPaths)
-  }
-
-  private async retryRollback(): Promise<void> {
-    if (this.pending || !this.rollbackPending) {
-      return
-    }
-    this.pending = true
-    this.errorMessage = ''
-    try {
-      await QuestionImageService.rollbackCommittedImages(
-        getContext(this), this.rollbackBankId, this.rollbackCachePaths, this.rollbackCommittedPaths)
-      this.rollbackPending = false
-      this.rollbackBankId = ''
-      this.rollbackCachePaths = new Array<string>()
-      this.rollbackCommittedPaths = new Array<string>()
-      this.errorMessage = '题图已恢复，可重新保存题库'
-    } catch (rollbackErr) {
-      this.errorMessage = rollbackErr instanceof QuestionImageRollbackError && !rollbackErr.debtRegistered ?
-        '题图恢复记录保存失败，请保持当前页面并重试' : '题图仍未完全恢复，请重试'
-    } finally {
-      this.pending = false
-    }
-  }
-
-  private async navigateToSavedBank(): Promise<void> {
-    if (this.pending || this.savedBankId.length === 0) {
-      return
-    }
-    this.pending = true
-    NavigationState.shared().selectBank(this.savedBankId)
-    const options: router.RouterOptions = {
-      url: 'pages/QuestionListPage'
-    }
-    try {
-      await this.getUIContext().getRouter().replaceUrl(options)
-    } catch {
-      this.errorMessage = '题库已保存，题目列表暂不可用，请重试进入'
-    } finally {
-      this.pending = false
-    }
-  }
-
-  private async discardImport(): Promise<void> {
-    if (this.navigationRetryPending || this.discardCompleted) {
-      this.retryDiscardNavigation()
-      return
-    }
-    if (this.pending || this.discarding || this.dialogOpen || this.saveCompleted || this.rollbackPending ||
-      this.databaseRecoveryPending) {
-      if (this.databaseRecoveryPending) {
-        this.errorMessage = '请先重新核验数据库保存状态'
-      } else if (this.rollbackPending) {
-        this.errorMessage = '请先完成题图恢复再返回'
-      }
-      return
-    }
-    this.dialogOpen = true
-    try {
-      this.getUIContext().showAlertDialog({
-        title: '丢弃识别结果',
-        message: '返回后将删除尚未保存的题目和图片，是否继续？',
-        autoCancel: false,
-        primaryButton: {
-          value: '丢弃',
-          action: () => {
-            this.dialogOpen = false
-            this.performDiscard()
-          }
-        },
-        secondaryButton: {
-          value: '继续审核',
-          action: () => {
-            this.dialogOpen = false
-          }
-        }
-      })
-    } catch {
-      this.dialogOpen = false
-      this.errorMessage = '丢弃确认窗口暂不可用'
-    }
-  }
-
-  private async performDiscard(): Promise<void> {
-    if (this.pending || this.discarding) {
-      return
-    }
-    this.discarding = true
-    this.pending = true
-    this.errorMessage = ''
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
-    const paths: Array<string> = this.collectDraftImagePaths()
-    this.cleanupPaths = paths.slice()
-    this.cleanupPdfPath = selection === null ? '' : selection.uri
-    try {
-      await QuestionImageService.deletePaths(getContext(this), paths)
-      this.cleanupPaths = new Array<string>()
+      await fs.fsync(file.fd)
     } catch (err) {
-      if (err instanceof QuestionImageCleanupError) {
-        this.cleanupPaths = err.paths.slice()
-      }
-    }
-    if (selection !== null) {
+      operationError = err instanceof Error ? err : new Error('原题图片临时文件写入失败')
+    } finally {
       try {
-        await PdfImportService.removeTemporaryPdf(selection.uri)
-        this.cleanupPdfPath = ''
-      } catch {
-      }
-    }
-    if (this.cleanupPaths.length > 0 || this.cleanupPdfPath.length > 0) {
-      this.cleanupPending = true
-      this.errorMessage = '识别缓存清理失败，请重试；识别结果仍已保留'
-      this.discarding = false
-      this.pending = false
-      return
-    }
-    this.cleanupPending = false
-    this.cleanupPaths = new Array<string>()
-    this.cleanupPdfPath = ''
-    this.discardCompleted = true
-    this.drafts = new Array<PdfQuestionDraft>()
-    this.failures = new Array<PdfPageFailure>()
-    PdfImportState.shared().reset()
-    await this.navigateAfterDiscard()
-  }
-
-  private async retryDiscardCleanup(): Promise<void> {
-    if (this.pending || this.discarding || !this.cleanupPending) {
-      return
-    }
-    this.discarding = true
-    this.pending = true
-    this.errorMessage = ''
-    if (this.cleanupPaths.length > 0) {
-      try {
-        await QuestionImageService.deletePaths(getContext(this), this.cleanupPaths)
-        this.cleanupPaths = new Array<string>()
+        await fs.close(file)
       } catch (err) {
-        if (err instanceof QuestionImageCleanupError) {
-          this.cleanupPaths = err.paths.slice()
+        if (operationError === null) {
+          operationError = err instanceof Error ? err : new Error('原题图片临时文件关闭失败')
         }
       }
     }
-    if (this.cleanupPdfPath.length > 0) {
-      try {
-        await PdfImportService.removeTemporaryPdf(this.cleanupPdfPath)
-        this.cleanupPdfPath = ''
-      } catch {
-      }
+    if (operationError !== null) {
+      throw operationError
     }
-    if (this.cleanupPaths.length > 0 || this.cleanupPdfPath.length > 0) {
-      this.errorMessage = '识别缓存清理失败，请重试；识别结果仍已保留'
-      this.discarding = false
-      this.pending = false
-      return
-    }
-    this.cleanupPending = false
-    this.discardCompleted = true
-    this.drafts = new Array<PdfQuestionDraft>()
-    this.failures = new Array<PdfPageFailure>()
-    PdfImportState.shared().reset()
-    await this.navigateAfterDiscard()
   }
 
-  private async rememberDebtAndDiscard(): Promise<void> {
-    if (this.pending || this.discarding || !this.cleanupPending) {
+  private async verifyArtifactFile(path: string, expectedSize: number,
+    expectedSha256: string): Promise<void> {
+    const linkInfo: fs.Stat = await fs.lstat(path)
+    const fileInfo: fs.Stat = await fs.stat(path)
+    if (linkInfo.isSymbolicLink() || !linkInfo.isFile() || !fileInfo.isFile() ||
+      linkInfo.size !== expectedSize || fileInfo.size !== expectedSize) {
+      throw new Error('原题图片大小校验失败')
+    }
+    const actualSha256: string = (await hash.hash(path, 'sha256')).toLowerCase()
+    if (actualSha256 !== expectedSha256) {
+      throw new Error('原题图片 SHA-256 校验失败')
+    }
+  }
+
+  private async ensureAccountDirectory(filesDir: string, accountId: string): Promise<string> {
+    await this.validateDirectory(filesDir)
+    const imageRoot: string = filesDir + '/question_images'
+    await this.ensureDirectDirectory(filesDir, imageRoot)
+    const accountDirectory: string = DeviceImageScope.accountDirectory(filesDir, accountId)
+    await this.ensureDirectDirectory(imageRoot, accountDirectory)
+    await this.validateDirectoryChain(filesDir, accountDirectory)
+    return accountDirectory
+  }
+
+  private async ensureDirectDirectory(parent: string, path: string): Promise<void> {
+    await this.validateDirectory(parent)
+    if (!this.isDirectChild(parent, path)) {
+      throw new Error('本地图片目录路径无效')
+    }
+    let info: fs.Stat | null = await this.lstatIfPresent(path)
+    if (info === null) {
+      await fs.mkdir(path)
+      info = await fs.lstat(path)
+    }
+    if (info.isSymbolicLink() || !info.isDirectory()) {
+      throw new Error('本地图片目录包含不安全节点')
+    }
+  }
+
+  private async validateDirectory(path: string): Promise<void> {
+    const info: fs.Stat | null = await this.lstatIfPresent(path)
+    if (info === null || info.isSymbolicLink() || !info.isDirectory()) {
+      throw new Error('受信目录不可用')
+    }
+  }
+
+  private async validateDirectoryChain(root: string, path: string): Promise<void> {
+    if (!this.isDescendant(root, path)) {
+      throw new Error('本地图片目录超出受信范围')
+    }
+    await this.validateDirectory(root)
+    const relative: string = path.substring(root.length + 1)
+    const parts: Array<string> = relative.split('/')
+    let currentPath: string = root
+    for (let index: number = 0; index < parts.length; index++) {
+      currentPath += '/' + parts[index]
+      const info: fs.Stat | null = await this.lstatIfPresent(currentPath)
+      if (info === null || info.isSymbolicLink() || !info.isDirectory()) {
+        throw new Error('本地图片目录包含不安全节点')
+      }
+    }
+  }
+
+  private async prepareTemporaryFile(filesDir: string, accountDirectory: string,
+    tempPath: string): Promise<void> {
+    if (!this.isDirectChild(accountDirectory, tempPath) || !tempPath.endsWith('.partial')) {
+      throw new Error('原题图片临时路径无效')
+    }
+    await this.validateDirectoryChain(filesDir, accountDirectory)
+    const info: fs.Stat | null = await this.lstatIfPresent(tempPath)
+    if (info === null) {
       return
     }
-    this.discarding = true
-    this.pending = true
-    if (this.cleanupPaths.length > 0) {
-      QuestionImageService.rememberCleanupDebt(this.cleanupPaths)
+    if (info.isSymbolicLink() || !info.isFile()) {
+      throw new Error('原题图片临时路径包含不安全节点')
     }
-    if (this.cleanupPdfPath.length > 0) {
-      try {
-        PdfImportService.abandonTemporaryPdf(this.cleanupPdfPath)
-      } catch {
-        this.errorMessage = 'PDF 临时文件稍后清理登记失败，识别结果仍已保留'
-        this.discarding = false
-        this.pending = false
+    await fs.unlink(tempPath)
+  }
+
+  private async validateFinalTarget(accountDirectory: string, finalPath: string): Promise<void> {
+    if (!this.isDirectChild(accountDirectory, finalPath) || !finalPath.endsWith('.jpg')) {
+      throw new Error('原题图片保存路径无效')
+    }
+    const info: fs.Stat | null = await this.lstatIfPresent(finalPath)
+    if (info !== null && (info.isSymbolicLink() || !info.isFile())) {
+      throw new Error('原题图片保存路径包含不安全节点')
+    }
+  }
+
+  private async tryRemoveOwnedFile(filesDir: string, accountDirectory: string,
+    path: string): Promise<void> {
+    try {
+      if (!this.isDirectChild(accountDirectory, path)) {
         return
       }
+      await this.validateDirectoryChain(filesDir, accountDirectory)
+      const info: fs.Stat | null = await this.lstatIfPresent(path)
+      if (info !== null && !info.isSymbolicLink() && info.isFile()) {
+        await fs.unlink(path)
+      }
+    } catch {
     }
-    this.cleanupPaths = new Array<string>()
-    this.cleanupPdfPath = ''
-    this.discardCompleted = true
-    this.drafts = new Array<PdfQuestionDraft>()
-    this.failures = new Array<PdfPageFailure>()
-    PdfImportState.shared().reset()
-    await this.navigateAfterDiscard()
   }
 
-  private async navigateAfterDiscard(): Promise<void> {
-    if (!this.discardCompleted) {
-      return
+  private async lstatIfPresent(path: string): Promise<fs.Stat | null> {
+    return new Promise<fs.Stat | null>((resolve, reject): void => {
+      fs.lstat(path, (err: BusinessError, info: fs.Stat): void => {
+        if (err) {
+          if (err.code === 13900002) {
+            resolve(null)
+            return
+          }
+          reject(new Error(err.message.length > 0 ? err.message : '文件状态读取失败'))
+          return
+        }
+        resolve(info)
+      })
+    })
+  }
+
+  private isDirectChild(parent: string, path: string): boolean {
+    if (!this.isDescendant(parent, path)) {
+      return false
     }
-    const options: router.RouterOptions = {
-      url: 'pages/ImportBankPage'
+    return path.substring(parent.length + 1).indexOf('/') < 0
+  }
+
+  private isDescendant(root: string, path: string): boolean {
+    const prefix: string = root + '/'
+    if (!path.startsWith(prefix) || path.length <= prefix.length || path.indexOf('\\') >= 0 ||
+      path.indexOf(String.fromCharCode(0)) >= 0) {
+      return false
+    }
+    const relative: string = path.substring(prefix.length)
+    return !relative.startsWith('/') && !relative.endsWith('/') && relative.indexOf('//') < 0 &&
+      relative !== '.' && relative !== '..' && !relative.startsWith('../') &&
+      !relative.endsWith('/..') && relative.indexOf('/../') < 0 &&
+      !relative.startsWith('./') && !relative.endsWith('/.') && relative.indexOf('/./') < 0
+  }
+
+  private async requireAccount(context: Context, accountId: string): Promise<void> {
+    const session: AccountSessionState = await AccountSessionService.state(context)
+    if (!session.signedIn || session.userId.length === 0) {
+      throw new Error('请先登录华为账号')
+    }
+    if (session.userId !== accountId) {
+      throw new Error('当前华为账号与导入任务不一致')
+    }
+  }
+
+  private markArtifactExpired(): void {
+    this.artifactExpired = true
+    PdfImportState.shared().setCloudArtifactExpired(true)
+  }
+
+  private async isArtifactUnavailable(context: Context, jobId: string, err: Error): Promise<boolean> {
+    if (this.isExpiredHttpError(err)) {
+      return true
     }
     try {
-      await this.getUIContext().getRouter().replaceUrl(options)
-      this.navigationRetryPending = false
+      return (await CloudImportService.getJob(context, jobId)).status === CloudImportStatus.EXPIRED
     } catch {
-      this.navigationRetryPending = true
-      this.errorMessage = '识别结果已丢弃，请重试返回导入页面'
-    } finally {
-      this.discarding = false
-      this.pending = false
+      return false
     }
   }
 
-  private retryDiscardNavigation(): void {
-    if (this.pending || !this.discardCompleted) {
-      return
-    }
-    this.pending = true
-    this.navigateAfterDiscard()
+  private isExpiredHttpError(err: Error): boolean {
+    return err instanceof ApiHttpError &&
+      (err.statusCode === 404 || err.statusCode === 410 || err.code === 'ARTIFACT_EXPIRED')
   }
 
-  private collectDraftImagePaths(): Array<string> {
-    const drafts: Array<PdfQuestionDraft> = PdfImportState.shared().getDrafts()
-    const paths: Array<string> = new Array<string>()
-    for (let draftIndex: number = 0; draftIndex < drafts.length; draftIndex++) {
-      const draft: PdfQuestionDraft = drafts[draftIndex]
-      for (let pathIndex: number = 0; pathIndex < draft.imagePaths.length; pathIndex++) {
-        const path: string = draft.imagePaths[pathIndex]
-        if (paths.indexOf(path) < 0) {
-          paths.push(path)
-        }
-      }
+  private nullableText(value: string | null): string {
+    return value === null ? '' : value
+  }
+
+  private optionKeys(options: Record<string, string> | null): Array<string> {
+    if (options === null) {
+      return new Array<string>()
     }
-    return paths
+    const keys: Array<string> = Object.keys(options)
+    keys.sort((left: string, right: string): number => left.localeCompare(right))
+    return keys
+  }
+
+  private optionValue(options: Record<string, string> | null, optionKey: string): string {
+    return options === null ? '' : options[optionKey]
+  }
+
+  private typeLabel(value: string): string {
+    if (value === 'single_choice') {
+      return '单选题'
+    }
+    if (value === 'blank') {
+      return '填空题'
+    }
+    if (value === 'short_answer') {
+      return '解答题'
+    }
+    return '待确认'
+  }
+
+  private errorText(err: Error, fallback: string): string {
+    return err instanceof Error && err.message.length > 0 ? err.message : fallback
   }
 
   private showToast(message: string): void {
@@ -753,48 +698,42 @@ struct PdfImportReviewPage {
     }
   }
 
-  private typeLabel(type: string): string {
-    if (type === 'single_choice') {
-      return '单选题'
+  private async returnToImportPage(): Promise<void> {
+    if (this.pending || this.navigationPending) {
+      return
     }
-    if (type === 'fill_blank') {
-      return '填空题'
+    this.navigationPending = true
+    const options: router.RouterOptions = {
+      url: 'pages/ImportBankPage'
     }
-    if (type === 'short_answer') {
-      return '解答题'
+    try {
+      await this.getUIContext().getRouter().replaceUrl(options)
+    } catch {
+      this.navigationPending = false
+      this.errorMessage = '导入页面暂不可用，请重试返回'
     }
-    return '待确认'
   }
 
   build() {
     Column() {
       AppHeader({
-        title: '识别结果',
+        title: '云端识别审核',
         showBack: true,
         onBack: () => {
-          this.discardImport()
+          this.returnToImportPage()
         }
       })
 
-      if (this.failures.length > 0 && !this.discardCompleted) {
-        Column({ space: 6 }) {
-          Text('部分页面识别失败，请检查标记页')
-            .width('100%')
-            .fontSize(BODY_FONT_SIZE)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_DANGER)
-          ForEach(this.failures, (failure: PdfPageFailure) => {
-            Text(failure.message)
-              .width('100%')
-              .fontSize(12)
-              .fontColor(COLOR_TEXT_PRIMARY)
-          }, (failure: PdfPageFailure): string => failure.pageNumber.toString())
-        }
-        .width('100%')
-        .padding(14)
-        .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
-        .backgroundColor('#FFF7E8')
-        .borderRadius(14)
+      if (this.artifactExpired) {
+        Text('原题图片已过期，文字仍可使用')
+          .width('100%')
+          .constraintSize({ minHeight: 48 })
+          .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+          .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
+          .fontSize(BODY_FONT_SIZE)
+          .fontColor('#A05A00')
+          .backgroundColor('#FFF7E8')
+          .borderRadius(14)
       }
 
       if (this.errorMessage.length > 0) {
@@ -804,185 +743,272 @@ struct PdfImportReviewPage {
           .padding({ left: 16, right: 16, top: 13, bottom: 13 })
           .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(this.errorMessage === '题图已恢复，可重新保存题库' ? COLOR_PRIMARY : COLOR_DANGER)
-          .backgroundColor(this.errorMessage === '题图已恢复，可重新保存题库' ? '#EEF5FF' : '#FFF2F2')
+          .fontColor(COLOR_DANGER)
+          .backgroundColor('#FFF2F2')
           .borderRadius(14)
       }
 
-      if (this.navigationRetryPending) {
+      if (this.loading) {
         Column({ space: 16 }) {
-          Text('识别结果已丢弃，请重试返回导入页面')
+          LoadingProgress()
+            .width(42)
+            .height(42)
+            .color(COLOR_PRIMARY)
+          Text('正在读取服务器识别草稿')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_PRIMARY)
-          Button(this.pending ? '正在返回…' : '重试返回导入页面')
-            .width('100%')
-            .height(52)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
-            .enabled(!this.pending)
-            .onClick(() => { this.retryDiscardNavigation() })
+            .fontColor(COLOR_TEXT_CAPTION)
         }
         .layoutWeight(1)
         .width('100%')
-        .padding(PAGE_PADDING)
         .justifyContent(FlexAlign.Center)
-      } else if (this.postSavePdfCleanupPending) {
+      } else if (this.confirmationComplete) {
         Column({ space: 16 }) {
-          Text('题库已保存，请完成 PDF 临时文件清理后进入题目列表。')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_PRIMARY)
-          Button(this.pending ? '正在清理…' : '重试清理并完成')
-            .width('100%')
-            .height(52)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
-            .enabled(!this.pending)
-            .onClick(() => { this.retryPostSavePdfCleanup() })
-          Button('稍后处理')
-            .width('100%')
-            .height(48)
+          Text('云端题目已确认')
+            .fontSize(SUBTITLE_FONT_SIZE)
+            .fontWeight(FontWeight.Bold)
             .fontColor(COLOR_PRIMARY)
-            .backgroundColor(COLOR_CARD_BG)
-            .border({ width: 1, color: COLOR_PRIMARY })
-            .enabled(!this.pending)
-            .onClick(() => { this.deferPostSavePdfCleanup() })
+          Text('题库标识：' + this.confirmedBankId)
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(COLOR_TEXT_CAPTION)
+          Text('题目文字已由服务器保存，可返回导入页继续使用。')
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(COLOR_TEXT_PRIMARY)
+          Button(this.navigationPending ? '正在返回…' : '返回导入页')
+            .width('100%')
+            .height(52)
+            .fontColor('#FFFFFF')
+            .backgroundColor(COLOR_PRIMARY)
+            .borderRadius(16)
+            .enabled(!this.navigationPending)
+            .onClick(() => {
+              this.returnToImportPage()
+            })
         }
         .layoutWeight(1)
         .width('100%')
         .padding(PAGE_PADDING)
         .justifyContent(FlexAlign.Center)
-      } else if (this.databaseRecoveryPending) {
+      } else if (this.draftQuestions.length === 0) {
         Column({ space: 16 }) {
-          Text('保存状态需要重新核验，核验完成前不会移动或删除题图。')
+          Text('暂时无法显示云端识别草稿')
             .fontSize(BODY_FONT_SIZE)
             .fontColor(COLOR_TEXT_PRIMARY)
-          Button(this.pending ? '正在核验…' : '重新核验保存状态')
+          Button(this.pending ? '正在重试…' : '重新读取草稿')
             .width('100%')
             .height(52)
             .fontColor('#FFFFFF')
             .backgroundColor(COLOR_PRIMARY)
+            .borderRadius(16)
             .enabled(!this.pending)
-            .onClick(() => { this.retryDatabaseRecovery() })
+            .onClick(() => {
+              this.loadDraft()
+            })
         }
         .layoutWeight(1)
         .width('100%')
         .padding(PAGE_PADDING)
         .justifyContent(FlexAlign.Center)
       } else {
-      List({ space: 14 }) {
-        ForEach(this.drafts, (draft: PdfQuestionDraft, draftIndex: number) => {
-          ListItem() {
-            Column({ space: 14 }) {
-              Row() {
-                Text('第 ' + (draftIndex + 1).toString() + ' 题')
-                  .fontSize(SUBTITLE_FONT_SIZE)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor(COLOR_TEXT_PRIMARY)
-                Blank()
-                Text(this.typeLabel(draft.type))
-                  .fontSize(12)
-                  .fontColor(draft.type === 'unclassified' ? COLOR_DANGER : COLOR_PRIMARY)
-              }
-              .width('100%')
+        Column({ space: 8 }) {
+          Text(this.bankName)
+            .width('100%')
+            .fontSize(SUBTITLE_FONT_SIZE)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(COLOR_TEXT_PRIMARY)
+          Text('学科：' + this.subject + ' · 共 ' + this.draftQuestions.length.toString() + ' 题')
+            .width('100%')
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(COLOR_TEXT_CAPTION)
+        }
+        .width('100%')
+        .padding(16)
+        .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 12 })
+        .backgroundColor(COLOR_CARD_BG)
+        .borderRadius(CARD_RADIUS)
 
-              ForEach(draft.imagePaths, (imagePath: string) => {
-                Image('file://' + imagePath)
+        List({ space: 14 }) {
+          ForEach(this.draftQuestions,
+            (draftQuestion: CloudImportDraftQuestion, questionIndex: number) => {
+              ListItem() {
+                Column({ space: 14 }) {
+                  Row() {
+                    Text('第 ' + (questionIndex + 1).toString() + ' 题')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(COLOR_TEXT_PRIMARY)
+                    Blank()
+                    Text(this.typeLabel(draftQuestion.type))
+                      .fontSize(12)
+                      .fontColor(draftQuestion.type === 'unknown' ? COLOR_DANGER : COLOR_PRIMARY)
+                  }
                   .width('100%')
-                  .height(180)
-                  .objectFit(ImageFit.Contain)
-                  .backgroundColor('#F0F3F8')
-                  .borderRadius(12)
-              }, (imagePath: string): string => imagePath)
 
-              Row({ space: 6 }) {
-                Button('单选').layoutWeight(1).height(38)
-                  .fontColor(draft.type === 'single_choice' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(draft.type === 'single_choice' ? COLOR_PRIMARY : '#EEF5FF')
-                  .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                  .onClick(() => { this.updateType(draft.localId, 'single_choice') })
-                Button('填空').layoutWeight(1).height(38)
-                  .fontColor(draft.type === 'fill_blank' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(draft.type === 'fill_blank' ? COLOR_PRIMARY : '#EEF5FF')
-                  .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                  .onClick(() => { this.updateType(draft.localId, 'fill_blank') })
-                Button('解答').layoutWeight(1).height(38)
-                  .fontColor(draft.type === 'short_answer' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(draft.type === 'short_answer' ? COLOR_PRIMARY : '#EEF5FF')
-                  .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                  .onClick(() => { this.updateType(draft.localId, 'short_answer') })
-                Button('待确认').layoutWeight(1).height(38)
-                  .fontColor(draft.type === 'unclassified' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(draft.type === 'unclassified' ? COLOR_PRIMARY : '#EEF5FF')
-                  .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                  .onClick(() => { this.updateType(draft.localId, 'unclassified') })
+                  Text('页码 ' + draftQuestion.pageStart.toString() + '-' +
+                    draftQuestion.pageEnd.toString() + ' · 置信度 ' +
+                    Math.round(draftQuestion.confidence * 100).toString() + '%')
+                    .width('100%')
+                    .fontSize(12)
+                    .fontColor(COLOR_TEXT_SECONDARY)
+
+                  Row({ space: 6 }) {
+                    Button('单选')
+                      .layoutWeight(1)
+                      .height(38)
+                      .fontColor(draftQuestion.type === 'single_choice' ? '#FFFFFF' : COLOR_PRIMARY)
+                      .backgroundColor(draftQuestion.type === 'single_choice' ? COLOR_PRIMARY : '#EEF5FF')
+                      .enabled(!this.pending)
+                      .onClick(() => {
+                        this.updateType(draftQuestion.draftQuestionId, 'single_choice')
+                      })
+                    Button('填空')
+                      .layoutWeight(1)
+                      .height(38)
+                      .fontColor(draftQuestion.type === 'blank' ? '#FFFFFF' : COLOR_PRIMARY)
+                      .backgroundColor(draftQuestion.type === 'blank' ? COLOR_PRIMARY : '#EEF5FF')
+                      .enabled(!this.pending)
+                      .onClick(() => {
+                        this.updateType(draftQuestion.draftQuestionId, 'blank')
+                      })
+                    Button('解答')
+                      .layoutWeight(1)
+                      .height(38)
+                      .fontColor(draftQuestion.type === 'short_answer' ? '#FFFFFF' : COLOR_PRIMARY)
+                      .backgroundColor(draftQuestion.type === 'short_answer' ? COLOR_PRIMARY : '#EEF5FF')
+                      .enabled(!this.pending)
+                      .onClick(() => {
+                        this.updateType(draftQuestion.draftQuestionId, 'short_answer')
+                      })
+                    Button('待确认')
+                      .layoutWeight(1)
+                      .height(38)
+                      .fontColor(draftQuestion.type === 'unknown' ? '#FFFFFF' : COLOR_PRIMARY)
+                      .backgroundColor(draftQuestion.type === 'unknown' ? COLOR_PRIMARY : '#EEF5FF')
+                      .enabled(!this.pending)
+                      .onClick(() => {
+                        this.updateType(draftQuestion.draftQuestionId, 'unknown')
+                      })
+                  }
+                  .width('100%')
+
+                  TextArea({ placeholder: '请输入题干', text: draftQuestion.question })
+                    .width('100%')
+                    .height(108)
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .backgroundColor('#F7F9FC')
+                    .enabled(!this.pending)
+                    .onChange((value: string) => {
+                      this.updateQuestionText(draftQuestion.draftQuestionId, value)
+                    })
+
+                  Column({ space: 6 }) {
+                    Text('识别选项')
+                      .width('100%')
+                      .fontSize(12)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(COLOR_TEXT_CAPTION)
+                    if (this.optionKeys(draftQuestion.options).length === 0) {
+                      Text('暂无选项')
+                        .width('100%')
+                        .padding(12)
+                        .fontSize(BODY_FONT_SIZE)
+                        .fontColor(COLOR_TEXT_SECONDARY)
+                        .backgroundColor('#F7F9FC')
+                        .borderRadius(10)
+                    } else {
+                      ForEach(this.optionKeys(draftQuestion.options), (optionKey: string) => {
+                        TextInput({
+                          placeholder: '选项 ' + optionKey,
+                          text: this.optionValue(draftQuestion.options, optionKey)
+                        })
+                          .width('100%')
+                          .height(46)
+                          .fontSize(BODY_FONT_SIZE)
+                          .fontColor(COLOR_TEXT_PRIMARY)
+                          .backgroundColor('#F7F9FC')
+                          .enabled(!this.pending)
+                          .onChange((value: string) => {
+                            this.updateOption(draftQuestion.draftQuestionId, optionKey, value)
+                          })
+                      }, (optionKey: string): string =>
+                        draftQuestion.draftQuestionId + '_option_' + optionKey)
+                    }
+                  }
+                  .width('100%')
+
+                  TextInput({
+                    placeholder: '答案（选填）',
+                    text: this.nullableText(draftQuestion.answer)
+                  })
+                    .width('100%')
+                    .height(46)
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .backgroundColor('#F7F9FC')
+                    .enabled(!this.pending)
+                    .onChange((value: string) => {
+                      this.updateAnswer(draftQuestion.draftQuestionId, value)
+                    })
+
+                  TextArea({
+                    placeholder: '解析（选填）',
+                    text: this.nullableText(draftQuestion.analysis)
+                  })
+                    .width('100%')
+                    .height(96)
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .backgroundColor('#F7F9FC')
+                    .enabled(!this.pending)
+                    .onChange((value: string) => {
+                      this.updateAnalysis(draftQuestion.draftQuestionId, value)
+                    })
+
+                  if (draftQuestion.reviewRequired) {
+                    Text('服务器标记：需要人工复核')
+                      .width('100%')
+                      .fontSize(12)
+                      .fontColor(COLOR_DANGER)
+                  }
+                }
+                .width('100%')
+                .padding(18)
+                .backgroundColor(COLOR_CARD_BG)
+                .borderRadius(CARD_RADIUS)
               }
+            },
+            (draftQuestion: CloudImportDraftQuestion): string => draftQuestion.draftQuestionId)
+        }
+        .layoutWeight(1)
+        .width('100%')
+        .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
+        .scrollBar(BarState.Off)
+
+        Column({ space: 8 }) {
+          if (PdfImportState.shared().getConfirmResult() !== null) {
+            Text('题目文字已确认；重试只会重新下载和保存图片，不会再次确认文字。')
               .width('100%')
-
-              TextArea({ placeholder: '请输入题干', text: draft.question })
-                .width('100%').height(108).fontSize(BODY_FONT_SIZE).fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor('#F7F9FC')
-                .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                .onChange((value: string) => { this.updateQuestionText(draft.localId, value) })
-
-              ForEach(draft.options, (option: string, optionIndex: number) => {
-                TextInput({ placeholder: '选项 ' + String.fromCharCode(65 + optionIndex), text: option })
-                  .width('100%').height(46).fontSize(BODY_FONT_SIZE).fontColor(COLOR_TEXT_PRIMARY)
-                  .backgroundColor('#F7F9FC')
-                  .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                  .onChange((value: string) => { this.updateOption(draft.localId, optionIndex, value) })
-              }, (option: string, optionIndex: number): string =>
-                draft.localId + '_option_' + optionIndex.toString())
-
-              TextInput({ placeholder: '答案（选填）', text: draft.answer })
-                .width('100%').height(46).fontSize(BODY_FONT_SIZE).fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor('#F7F9FC')
-                .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                .onChange((value: string) => { this.updateAnswer(draft.localId, value) })
-
-              TextArea({ placeholder: '解析（选填）', text: draft.analysis })
-                .width('100%').height(96).fontSize(BODY_FONT_SIZE).fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor('#F7F9FC')
-                .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                .onChange((value: string) => { this.updateAnalysis(draft.localId, value) })
-
-              Button('删除此题').width('100%').height(44).fontColor(COLOR_DANGER)
-                .backgroundColor('#FFF2F2')
-                .enabled(!this.pending && !this.discarding && !this.saveCompleted && !this.rollbackPending)
-                .onClick(() => { this.confirmDeleteDraft(draft.localId) })
-            }
-            .width('100%').padding(18).backgroundColor(COLOR_CARD_BG).borderRadius(CARD_RADIUS)
+              .fontSize(12)
+              .fontColor(COLOR_TEXT_CAPTION)
           }
-        }, (draft: PdfQuestionDraft): string => draft.localId)
-      }
-      .layoutWeight(1).width('100%').padding({ left: PAGE_PADDING, right: PAGE_PADDING })
-      .scrollBar(BarState.Off)
-
-      Column({ space: 10 }) {
-        if (this.rollbackPending) {
-          Button(this.pending ? '正在恢复…' : '重试题图恢复')
-            .width('100%').height(50).fontColor(COLOR_PRIMARY).backgroundColor(COLOR_CARD_BG)
-            .border({ width: 1, color: COLOR_PRIMARY }).enabled(!this.pending)
-            .onClick(() => { this.retryRollback() })
-        } else {
-          Button(this.pending ? '正在保存…' : this.saveCompleted ? '进入题目列表' : '保存题库')
-            .width('100%').height(52).fontColor('#FFFFFF').backgroundColor(COLOR_PRIMARY)
-            .borderRadius(16).enabled(!this.pending && !this.discarding && !this.dialogOpen)
-            .onClick(() => { this.saveBank() })
+          Button(this.pending ? '正在处理…' :
+            PdfImportState.shared().getConfirmResult() === null ? '确认题目并保存原图' : '重试保存原题图片')
+            .width('100%')
+            .height(52)
+            .fontColor('#FFFFFF')
+            .backgroundColor(COLOR_PRIMARY)
+            .borderRadius(16)
+            .enabled(!this.pending && !this.navigationPending)
+            .onClick(() => {
+              this.confirmDraft()
+            })
         }
-        if (this.cleanupPending) {
-          Button(this.pending ? '正在清理…' : '重试清理')
-            .width('100%').height(46).fontColor('#FFFFFF').backgroundColor(COLOR_PRIMARY)
-            .enabled(!this.pending && !this.discarding)
-            .onClick(() => { this.retryDiscardCleanup() })
-          Button('稍后清理并返回')
-            .width('100%').height(46).fontColor(COLOR_PRIMARY).backgroundColor(COLOR_CARD_BG)
-            .border({ width: 1, color: COLOR_PRIMARY }).enabled(!this.pending && !this.discarding)
-            .onClick(() => { this.rememberDebtAndDiscard() })
-        }
-      }
-      .width('100%').padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 12, bottom: PAGE_PADDING })
+        .width('100%')
+        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 12, bottom: PAGE_PADDING })
       }
     }
-    .width('100%').height('100%').backgroundColor(COLOR_PAGE_BG)
+    .width('100%')
+    .height('100%')
+    .backgroundColor(COLOR_PAGE_BG)
   }
 }

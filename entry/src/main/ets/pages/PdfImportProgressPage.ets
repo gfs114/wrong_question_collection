@@ -1,5 +1,7 @@
+import { Context } from '@kit.AbilityKit'
 import { router } from '@kit.ArkUI'
 import { AppHeader } from '../components/AppHeader'
+import { CloudImportStatusCard } from '../components/CloudImportStatusCard'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
@@ -12,54 +14,81 @@ import {
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE
 } from '../constants/AppTheme'
+import { AccountSessionState } from '../models/AccountSession'
 import {
-  PdfFileSelection,
-  PdfImportProgress,
-  PdfImportSettings
-} from '../models/PdfImportModels'
-import {
-  PdfImportCancelledCleanupError,
-  PdfImportCancelledError,
-  PdfImportCleanupError,
-  PdfImportCoordinator,
-  PdfImportRunResult
-} from '../services/PdfImportCoordinator'
-import { PdfImportService } from '../services/PdfImportService'
-import { QuestionImageService } from '../services/QuestionImageService'
-import { PdfStorageError } from '../services/PdfStorageError'
-import { PdfImportState } from '../utils/PdfImportState'
+  CloudImportJob,
+  CloudImportStatus,
+  CompleteCloudImportResult
+} from '../models/CloudImportModels'
+import { AccountSessionService } from '../services/AccountSessionService'
+import { CloudImportService } from '../services/CloudImportService'
+import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
 
 @Entry
 @Component
 struct PdfImportProgressPage {
-  @State progressMessage: string = '正在准备识别'
-  @State currentPage: number = 0
-  @State totalPages: number = 0
-  @State processedPageCount: number = 0
-  @State questionCount: number = 0
-  @State cancelDisabled: boolean = false
+  @State statusLabel: string = '上传中'
+  @State serverStatus: string = '上传中'
+  @State progressCurrent: number = 0
+  @State progressTotal: number = 0
   @State errorMessage: string = ''
-  @State running: boolean = false
-  @State failed: boolean = false
-  @State completed: boolean = false
-  @State cleanupPending: boolean = false
-  @State cleaning: boolean = false
-  @State cancelled: boolean = false
+  @State retryHint: string = '上传中断后可继续上传'
+  @State bankName: string = ''
+  @State subject: string = ''
+  @State actionPending: boolean = false
   @State reviewNavigationPending: boolean = false
-  private started: boolean = false
+  @State accountVerified: boolean = false
+  private initialized: boolean = false
+  private pageActive: boolean = false
+  private flowInFlight: boolean = false
+  private flowNeedsRestart: boolean = false
+  private flowGeneration: number = 0
+  private pollingActive: boolean = false
+  private pollingGeneration: number = 0
+  private pollAttempt: number = 0
+  private pollTimerId: number = -1
   private reviewNavigationCompleted: boolean = false
-  private cleanupPaths: Array<string> = new Array<string>()
-  private cleanupMode: string = ''
-  private cleanupResolvedMessage: string = ''
 
   aboutToAppear(): void {
-    if (this.started) {
+    this.pageActive = true
+    if (this.initialized) {
       return
     }
-    this.started = true
-    this.runImport().catch((err: Error) => {
-      this.handleRunEscape(err)
-    })
+    this.initialized = true
+    this.startCloudFlow()
+  }
+
+  onPageShow(): void {
+    this.pageActive = true
+    if (this.initialized && this.flowInFlight && !this.pollingActive &&
+      !this.reviewNavigationPending && !this.reviewNavigationCompleted) {
+      this.startPolling()
+      return
+    }
+    if (this.initialized && !this.flowInFlight && !this.pollingActive &&
+      !this.reviewNavigationPending && !this.reviewNavigationCompleted) {
+      this.startCloudFlow()
+    }
+  }
+
+  onPageHide(): void {
+    this.pageActive = false
+    if (this.flowInFlight) {
+      this.flowNeedsRestart = true
+    }
+    this.flowGeneration++
+    this.hideJobMetadata()
+    this.stopPolling()
+  }
+
+  aboutToDisappear(): void {
+    this.pageActive = false
+    if (this.flowInFlight) {
+      this.flowNeedsRestart = true
+    }
+    this.flowGeneration++
+    this.hideJobMetadata()
+    this.stopPolling()
   }
 
   onBackPress(): boolean {
@@ -67,504 +96,596 @@ struct PdfImportProgressPage {
     return true
   }
 
-  private startRun(): void {
-    if (this.started || this.running) {
+  private startCloudFlow(): void {
+    if (this.flowInFlight || this.reviewNavigationPending || this.reviewNavigationCompleted) {
       return
     }
-    this.started = true
-    this.runImport().catch((err: Error) => {
-      this.handleRunEscape(err)
+    this.clearPollTimer()
+    this.pollingActive = false
+    this.pollingGeneration++
+    this.flowInFlight = true
+    this.flowNeedsRestart = false
+    this.flowGeneration++
+    const generation: number = this.flowGeneration
+    this.actionPending = true
+    this.errorMessage = ''
+    this.runCloudFlow(generation).catch((err: Error) => {
+      if (generation === this.flowGeneration) {
+        this.handleFlowFailure(err)
+      }
+    }).finally(() => {
+      this.flowInFlight = false
+      this.actionPending = false
+      if (this.pageActive && this.flowNeedsRestart && !this.reviewNavigationPending &&
+        !this.reviewNavigationCompleted) {
+        this.startCloudFlow()
+      }
     })
   }
 
-  private handleRunEscape(err: Error): void {
-    this.running = false
-    this.failed = true
-    this.errorMessage = this.messageForError(err)
-  }
-
-  private async runImport(): Promise<void> {
+  private async runCloudFlow(generation: number): Promise<void> {
     const state: PdfImportState = PdfImportState.shared()
-    const selection: PdfFileSelection | null = state.getSelection()
-    const settings: PdfImportSettings | null = state.getSettings()
-    if (selection === null || settings === null) {
-      this.running = false
-      this.failed = true
-      this.errorMessage = 'PDF 导入信息不完整，请返回重新选择'
+    const storedJob: CloudImportJob | null = state.getCloudJob()
+    if (storedJob === null || storedJob.jobId.length === 0) {
+      throw new Error('云端导入任务信息不完整')
+    }
+    const accountId: string = state.getCloudAccountId()
+    if (accountId.length === 0) {
+      throw new Error('云端导入账号信息不完整')
+    }
+    const jobId: string = storedJob.jobId
+    const context: Context = getContext(this)
+    await this.requireAccount(context, accountId)
+    if (!this.isFlowCurrent(generation, jobId, accountId)) {
       return
     }
-    this.running = true
-    this.failed = false
-    this.completed = false
-    this.cleanupPending = false
-    this.cleanupPaths = new Array<string>()
-    this.cleanupMode = ''
-    this.cleanupResolvedMessage = ''
-    this.cancelled = false
-    this.cancelDisabled = false
-    this.errorMessage = ''
-    this.progressMessage = '正在准备识别'
-    this.totalPages = settings.endPage - settings.startPage + 1
-    try {
-      const result: PdfImportRunResult = await PdfImportCoordinator.run(
-        getContext(this), selection, settings,
-        (progress: PdfImportProgress): void => {
-          this.currentPage = progress.currentPage
-          this.totalPages = progress.totalPages
-          this.processedPageCount = progress.processedPageCount
-          this.questionCount = progress.questionCount
-          if (progress.stage === 'recognizing' && progress.currentPage > 0) {
-            this.progressMessage = '正在识别第 ' + progress.currentPage.toString() + ' 页'
-          } else {
-            this.progressMessage = progress.message
-          }
-        },
-        (): boolean => PdfImportState.shared().isCancelRequested())
-      state.setDrafts(result.drafts)
-      state.setFailures(result.failures)
-      this.questionCount = result.drafts.length
-      this.running = false
-      this.cancelDisabled = true
-      this.completed = true
-      this.progressMessage = 'PDF 识别完成'
+    this.accountVerified = true
+    this.applyJob(storedJob)
+    const remoteJob: CloudImportJob = await CloudImportService.getJob(context, jobId)
+    if (!this.isFlowCurrent(generation, jobId, accountId)) {
+      return
+    }
+    await this.requireAccount(context, accountId)
+    if (!this.isFlowCurrent(generation, jobId, accountId)) {
+      return
+    }
+    state.setCloudJob(remoteJob)
+    this.applyJob(remoteJob)
+    if (remoteJob.status !== CloudImportStatus.UPLOADING) {
+      this.continueForStatus(remoteJob)
+      return
+    }
+    const selection: CloudPdfSelection | null = state.getCloudSelection()
+    if (selection === null || selection.pdfPath.length === 0) {
+      throw new Error('PDF 暂存文件信息已丢失，无法继续上传')
+    }
+    const firstMissingPart: number = this.resumePart(remoteJob, state.getFirstMissingPart())
+    state.setFirstMissingPart(firstMissingPart)
+    this.progressCurrent = firstMissingPart
+    this.progressTotal = remoteJob.partCount
+    this.statusLabel = '上传中'
+    this.serverStatus = '上传中'
+    this.retryHint = '上传中断后可从已记录分片继续'
+    if (this.pageActive && this.isFlowCurrent(generation, jobId, accountId)) {
+      this.startPolling()
+    }
+    const completed: CompleteCloudImportResult = await CloudImportService.resumeUpload(
+      context, selection.pdfPath, remoteJob, firstMissingPart)
+    if (!this.isFlowCurrent(generation, jobId, accountId)) {
+      return
+    }
+    await this.requireAccount(context, accountId)
+    if (!this.isFlowCurrent(generation, jobId, accountId)) {
+      return
+    }
+    state.setFirstMissingPart(remoteJob.partCount)
+    state.setCloudStatus(completed.status)
+    state.setCloudProgress(remoteJob.partCount, remoteJob.partCount)
+    if (this.pageActive) {
+      this.statusLabel = this.labelForStatus(completed.status)
+      this.serverStatus = this.serverLabelForStatus(completed.status)
+      this.progressCurrent = remoteJob.partCount
+      this.progressTotal = remoteJob.partCount
+      this.retryHint = this.retryHintForStatus(completed.status)
+      this.startPolling()
+    }
+  }
+
+  private resumePart(job: CloudImportJob, savedPart: number): number {
+    let firstMissingPart: number = savedPart
+    if (!Number.isInteger(firstMissingPart) || firstMissingPart < 0 ||
+      firstMissingPart > job.partCount) {
+      firstMissingPart = 0
+    }
+    if (job.progress.total === job.partCount && Number.isInteger(job.progress.current) &&
+      job.progress.current >= 0 && job.progress.current <= job.partCount) {
+      firstMissingPart = Math.max(firstMissingPart, job.progress.current)
+    }
+    return firstMissingPart
+  }
+
+  private applyJob(job: CloudImportJob): void {
+    if (!this.pageActive) {
+      return
+    }
+    this.bankName = job.bankName
+    this.subject = job.subject
+    this.statusLabel = this.labelForStatus(job.status)
+    this.serverStatus = this.serverLabelForStatus(job.status)
+    this.retryHint = this.retryHintForStatus(job.status)
+    if (job.status === CloudImportStatus.UPLOADING) {
+      const uploadPart: number = this.resumePart(job, PdfImportState.shared().getFirstMissingPart())
+      this.progressCurrent = uploadPart
+      this.progressTotal = job.partCount
+    } else {
+      this.progressCurrent = job.progress.current
+      this.progressTotal = job.progress.total
+    }
+    if (job.status === CloudImportStatus.FAILED) {
+      this.errorMessage = '服务器处理失败，请稍后重新导入'
+    } else {
+      this.errorMessage = ''
+    }
+  }
+
+  private continueForStatus(job: CloudImportJob): void {
+    if (!this.pageActive) {
+      return
+    }
+    if (job.status === CloudImportStatus.REVIEW) {
+      this.stopPolling()
       this.navigateToReview()
-    } catch (err) {
-      this.running = false
-      this.cancelDisabled = true
-      if (err instanceof PdfImportCancelledCleanupError) {
-        this.handleStructuredCleanupError(err, true)
-        return
-      }
-      if (err instanceof PdfImportCleanupError) {
-        this.handleStructuredCleanupError(err, false)
-        return
-      }
-      if (err instanceof PdfImportCancelledError) {
-        this.cancelled = true
-        this.progressMessage = '识别已取消'
-        this.cleaning = true
-        try {
-          await PdfImportService.removeTemporaryPdf(selection.uri)
-        } catch {
-          this.cleaning = false
-          this.failed = true
-          this.cleanupPending = true
-          this.cleanupMode = 'cancelled-pdf'
-          this.errorMessage = '识别已取消，但 PDF 临时文件清理失败，请重试清理'
-          return
-        }
-        await this.navigateToImportBank()
-        return
-      }
-      this.failed = true
-      this.cleanupResolvedMessage = this.messageForError(err)
-      this.errorMessage = this.cleanupResolvedMessage
-      this.progressMessage = 'PDF 识别失败'
-      this.cleaning = true
-      try {
-        await PdfImportService.removeTemporaryPdf(selection.uri)
-      } catch {
-        this.cleaning = false
-        this.cleanupPending = true
-        this.cleanupMode = 'fatal-pdf'
-        this.errorMessage = this.cleanupResolvedMessage + '；PDF 临时文件清理失败，请重试清理'
-        return
-      }
-      await this.navigateToImportBank()
-    }
-  }
-
-  private cancelImport(): void {
-    if (!this.running || this.cancelDisabled) {
       return
     }
-    PdfImportState.shared().requestCancel()
-    this.cancelDisabled = true
-    this.progressMessage = '正在取消识别，请稍候…'
-  }
-
-  private retryImport(): void {
-    if (this.running || this.cleaning || this.completed || this.cleanupPending) {
+    if (this.shouldPoll(job.status)) {
+      this.startPolling()
       return
     }
-    PdfImportState.shared().clearCancelRequest()
-    this.errorMessage = ''
-    this.started = false
-    this.running = false
-    this.failed = false
-    this.cancelled = false
-    this.cancelDisabled = false
-    this.startRun()
+    this.stopPolling()
   }
 
-  private retryCleanup(): void {
-    if (this.running || this.cleaning || !this.cleanupPending) {
-      return
-    }
-    this.cleaning = true
-    this.errorMessage = ''
-    this.finishCleanup().catch((err: Error) => {
-      this.cleaning = false
-      if (this.cleanupMode === 'fatal-images' || this.cleanupMode === 'cancelled-images') {
-        this.errorMessage = '题图缓存清理失败，请释放存储空间后重试'
-      } else {
-        this.errorMessage = this.messageForCleanupError(err)
-      }
-    })
+  private shouldPoll(status: CloudImportStatus): boolean {
+    return status === CloudImportStatus.UPLOADING || status === CloudImportStatus.QUEUED ||
+      status === CloudImportStatus.PROCESSING
   }
 
-  private async finishCleanup(): Promise<void> {
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
-    if (selection === null) {
-      this.cleaning = false
-      this.errorMessage = 'PDF 临时文件信息已丢失，请返回导入页'
+  private startPolling(): void {
+    if (!this.pageActive || this.reviewNavigationPending || this.reviewNavigationCompleted) {
       return
     }
-    if (this.cleanupMode === 'fatal-images' || this.cleanupMode === 'cancelled-images') {
-      await QuestionImageService.deletePaths(getContext(this), this.cleanupPaths)
-      this.cleanupPaths = new Array<string>()
-      if (this.cleanupMode === 'fatal-images') {
-        this.cleanupMode = 'fatal-pdf'
-      } else {
-        this.cleanupMode = 'cancelled-pdf'
-      }
-    }
-    try {
-      await PdfImportService.removeTemporaryPdf(selection.uri)
-    } catch (err) {
-      if (this.cancelled) {
-        this.cleanupMode = 'cancelled-pdf'
-      } else {
-        this.cleanupMode = 'fatal-pdf'
-      }
-      if (err instanceof Error) {
-        throw err
-      }
-      throw new Error('PDF 临时文件清理失败')
-    }
-    this.cleanupPending = false
-    this.cleaning = false
-    if (this.cancelled) {
-      await this.navigateToImportBank()
-      return
-    }
-    await this.navigateToImportBank()
+    this.clearPollTimer()
+    this.pollingActive = true
+    this.pollAttempt = 0
+    this.pollingGeneration++
+    const generation: number = this.pollingGeneration
+    this.pollJob(generation)
   }
 
-  private handleStructuredCleanupError(
-    err: PdfImportCleanupError | PdfImportCancelledCleanupError, cancelled: boolean): void {
-    this.failed = true
-    this.cancelled = cancelled
-    this.cleanupPending = true
-    this.cleanupPaths = err.paths.slice()
-    this.cleanupMode = cancelled ? 'cancelled-images' : 'fatal-images'
-    this.cleanupResolvedMessage = this.messageForErrorMessage(err.message)
-    this.progressMessage = cancelled ? '识别已取消' : 'PDF 识别失败'
-    this.errorMessage = this.cleanupResolvedMessage + '；题图清理失败，请重试或登记稍后清理'
-  }
-
-  private async abandonCleanupAndContinue(): Promise<void> {
-    if (this.running || this.cleaning || !this.cleanupPending) {
+  private async pollJob(generation: number): Promise<void> {
+    if (!this.pollingActive || !this.pageActive || generation !== this.pollingGeneration) {
       return
     }
-    this.cleaning = true
-    if (this.cleanupPaths.length > 0) {
-      QuestionImageService.rememberCleanupDebt(this.cleanupPaths)
-    }
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
-    if (selection === null) {
-      this.cleaning = false
-      this.errorMessage = 'PDF 临时文件信息已丢失，无法登记稍后清理'
+    const state: PdfImportState = PdfImportState.shared()
+    const jobId: string = state.getCloudJobId()
+    const accountId: string = state.getCloudAccountId()
+    if (jobId.length === 0 || accountId.length === 0) {
+      this.errorMessage = '云端导入任务信息不完整'
+      this.retryHint = '请返回导入页重新创建任务'
+      this.stopPolling()
       return
     }
     try {
-      PdfImportService.abandonTemporaryPdf(selection.uri)
-    } catch {
-      this.cleaning = false
-      this.errorMessage = 'PDF 临时文件登记失败，请重试清理或再次稍后处理'
-      return
+      await this.requireAccount(getContext(this), accountId)
+      if (!this.isPollingCurrent(generation, jobId, accountId)) {
+        return
+      }
+      this.accountVerified = true
+      const job: CloudImportJob = await CloudImportService.getJob(getContext(this), jobId)
+      if (!this.isPollingCurrent(generation, jobId, accountId)) {
+        return
+      }
+      await this.requireAccount(getContext(this), accountId)
+      if (!this.isPollingCurrent(generation, jobId, accountId)) {
+        return
+      }
+      state.setCloudJob(job)
+      this.applyJob(job)
+      if (job.status === CloudImportStatus.REVIEW) {
+        this.stopPolling()
+        this.navigateToReview()
+        return
+      }
+      if (!this.shouldPoll(job.status)) {
+        this.stopPolling()
+        return
+      }
+      this.scheduleNextPoll(generation)
+    } catch (err) {
+      if (!this.pollingActive || !this.pageActive || generation !== this.pollingGeneration) {
+        return
+      }
+      this.errorMessage = this.messageForError(err)
+      if (this.isAccountError(err)) {
+        this.hideJobMetadata()
+        this.retryHint = '请使用创建此任务的华为账号后重试'
+        this.stopPolling()
+        return
+      }
+      this.retryHint = '网络恢复后会自动重试，也可立即重新查询'
+      this.scheduleNextPoll(generation)
     }
-    await this.navigateToImportBank()
   }
 
-  private continueReview(): void {
-    if (!this.completed || this.cleanupPending || this.cleaning) {
+  private scheduleNextPoll(generation: number): void {
+    if (!this.pollingActive || !this.pageActive || generation !== this.pollingGeneration) {
       return
     }
-    this.navigateToReview()
+    this.clearPollTimer()
+    const delay: number = this.nextPollDelay()
+    this.pollTimerId = setTimeout(() => {
+      this.pollTimerId = -1
+      this.pollJob(generation)
+    }, delay)
   }
 
-  private async navigateToReview(): Promise<void> {
-    if (this.reviewNavigationPending || this.reviewNavigationCompleted) {
+  private nextPollDelay(): number {
+    const attempt: number = this.pollAttempt
+    this.pollAttempt = Math.min(this.pollAttempt + 1, 3)
+    if (attempt === 0) {
+      return 1000
+    }
+    if (attempt === 1) {
+      return 2000
+    }
+    if (attempt === 2) {
+      return 4000
+    }
+    return 5000
+  }
+
+  private stopPolling(): void {
+    this.pollingActive = false
+    this.pollingGeneration++
+    this.clearPollTimer()
+  }
+
+  private clearPollTimer(): void {
+    if (this.pollTimerId >= 0) {
+      clearTimeout(this.pollTimerId)
+      this.pollTimerId = -1
+    }
+  }
+
+  private retryNow(): void {
+    if (this.flowInFlight || this.reviewNavigationPending || this.reviewNavigationCompleted) {
       return
     }
+    this.pageActive = true
+    this.stopPolling()
+    this.startCloudFlow()
+  }
+
+  private handleFlowFailure(err: Error): void {
+    if (!this.pageActive) {
+      return
+    }
+    if (this.isAccountError(err)) {
+      this.hideJobMetadata()
+    }
+    this.errorMessage = this.messageForError(err)
+    this.retryHint = '请检查网络与登录状态后重试'
+  }
+
+  private messageForError(err: Error): string {
+    if (err instanceof Error) {
+      if (err.message.includes('请先登录') || err.message.includes('账号')) {
+        return err.message
+      }
+      if (err.message.includes('信息不完整')) {
+        return '云端导入任务信息不完整，请返回重新导入'
+      }
+      if (err.message.includes('暂存文件')) {
+        return 'PDF 暂存文件不可用，请返回重新选择'
+      }
+      if (err.message.includes('does not match') || err.message.includes('changed')) {
+        return 'PDF 文件已变化，请返回重新选择'
+      }
+      if (err.message.includes('already active')) {
+        return 'PDF 正在上传，请稍后重新查询状态'
+      }
+    }
+    return '云端导入暂时不可用，请检查网络后重试'
+  }
+
+  private isFlowCurrent(generation: number, jobId: string, accountId: string): boolean {
+    const state: PdfImportState = PdfImportState.shared()
+    return generation === this.flowGeneration && state.getCloudJobId() === jobId &&
+      state.getCloudAccountId() === accountId
+  }
+
+  private isPollingCurrent(generation: number, jobId: string, accountId: string): boolean {
+    const state: PdfImportState = PdfImportState.shared()
+    return this.pollingActive && this.pageActive && generation === this.pollingGeneration &&
+      state.getCloudJobId() === jobId && state.getCloudAccountId() === accountId
+  }
+
+  private async requireAccount(context: Context, accountId: string): Promise<void> {
+    const session: AccountSessionState = await AccountSessionService.state(context)
+    if (!session.signedIn || session.userId.length === 0) {
+      throw new Error('请先登录华为账号')
+    }
+    if (session.userId !== accountId) {
+      throw new Error('当前华为账号与云端导入任务不一致')
+    }
+  }
+
+  private isAccountError(err: Error): boolean {
+    return err instanceof Error &&
+      (err.message.includes('请先登录') || err.message.includes('账号'))
+  }
+
+  private hideJobMetadata(): void {
+    this.accountVerified = false
+    this.bankName = ''
+    this.subject = ''
+    this.progressCurrent = 0
+    this.progressTotal = 0
+    this.statusLabel = '账号验证中'
+    this.serverStatus = '正在验证账号'
+  }
+
+  private labelForStatus(status: CloudImportStatus): string {
+    if (status === CloudImportStatus.UPLOADING) {
+      return '上传中'
+    }
+    if (status === CloudImportStatus.QUEUED || status === CloudImportStatus.PROCESSING) {
+      return '服务器识别中'
+    }
+    if (status === CloudImportStatus.REVIEW) {
+      return '等待确认'
+    }
+    if (status === CloudImportStatus.FAILED) {
+      return '处理失败'
+    }
+    if (status === CloudImportStatus.CANCELLED) {
+      return '已取消'
+    }
+    if (status === CloudImportStatus.EXPIRED) {
+      return '已过期'
+    }
+    return '已确认'
+  }
+
+  private serverLabelForStatus(status: CloudImportStatus): string {
+    if (status === CloudImportStatus.UPLOADING) {
+      return '上传中'
+    }
+    if (status === CloudImportStatus.QUEUED) {
+      return '服务器排队中'
+    }
+    if (status === CloudImportStatus.PROCESSING) {
+      return '服务器识别中'
+    }
+    if (status === CloudImportStatus.REVIEW) {
+      return '等待确认'
+    }
+    if (status === CloudImportStatus.FAILED) {
+      return '处理失败'
+    }
+    if (status === CloudImportStatus.CANCELLED) {
+      return '已取消'
+    }
+    if (status === CloudImportStatus.EXPIRED) {
+      return '已过期'
+    }
+    return '已确认'
+  }
+
+  private retryHintForStatus(status: CloudImportStatus): string {
+    if (status === CloudImportStatus.UPLOADING) {
+      return '上传中断后可从已记录分片继续'
+    }
+    if (status === CloudImportStatus.QUEUED || status === CloudImportStatus.PROCESSING) {
+      return '页面会自动查询服务器进度'
+    }
+    if (status === CloudImportStatus.REVIEW) {
+      return '请继续在线审核识别草稿'
+    }
+    if (status === CloudImportStatus.FAILED) {
+      return '可返回导入页重新创建任务'
+    }
+    if (status === CloudImportStatus.CANCELLED) {
+      return '任务已取消，如需导入请重新创建任务'
+    }
+    if (status === CloudImportStatus.EXPIRED) {
+      return '任务已过期，请重新创建导入任务'
+    }
+    return '题目文字已经保存'
+  }
+
+  private navigateToReview(): void {
+    if (!this.pageActive || !this.accountVerified || this.reviewNavigationPending ||
+      this.reviewNavigationCompleted) {
+      return
+    }
+    this.stopPolling()
     this.reviewNavigationPending = true
     this.errorMessage = ''
     const options: router.RouterOptions = {
       url: 'pages/PdfImportReviewPage'
     }
-    try {
-      await this.getUIContext().getRouter().replaceUrl(options)
+    this.getUIContext().getRouter().replaceUrl(options).then(() => {
       this.reviewNavigationCompleted = true
-    } catch {
+    }).catch(() => {
       this.errorMessage = '审核页面暂不可用，请稍后重试'
+      this.retryHint = '点击进入审核可再次尝试'
       this.reviewNavigationPending = false
+    })
+  }
+
+  private async continueReview(): Promise<void> {
+    if (this.actionPending || !this.accountVerified) {
+      return
+    }
+    const state: PdfImportState = PdfImportState.shared()
+    const jobId: string = state.getCloudJobId()
+    const accountId: string = state.getCloudAccountId()
+    if (jobId.length === 0 || accountId.length === 0) {
+      this.errorMessage = '云端导入任务信息不完整，请返回重新导入'
+      return
+    }
+    const generation: number = this.flowGeneration
+    this.actionPending = true
+    try {
+      await this.requireAccount(getContext(this), accountId)
+      if (!this.pageActive || generation !== this.flowGeneration ||
+        state.getCloudJobId() !== jobId || state.getCloudAccountId() !== accountId) {
+        return
+      }
+      this.accountVerified = true
+      this.navigateToReview()
+    } catch (err) {
+      if (!this.pageActive || generation !== this.flowGeneration) {
+        return
+      }
+      this.hideJobMetadata()
+      this.errorMessage = this.messageForError(err)
+      this.retryHint = '请使用创建此任务的华为账号后重试'
+    } finally {
+      this.actionPending = false
     }
   }
 
   private goBack(): void {
-    if (this.running) {
-      this.cancelImport()
-      return
+    this.pageActive = false
+    if (this.flowInFlight) {
+      this.flowNeedsRestart = true
     }
-    if (this.completed) {
-      if (this.cleanupPending) {
-        this.retryCleanup()
-      } else {
-        this.continueReview()
-      }
-      return
-    }
-    this.leaveImport()
-  }
-
-  private async leaveImport(): Promise<void> {
-    if (this.running || this.cleaning) {
-      return
-    }
-    this.cleaning = true
-    this.errorMessage = ''
-    const selection: PdfFileSelection | null = PdfImportState.shared().getSelection()
+    this.flowGeneration++
+    this.hideJobMetadata()
+    this.stopPolling()
     try {
-      if (selection !== null) {
-        await PdfImportService.removeTemporaryPdf(selection.uri)
+      this.getUIContext().getRouter().back()
+    } catch {
+      this.pageActive = true
+      this.errorMessage = '暂时无法返回，云端任务仍会保留'
+      this.retryHint = '请稍后重试返回或继续查询任务'
+      if (!this.flowInFlight) {
+        this.startCloudFlow()
       }
-    } catch {
-      this.cleanupPending = true
-      this.cleanupMode = 'fatal-pdf'
-      this.errorMessage = 'PDF 临时文件清理失败，请重试，或稍后清理并返回'
-      this.cleaning = false
-      return
     }
-    await this.navigateToImportBank()
-  }
-
-  private async navigateToImportBank(): Promise<void> {
-    const options: router.RouterOptions = {
-      url: 'pages/ImportBankPage'
-    }
-    try {
-      await this.getUIContext().getRouter().replaceUrl(options)
-      PdfImportState.shared().reset()
-    } catch {
-      this.failed = true
-      this.errorMessage = '导入页面暂不可用，PDF 导入信息仍已保留'
-    } finally {
-      this.cleaning = false
-    }
-  }
-
-  private messageForCleanupError(err: Error): string {
-    if (err instanceof Error && err.message.length > 0) {
-      return 'PDF 临时文件清理失败，请释放存储空间后重试'
-    }
-    return 'PDF 临时文件清理失败，请重试'
-  }
-
-  private messageForError(err: Error): string {
-    if (err instanceof PdfStorageError) {
-      return '本地空间不足或图片保存失败'
-    }
-    return this.messageForErrorMessage(err.message)
-  }
-
-  private messageForErrorMessage(message: string): string {
-    if ((message.includes('OCR') || message.includes('文字识别') || message.includes('textRecognition')) &&
-      (message.includes('不支持') || message.includes('初始化') || message.includes('能力'))) {
-      return '当前设备不支持端侧文字识别，请使用鸿蒙真机重试'
-    }
-    if (message.includes('加密')) {
-      return '暂不支持加密 PDF'
-    }
-    if (message.includes('解析') || message.includes('损坏') || message.includes('页数与选择时不一致')) {
-      return 'PDF 文件损坏或格式不受支持'
-    }
-    if (message.includes('所选页面均识别失败')) {
-      return '部分页面识别失败，请检查标记页'
-    }
-    if (message.includes('页面识别失败')) {
-      return '部分页面识别失败，请检查标记页'
-    }
-    if (message.startsWith('本地空间不足或图片保存失败')) {
-      return '本地空间不足或图片保存失败'
-    }
-    return 'PDF 导入失败，请重新选择文件'
   }
 
   build() {
     Column() {
       AppHeader({
-        title: 'PDF 识别',
+        title: '云端 PDF 导入',
         showBack: true,
         onBack: () => {
           this.goBack()
         }
       })
 
-      Column({ space: 18 }) {
+      Scroll() {
         Column({ space: 16 }) {
-          if (this.running) {
-            LoadingProgress()
-              .width(52)
-              .height(52)
-              .color(COLOR_PRIMARY)
-          } else {
-            Text(this.completed ? '✓' : this.failed ? '!' : '…')
-              .width(52)
-              .height(52)
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.failed ? COLOR_DANGER : COLOR_PRIMARY)
-              .textAlign(TextAlign.Center)
-              .backgroundColor(COLOR_PAGE_BG)
-              .borderRadius(26)
-          }
+          CloudImportStatusCard({
+            status: this.statusLabel,
+            progressCurrent: this.progressCurrent,
+            progressTotal: this.progressTotal,
+            errorMessage: this.errorMessage,
+            retryHint: this.retryHint,
+            serverStatus: this.serverStatus
+          })
 
-          Text(this.progressMessage)
+          if (this.bankName.length > 0 || this.subject.length > 0) {
+            Column({ space: 8 }) {
+              Text(this.bankName.length > 0 ? this.bankName : '未命名题库')
+                .width('100%')
+                .fontSize(SUBTITLE_FONT_SIZE)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(COLOR_TEXT_PRIMARY)
+
+              Text(this.subject.length > 0 ? this.subject : '未设置学科')
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor(COLOR_TEXT_CAPTION)
+            }
             .width('100%')
-            .fontSize(20)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_TEXT_PRIMARY)
-            .textAlign(TextAlign.Center)
-
-          Text('已处理 ' + this.processedPageCount.toString() + ' / ' + this.totalPages.toString() + ' 页')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
-
-          if (this.currentPage > 0) {
-            Text('当前第 ' + this.currentPage.toString() + ' 页 · 已识别 ' +
-              this.questionCount.toString() + ' 道题')
-              .fontSize(BODY_FONT_SIZE)
-              .fontColor(COLOR_TEXT_CAPTION)
+            .padding(18)
+            .alignItems(HorizontalAlign.Start)
+            .backgroundColor(COLOR_CARD_BG)
+            .borderRadius(CARD_RADIUS)
           }
+
+          if (this.statusLabel === '等待确认' && this.accountVerified) {
+            Button(this.reviewNavigationPending || this.actionPending ? '正在进入审核…' : '进入审核')
+              .type(ButtonType.Normal)
+              .width('100%')
+              .height(52)
+              .fontSize(SUBTITLE_FONT_SIZE)
+              .fontWeight(FontWeight.Medium)
+              .fontColor('#FFFFFF')
+              .backgroundColor(COLOR_PRIMARY)
+              .borderRadius(16)
+              .enabled(!this.reviewNavigationPending && !this.actionPending && this.accountVerified)
+              .onClick(() => {
+                this.continueReview()
+              })
+          } else if (this.statusLabel === '处理失败' || this.statusLabel === '已取消' ||
+            this.statusLabel === '已过期' || this.statusLabel === '已确认') {
+            Button('返回导入页')
+              .type(ButtonType.Normal)
+              .width('100%')
+              .height(52)
+              .fontSize(SUBTITLE_FONT_SIZE)
+              .fontColor('#FFFFFF')
+              .backgroundColor(this.statusLabel === '处理失败' ? COLOR_DANGER : COLOR_PRIMARY)
+              .borderRadius(16)
+              .onClick(() => {
+                this.goBack()
+              })
+          } else {
+            Row({ space: 12 }) {
+              Button('返回')
+                .type(ButtonType.Normal)
+                .layoutWeight(1)
+                .height(50)
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor(COLOR_TEXT_PRIMARY)
+                .backgroundColor(COLOR_CARD_BG)
+                .borderRadius(15)
+                .onClick(() => {
+                  this.goBack()
+                })
+
+              Button(this.actionPending ? '正在处理…' : '立即刷新')
+                .type(ButtonType.Normal)
+                .layoutWeight(1)
+                .height(50)
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor('#FFFFFF')
+                .backgroundColor(COLOR_PRIMARY)
+                .borderRadius(15)
+                .enabled(!this.actionPending)
+                .onClick(() => {
+                  this.retryNow()
+                })
+            }
+            .width('100%')
+          }
+
+          Text('离开此页面只会停止进度查询，不会取消服务器任务。')
+            .width('100%')
+            .fontSize(12)
+            .fontColor(COLOR_TEXT_CAPTION)
+            .textAlign(TextAlign.Center)
+            .lineHeight(19)
         }
         .width('100%')
-        .padding(24)
-        .backgroundColor(COLOR_CARD_BG)
-        .borderRadius(CARD_RADIUS)
-
-        if (this.errorMessage.length > 0) {
-          Text(this.errorMessage)
-            .width('100%')
-            .padding(16)
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_DANGER)
-            .lineHeight(22)
-            .backgroundColor('#FFF2F2')
-            .borderRadius(14)
-        }
-
-        if (this.running) {
-          Button(this.cancelDisabled ? '正在取消…' : '取消识别')
-            .type(ButtonType.Normal)
-            .width('100%')
-            .height(50)
-            .fontSize(SUBTITLE_FONT_SIZE)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(COLOR_DANGER)
-            .backgroundColor(COLOR_CARD_BG)
-            .border({ width: 1, color: COLOR_DANGER })
-            .borderRadius(15)
-            .enabled(!this.cancelDisabled)
-            .onClick(() => {
-              this.cancelImport()
-            })
-        } else if (this.cleanupPending) {
-          Column({ space: 12 }) {
-            Button(this.cleaning ? '正在清理…' : '重试清理')
-              .type(ButtonType.Normal)
-              .width('100%')
-              .height(50)
-              .fontSize(SUBTITLE_FONT_SIZE)
-              .fontColor('#FFFFFF')
-              .backgroundColor(COLOR_PRIMARY)
-              .borderRadius(15)
-              .enabled(!this.cleaning)
-              .onClick(() => {
-                this.retryCleanup()
-              })
-
-            Button(this.completed ? '稍后清理并继续审核' : '稍后清理并返回')
-              .type(ButtonType.Normal)
-              .width('100%')
-              .height(50)
-              .fontSize(SUBTITLE_FONT_SIZE)
-              .fontColor(COLOR_PRIMARY)
-              .backgroundColor(COLOR_CARD_BG)
-              .border({ width: 1, color: COLOR_PRIMARY })
-              .borderRadius(15)
-              .enabled(!this.cleaning)
-              .onClick(() => {
-                this.abandonCleanupAndContinue()
-              })
-          }
-          .width('100%')
-        } else if (this.completed) {
-          Button(this.reviewNavigationPending ? '正在进入审核…' : '继续审核')
-            .type(ButtonType.Normal)
-            .width('100%')
-            .height(50)
-            .fontSize(SUBTITLE_FONT_SIZE)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
-            .borderRadius(15)
-            .enabled(!this.reviewNavigationPending && !this.cleaning)
-            .onClick(() => {
-              this.continueReview()
-            })
-        } else if (this.cancelled) {
-          Button('返回导入页')
-            .type(ButtonType.Normal)
-            .width('100%')
-            .height(50)
-            .fontSize(SUBTITLE_FONT_SIZE)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
-            .borderRadius(15)
-            .onClick(() => {
-              this.leaveImport()
-            })
-        } else if (this.failed) {
-          Row({ space: 12 }) {
-            Button('返回')
-              .type(ButtonType.Normal)
-              .layoutWeight(1)
-              .height(50)
-              .fontColor(COLOR_TEXT_PRIMARY)
-              .backgroundColor(COLOR_CARD_BG)
-              .borderRadius(15)
-              .onClick(() => {
-                this.leaveImport()
-              })
-
-            Button('重试识别')
-              .type(ButtonType.Normal)
-              .layoutWeight(1)
-              .height(50)
-              .fontColor('#FFFFFF')
-              .backgroundColor(COLOR_PRIMARY)
-              .borderRadius(15)
-              .onClick(() => {
-                this.retryImport()
-              })
-          }
-          .width('100%')
-        }
+        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
       }
       .layoutWeight(1)
       .width('100%')
-      .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
-      .justifyContent(FlexAlign.Center)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
