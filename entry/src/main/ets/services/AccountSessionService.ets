@@ -9,6 +9,7 @@ import {
 import { ApiHttpError } from '../models/ApiModels'
 import { ApiHttpClient } from './ApiHttpClient'
 import { AccountSessionStore } from './AccountSessionStore'
+import { CloudCacheService } from './CloudCacheService'
 
 const PREFERENCES_NAME: string = 'account_metadata'
 const USER_ID_KEY: string = 'user_id'
@@ -23,6 +24,7 @@ export class AccountSessionService {
   private static accessTokenValue: string = ''
   private static accessTokenExpiresAt: number = 0
   private static refreshInFlight: Promise<string> | null = null
+  private static signingOut: boolean = false
 
   static async installLogin(context: Context, result: LoginResult,
     deviceName: string): Promise<AccountSessionState> {
@@ -49,6 +51,9 @@ export class AccountSessionService {
   }
 
   static async accessToken(context: Context): Promise<string> {
+    if (AccountSessionService.signingOut) {
+      return ''
+    }
     if (AccountSessionTiming.isFresh(AccountSessionService.accessTokenExpiresAt, Date.now()) &&
       AccountSessionService.accessTokenValue.length > 0) {
       return AccountSessionService.accessTokenValue
@@ -57,6 +62,9 @@ export class AccountSessionService {
   }
 
   static async refresh(context: Context): Promise<string> {
+    if (AccountSessionService.signingOut) {
+      return ''
+    }
     const active: Promise<string> | null = AccountSessionService.refreshInFlight
     if (active !== null) {
       return active
@@ -73,17 +81,39 @@ export class AccountSessionService {
   }
 
   static async signOut(context: Context): Promise<void> {
-    const refreshToken: string = await AccountSessionStore.refreshToken()
-    if (refreshToken.length > 0) {
-      try {
-        const body: RefreshBody = { refreshToken: refreshToken }
-        await ApiHttpClient.post<void>('/v1/auth/logout', body)
-      } catch {
-      }
+    if (AccountSessionService.signingOut) {
+      return
     }
-    await AccountSessionStore.clearSession()
-    await AccountSessionService.clearMetadata(context)
-    AccountSessionService.clearMemory()
+    AccountSessionService.signingOut = true
+    try {
+      const session: AccountSessionState = await AccountSessionService.state(context)
+      const activeRefresh: Promise<string> | null = AccountSessionService.refreshInFlight
+      if (activeRefresh !== null) {
+        try {
+          await activeRefresh
+        } catch {
+        }
+      }
+      const refreshToken: string = await AccountSessionStore.refreshToken()
+      if (refreshToken.length > 0) {
+        try {
+          const body: RefreshBody = { refreshToken: refreshToken }
+          await ApiHttpClient.post<void>('/v1/auth/logout', body)
+        } catch {
+        }
+      }
+      await AccountSessionStore.clearSession()
+      AccountSessionService.clearMemory()
+      try {
+        if (session.userId.length > 0) {
+          await CloudCacheService.clearAccountTextCache(session.userId)
+        }
+      } finally {
+        await AccountSessionService.clearMetadata(context)
+      }
+    } finally {
+      AccountSessionService.signingOut = false
+    }
   }
 
   static async state(context: Context): Promise<AccountSessionState> {
@@ -116,7 +146,9 @@ export class AccountSessionService {
     } catch (err) {
       if (err instanceof ApiHttpError && err.statusCode === 401) {
         await AccountSessionStore.clearSession()
-        await AccountSessionService.clearMetadata(context)
+        if (!AccountSessionService.signingOut) {
+          await AccountSessionService.clearMetadata(context)
+        }
         AccountSessionService.clearMemory()
       }
       if (err instanceof Error) {

@@ -39,6 +39,8 @@ import {
 import { CloudImportApi, PART_BYTES } from '../main/ets/services/CloudImportApi';
 import { CloudImportService } from '../main/ets/services/CloudImportService';
 import { SyncOperationType, SyncOutboxPolicy, SyncSequence } from '../main/ets/models/SyncModels';
+import { CacheVersionPolicy } from '../main/ets/models/CloudCacheModels';
+import { DeviceImageScope } from '../main/ets/services/DeviceImageStore';
 
 class ParserAssertions {
   static expectRejected(text: string): void {
@@ -98,6 +100,21 @@ class JsonSamples {
 }
 
 export default function localUnitTest(): void {
+  describe('cloudCachePolicies', () => {
+    it('allows only newer server cursors to replace cache', 0, () => {
+      expect(CacheVersionPolicy.shouldReplace('12', '13')).assertTrue()
+      expect(CacheVersionPolicy.shouldReplace('13', '13')).assertFalse()
+      expect(CacheVersionPolicy.shouldReplace('13', '12')).assertFalse()
+      expect(CacheVersionPolicy.shouldReplace('18446744073709551614',
+        '18446744073709551615')).assertTrue()
+    })
+
+    it('creates different image scope keys for the same question in different accounts', 0, () => {
+      expect(DeviceImageScope.key('user-a', 'question-a') ===
+        DeviceImageScope.key('user-b', 'question-a')).assertFalse()
+    })
+  })
+
   describe('syncOutboxPolicy', () => {
     it('keeps only the latest unsent state for an entity', 0, () => {
       expect(SyncOutboxPolicy.compactedOperation(

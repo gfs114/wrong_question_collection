@@ -5,7 +5,7 @@ const STORE_CONFIG: relationalStore.StoreConfig = {
   name: 'wrong_question_collection.db',
   securityLevel: relationalStore.SecurityLevel.S1
 }
-const SCHEMA_VERSION: number = 5
+const SCHEMA_VERSION: number = 6
 const SCHEMA_TRANSACTION_OPTIONS: relationalStore.TransactionOptions = {
   transactionType: relationalStore.TransactionType.IMMEDIATE
 }
@@ -85,6 +85,69 @@ const CREATE_SYNC_STATE: string = 'CREATE TABLE IF NOT EXISTS sync_state (' +
 const CREATE_SYNC_OUTBOX_INDEX: string =
   'CREATE INDEX IF NOT EXISTS idx_sync_outbox_create_time ON sync_outbox(create_time)'
 
+const CREATE_CLOUD_CACHE_STATE: string = 'CREATE TABLE IF NOT EXISTS cloud_cache_state (' +
+  'account_id TEXT NOT NULL PRIMARY KEY, ' +
+  'cursor TEXT NOT NULL, ' +
+  'update_time INTEGER NOT NULL)'
+
+const CREATE_CLOUD_BANK_CACHE: string = 'CREATE TABLE IF NOT EXISTS cloud_bank_cache (' +
+  'account_id TEXT NOT NULL, ' +
+  'bank_uuid TEXT NOT NULL, ' +
+  'bank_name TEXT NOT NULL, ' +
+  'subject TEXT NOT NULL, ' +
+  'question_count INTEGER NOT NULL, ' +
+  'server_version TEXT NOT NULL, ' +
+  'update_time INTEGER NOT NULL, ' +
+  'PRIMARY KEY(account_id, bank_uuid))'
+
+const CREATE_CLOUD_QUESTION_CACHE: string = 'CREATE TABLE IF NOT EXISTS cloud_question_cache (' +
+  'account_id TEXT NOT NULL, ' +
+  'question_uuid TEXT NOT NULL, ' +
+  'bank_uuid TEXT NOT NULL, ' +
+  'type TEXT NOT NULL, ' +
+  'content TEXT NOT NULL, ' +
+  'options_json TEXT NOT NULL, ' +
+  'answer TEXT NOT NULL, ' +
+  'analysis TEXT NOT NULL, ' +
+  'server_version TEXT NOT NULL, ' +
+  'sort_order INTEGER NOT NULL, ' +
+  'PRIMARY KEY(account_id, question_uuid))'
+
+const CREATE_CLOUD_WRONG_CACHE: string = 'CREATE TABLE IF NOT EXISTS cloud_wrong_cache (' +
+  'account_id TEXT NOT NULL, ' +
+  'question_uuid TEXT NOT NULL, ' +
+  'bank_uuid TEXT NOT NULL, ' +
+  'subject TEXT NOT NULL, ' +
+  'status TEXT NOT NULL, ' +
+  'user_answer TEXT NOT NULL, ' +
+  'server_version TEXT NOT NULL, ' +
+  'update_time INTEGER NOT NULL, ' +
+  'PRIMARY KEY(account_id, question_uuid))'
+
+const CREATE_DEVICE_QUESTION_IMAGE: string = 'CREATE TABLE IF NOT EXISTS device_question_image (' +
+  'account_id TEXT NOT NULL, ' +
+  'question_uuid TEXT NOT NULL, ' +
+  'image_path TEXT NOT NULL, ' +
+  'sha256 TEXT NOT NULL, ' +
+  'sort_order INTEGER NOT NULL, ' +
+  'PRIMARY KEY(account_id, question_uuid, sort_order), ' +
+  'UNIQUE(account_id, question_uuid, image_path))'
+
+const CREATE_CLOUD_BANK_CACHE_INDEX: string =
+  'CREATE INDEX IF NOT EXISTS idx_cloud_bank_cache_account ON cloud_bank_cache(account_id)'
+
+const CREATE_CLOUD_QUESTION_CACHE_INDEX: string =
+  'CREATE INDEX IF NOT EXISTS idx_cloud_question_cache_account_bank ' +
+  'ON cloud_question_cache(account_id, bank_uuid, sort_order)'
+
+const CREATE_CLOUD_WRONG_CACHE_INDEX: string =
+  'CREATE INDEX IF NOT EXISTS idx_cloud_wrong_cache_account ' +
+  'ON cloud_wrong_cache(account_id, update_time)'
+
+const CREATE_DEVICE_QUESTION_IMAGE_INDEX: string =
+  'CREATE INDEX IF NOT EXISTS idx_device_question_image_owner ' +
+  'ON device_question_image(account_id, question_uuid, sort_order)'
+
 export class DatabaseService {
   private static store: relationalStore.RdbStore | null = null
   private static initialization: Promise<void> | null = null
@@ -129,18 +192,25 @@ export class DatabaseService {
         await DatabaseService.migrateVersionTwo(store)
         await DatabaseService.migrateVersionThree(store)
         await DatabaseService.migrateVersionFour(store)
+        await DatabaseService.migrateVersionFive(store)
         store.version = SCHEMA_VERSION
       } else if (version === 2) {
         await DatabaseService.migrateVersionTwo(store)
         await DatabaseService.migrateVersionThree(store)
         await DatabaseService.migrateVersionFour(store)
+        await DatabaseService.migrateVersionFive(store)
         store.version = SCHEMA_VERSION
       } else if (version === 3) {
         await DatabaseService.migrateVersionThree(store)
         await DatabaseService.migrateVersionFour(store)
+        await DatabaseService.migrateVersionFive(store)
         store.version = SCHEMA_VERSION
       } else if (version === 4) {
         await DatabaseService.migrateVersionFour(store)
+        await DatabaseService.migrateVersionFive(store)
+        store.version = SCHEMA_VERSION
+      } else if (version === 5) {
+        await DatabaseService.migrateVersionFive(store)
         store.version = SCHEMA_VERSION
       }
       DatabaseService.store = store
@@ -168,12 +238,21 @@ export class DatabaseService {
       await transaction.execute(CREATE_SYNC_IDENTITY)
       await transaction.execute(CREATE_SYNC_OUTBOX)
       await transaction.execute(CREATE_SYNC_STATE)
+      await transaction.execute(CREATE_CLOUD_CACHE_STATE)
+      await transaction.execute(CREATE_CLOUD_BANK_CACHE)
+      await transaction.execute(CREATE_CLOUD_QUESTION_CACHE)
+      await transaction.execute(CREATE_CLOUD_WRONG_CACHE)
+      await transaction.execute(CREATE_DEVICE_QUESTION_IMAGE)
       await transaction.execute('CREATE INDEX IF NOT EXISTS idx_question_bank_id ON question(bank_id)')
       await transaction.execute(CREATE_QUESTION_IMAGE_INDEX)
       await transaction.execute('CREATE INDEX IF NOT EXISTS idx_wrong_question_bank_id ON wrong_question(bank_id)')
       await transaction.execute('CREATE INDEX IF NOT EXISTS idx_wrong_question_subject ON wrong_question(subject)')
       await transaction.execute('CREATE INDEX IF NOT EXISTS idx_wrong_question_mastered ON wrong_question(mastered)')
       await transaction.execute(CREATE_SYNC_OUTBOX_INDEX)
+      await transaction.execute(CREATE_CLOUD_BANK_CACHE_INDEX)
+      await transaction.execute(CREATE_CLOUD_QUESTION_CACHE_INDEX)
+      await transaction.execute(CREATE_CLOUD_WRONG_CACHE_INDEX)
+      await transaction.execute(CREATE_DEVICE_QUESTION_IMAGE_INDEX)
       await transaction.commit()
     } catch (err) {
       try {
@@ -277,6 +356,31 @@ export class DatabaseService {
       await transaction.execute(CREATE_SYNC_OUTBOX)
       await transaction.execute(CREATE_SYNC_STATE)
       await transaction.execute(CREATE_SYNC_OUTBOX_INDEX)
+      await transaction.commit()
+    } catch (err) {
+      try {
+        await transaction.rollback()
+      } catch {
+      }
+      if (err instanceof Error) {
+        throw err
+      }
+      throw new Error('Failed to migrate database schema')
+    }
+  }
+
+  private static async migrateVersionFive(store: relationalStore.RdbStore): Promise<void> {
+    const transaction: relationalStore.Transaction = await store.createTransaction(SCHEMA_TRANSACTION_OPTIONS)
+    try {
+      await transaction.execute(CREATE_CLOUD_CACHE_STATE)
+      await transaction.execute(CREATE_CLOUD_BANK_CACHE)
+      await transaction.execute(CREATE_CLOUD_QUESTION_CACHE)
+      await transaction.execute(CREATE_CLOUD_WRONG_CACHE)
+      await transaction.execute(CREATE_DEVICE_QUESTION_IMAGE)
+      await transaction.execute(CREATE_CLOUD_BANK_CACHE_INDEX)
+      await transaction.execute(CREATE_CLOUD_QUESTION_CACHE_INDEX)
+      await transaction.execute(CREATE_CLOUD_WRONG_CACHE_INDEX)
+      await transaction.execute(CREATE_DEVICE_QUESTION_IMAGE_INDEX)
       await transaction.commit()
     } catch (err) {
       try {
