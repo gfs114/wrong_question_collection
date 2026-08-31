@@ -31,6 +31,13 @@ import { Statistics } from '../main/ets/models/Statistics';
 import { QuestionBankSummary } from '../main/ets/models/QuestionBank';
 import { WrongQuestionSummary } from '../main/ets/models/WrongQuestion';
 import { AccountSessionTiming } from '../main/ets/models/AccountSession';
+import {
+  CloudImportRetryPolicy,
+  CloudImportStatus,
+  CloudImportUploadPolicy
+} from '../main/ets/models/CloudImportModels';
+import { CloudImportApi, PART_BYTES } from '../main/ets/services/CloudImportApi';
+import { CloudImportService } from '../main/ets/services/CloudImportService';
 import { SyncOperationType, SyncOutboxPolicy, SyncSequence } from '../main/ets/models/SyncModels';
 
 class ParserAssertions {
@@ -117,6 +124,58 @@ export default function localUnitTest(): void {
     it('refreshes inside the safety window', 0, () => {
       expect(AccountSessionTiming.isFresh(61000, 1000, 30000)).assertTrue()
       expect(AccountSessionTiming.isFresh(30000, 1000, 30000)).assertFalse()
+    })
+  })
+
+  describe('cloudImportTransport', () => {
+    it('uses fixed four MiB parts and preserves a short final part', 0, () => {
+      expect(PART_BYTES).assertEqual(4 * 1024 * 1024)
+      expect(CloudImportUploadPolicy.partCount(PART_BYTES, PART_BYTES)).assertEqual(1)
+      expect(CloudImportUploadPolicy.partCount(PART_BYTES + 1, PART_BYTES)).assertEqual(2)
+      expect(CloudImportUploadPolicy.partLength(PART_BYTES + 1, PART_BYTES, 0)).assertEqual(PART_BYTES)
+      expect(CloudImportUploadPolicy.partLength(PART_BYTES + 1, PART_BYTES, 1)).assertEqual(1)
+      expect(typeof CloudImportApi.uploadPart).assertEqual('function')
+      expect(typeof CloudImportService.createJob).assertEqual('function')
+      expect(typeof CloudImportService.upload).assertEqual('function')
+      expect(typeof CloudImportService.resumeUpload).assertEqual('function')
+    })
+
+    it('resumes from the first locally missing part', 0, () => {
+      expect(CloudImportUploadPolicy.firstMissingPart(0, 3)).assertEqual(0)
+      expect(CloudImportUploadPolicy.firstMissingPart(2, 3)).assertEqual(2)
+      expect(CloudImportUploadPolicy.firstMissingPart(3, 3)).assertEqual(3)
+      let rejected: boolean = false
+      try {
+        CloudImportUploadPolicy.firstMissingPart(4, 3)
+      } catch {
+        rejected = true
+      }
+      expect(rejected).assertTrue()
+    })
+
+    it('accepts only lowercase SHA-256 wire values', 0, () => {
+      expect(CloudImportUploadPolicy.isSha256(
+        'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')).assertTrue()
+      expect(CloudImportUploadPolicy.isSha256(
+        'BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD')).assertFalse()
+      expect(CloudImportUploadPolicy.isSha256('ba7816bf')).assertFalse()
+    })
+
+    it('refreshes once only for an unauthorized response', 0, () => {
+      expect(CloudImportRetryPolicy.shouldRefresh(401, false)).assertTrue()
+      expect(CloudImportRetryPolicy.shouldRefresh(401, true)).assertFalse()
+      expect(CloudImportRetryPolicy.shouldRefresh(500, false)).assertFalse()
+    })
+
+    it('models every server import status', 0, () => {
+      expect(CloudImportStatus.UPLOADING).assertEqual('uploading')
+      expect(CloudImportStatus.QUEUED).assertEqual('queued')
+      expect(CloudImportStatus.PROCESSING).assertEqual('processing')
+      expect(CloudImportStatus.REVIEW).assertEqual('review')
+      expect(CloudImportStatus.CONFIRMED).assertEqual('confirmed')
+      expect(CloudImportStatus.FAILED).assertEqual('failed')
+      expect(CloudImportStatus.CANCELLED).assertEqual('cancelled')
+      expect(CloudImportStatus.EXPIRED).assertEqual('expired')
     })
   })
 
