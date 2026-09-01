@@ -71,11 +71,19 @@ def test_formula_heavy_lines_are_flagged_for_review():
     assert questions[0].review_required is True
 
 
-def test_text_before_any_number_starts_a_review_question():
+def test_preamble_before_numbered_question_is_ignored():
     questions = parse([[line("这是标题还是题干？"), line("1. 正常题目")]])
 
-    assert len(questions) == 2
-    assert questions[0].question == "这是标题还是题干？"
+    assert len(questions) == 1
+    assert questions[0].question == "正常题目"
+    assert "这是标题还是题干？" not in questions[0].question
+
+
+def test_unnumbered_only_input_preserves_preamble_as_review_draft():
+    questions = parse([[line("这是没有编号的题干"), line("继续内容")]])
+
+    assert len(questions) == 1
+    assert questions[0].question == "这是没有编号的题干\n继续内容"
     assert questions[0].review_required is True
 
 
