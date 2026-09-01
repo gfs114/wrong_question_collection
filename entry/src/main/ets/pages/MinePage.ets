@@ -27,10 +27,10 @@ import {
   LegacyMigrationState
 } from '../models/LegacyMigrationModels'
 import { StatisticsService } from '../services/StatisticsService'
-import { WrongQuestionService } from '../services/WrongQuestionService'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { HuaweiLoginService } from '../services/HuaweiLoginService'
 import { CloudSyncService } from '../services/CloudSyncService'
+import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { LegacyCloudMigrationService } from '../services/LegacyCloudMigrationService'
 
 @Component
@@ -322,11 +322,15 @@ export struct MinePage {
     if (this.clearing || this.dialogPending) {
       return
     }
+    if (!this.authState.signedIn) {
+      this.showToast('请先登录华为账号')
+      return
+    }
     this.dialogPending = true
     try {
       this.getUIContext().showAlertDialog({
         title: '清空全部错题？',
-        message: '此操作只删除本机错题记录，不会删除题库，但无法撤销。',
+        message: '此操作将删除该账号的全部错题记录，无法撤销。',
         autoCancel: false,
         primaryButton: {
           value: '清空',
@@ -357,8 +361,15 @@ export struct MinePage {
   }
 
   private async persistClear(): Promise<void> {
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      this.clearing = false
+      this.showToast('暂时无法获取应用上下文')
+      return
+    }
     try {
-      await WrongQuestionService.clear()
+      // 清空错题是服务器优先写操作：先提交 /v1/sync/push，成功后才更新账号缓存。
+      await CloudQuestionRepository.clearWrongQuestions(hostContext)
       this.clearing = false
       this.showToast('已清空错题')
       this.hasRequested = false

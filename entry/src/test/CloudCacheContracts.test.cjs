@@ -66,7 +66,7 @@ test('version five migration only creates cache tables and indexes', () => {
   assert.doesNotMatch(migration, /\b(?:DROP|ALTER|UPDATE|DELETE)\b/i)
 })
 
-test('legacy tables, outbox, and on-device import services remain intact', () => {
+test('legacy tables and outbox remain intact while device OCR services are retired', () => {
   const database = read('services/DatabaseService.ets')
 
   assert.match(database, /CREATE TABLE IF NOT EXISTS question_bank/i)
@@ -74,8 +74,10 @@ test('legacy tables, outbox, and on-device import services remain intact', () =>
   assert.match(database, /CREATE TABLE IF NOT EXISTS question_image/i)
   assert.match(database, /CREATE TABLE IF NOT EXISTS sync_outbox/i)
   assert.doesNotMatch(database, /DROP\s+TABLE/i)
-  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'OnDeviceOcrService.ets')), true)
-  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'PdfImportCoordinator.ets')), true)
+  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'OnDeviceOcrService.ets')), false,
+    'OnDeviceOcrService must be retired after the cutover')
+  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'PdfImportCoordinator.ets')), false,
+    'PdfImportCoordinator must be retired after the cutover')
 })
 
 test('cache models are strict ArkTS classes with server UUID ownership', () => {

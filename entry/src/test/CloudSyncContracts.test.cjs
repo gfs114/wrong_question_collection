@@ -14,41 +14,26 @@ test('cloud sync stays local when signed out and serializes concurrent requests'
   assert.match(source, /syncInFlight/)
 })
 
-test('push is bounded and acknowledges only after a successful response', () => {
+test('signed-in sync refreshes the server-first cache and retires the legacy outbox drain', () => {
   const source = read('services/CloudSyncService.ets')
 
-  assert.match(source, /pending\(100\)/)
-  const requestIndex = source.indexOf("authorizedPost<SyncPushResponse>('/v1/sync/push'")
-  const acknowledgeIndex = source.indexOf('SyncOutboxService.acknowledge')
-  assert.ok(requestIndex >= 0)
-  assert.ok(acknowledgeIndex > requestIndex)
+  assert.match(source, /CloudQuestionRepository\.refresh\(session\.userId, context\)/)
+  assert.match(source, /SyncDisplayState\.SYNCED/)
+  assert.doesNotMatch(source, /SyncOutboxService/)
+  assert.doesNotMatch(source, /RemoteOperationApplier/)
+  assert.doesNotMatch(source, /authorizedPost|authorizedGet/)
 })
 
-test('pull paginates with cursor and advances it only through the remote transaction', () => {
-  const cloud = read('services/CloudSyncService.ets')
+test('legacy outbox and remote applier remain intact as recovery-only services', () => {
+  const outbox = read('services/SyncOutboxService.ets')
   const applier = read('services/RemoteOperationApplier.ets')
 
-  assert.match(cloud, /while \(hasMore\)/)
-  assert.match(cloud, /cursor=/)
-  assert.match(cloud, /RemoteOperationApplier\.apply\(userId, response\.operations, response\.nextCursor\)/)
+  assert.match(outbox, /pending\(/)
+  assert.match(outbox, /acknowledge/)
+  assert.match(outbox, /enqueue/)
+  assert.doesNotMatch(applier, /SyncOutboxService\.enqueue/)
   assert.match(applier, /createTransaction/)
   assert.match(applier, /saveCursor\(userId, nextCursor, transaction\)/)
   assert.match(applier, /transaction\.commit\(\)/)
   assert.match(applier, /transaction\.rollback\(\)/)
-})
-
-test('authorized requests retry a 401 once after refreshing the session', () => {
-  const source = read('services/CloudSyncService.ets')
-
-  assert.match(source, /statusCode === 401/)
-  assert.match(source, /AccountSessionService\.refresh\(context\)/)
-  assert.match(source, /retried/)
-})
-
-test('remote application never enters the local outbox', () => {
-  const source = read('services/RemoteOperationApplier.ets')
-
-  assert.doesNotMatch(source, /SyncOutboxService\.enqueue/)
-  assert.match(source, /serverSequence/)
-  assert.match(source, /SyncSequence\.compare/)
 })

@@ -6,35 +6,49 @@ const assert = require('node:assert/strict')
 const root = path.resolve(__dirname, '..', 'main', 'ets')
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8')
 
-test('question bank writes enqueue bank and question text in their owning transaction', () => {
+test('question bank writes no longer enqueue legacy outbox operations', () => {
   const source = read('services/QuestionBankService.ets')
 
-  assert.match(source, /enqueueImportedSnapshot\(transaction, snapshot, remoteApply\)/g)
-  assert.match(source, /SyncEntityType\.QUESTION_BANK/)
-  assert.match(source, /SyncEntityType\.QUESTION/)
-  assert.match(source, /SyncOutboxService\.enqueue[\s\S]*transaction/)
-  assert.match(source, /updateQuestion\(question: Question, remoteApply: boolean = false\)/)
-  assert.match(source, /deleteBank\(id: string, remoteApply: boolean = false\)/)
+  assert.doesNotMatch(source, /SyncOutboxService\.enqueue/)
+  assert.doesNotMatch(source, /SyncOutboxService/)
+  assert.doesNotMatch(source, /SyncEntityType|SyncOperationType/)
+  assert.doesNotMatch(source, /SyncIdentityService|SyncPayloadFactory/)
+  assert.match(source, /static async saveImportedBank\(bank: QuestionBank, isSample: boolean\)/)
+  assert.match(source, /static async updateQuestion\(question: Question\)/)
+  assert.match(source, /static async deleteBank\(id: string\)/)
 })
 
-test('wrong question mutations enqueue upsert and delete operations including clear', () => {
+test('wrong question mutations no longer enqueue legacy outbox operations', () => {
   const source = read('services/WrongQuestionService.ets')
 
-  assert.match(source, /add\([^)]*remoteApply: boolean = false/)
-  assert.match(source, /markMastered\(wrongId: string, remoteApply: boolean = false\)/)
-  assert.match(source, /remove\(wrongId: string, remoteApply: boolean = false\)/)
-  assert.match(source, /clear\(remoteApply: boolean = false\)/)
-  assert.match(source, /SyncOperationType\.UPSERT/)
-  assert.match(source, /SyncOperationType\.DELETE/)
-  assert.match(source, /while \(resultSet\.goToNextRow\(\)\)[\s\S]*enqueueWrongQuestion/)
+  assert.doesNotMatch(source, /SyncOutboxService\.enqueue/)
+  assert.doesNotMatch(source, /SyncOutboxService/)
+  assert.doesNotMatch(source, /SyncEntityType|SyncOperationType/)
+  assert.match(source, /static async add\(questionId: string, bankId: string, subject: string\)/)
+  assert.match(source, /static async markMastered\(wrongId: string\)/)
+  assert.match(source, /static async remove\(wrongId: string\)/)
+  assert.match(source, /static async clear\(\)/)
+})
+
+test('online mutations are server-first through CloudQuestionRepository', () => {
+  const repository = read('services/CloudQuestionRepository.ets')
+
+  assert.match(repository, /static async updateQuestion\(question:\s*Question,\s*context:\s*Context\)/)
+  assert.match(repository, /static async setWrongState\(questionUuid:\s*string,\s*status:\s*string,\s*context:\s*Context\)/)
+  assert.match(repository, /static async deleteBank\(bankUuid:\s*string,\s*context:\s*Context\)/)
+  assert.match(repository, /static async createBank\(bank:\s*QuestionBank,\s*context:\s*Context\)/)
+  assert.match(repository, /static async clearWrongQuestions\(context:\s*Context\)/)
+  assert.match(repository, /'\/v1\/sync\/push'/)
+  assert.doesNotMatch(repository, /SyncOutboxService\.enqueue/)
+  assert.doesNotMatch(repository, /QuestionBankService|WrongQuestionService/)
 })
 
 test('remote apply never echoes changes into outbox', () => {
-  const bankSource = read('services/QuestionBankService.ets')
-  const wrongSource = read('services/WrongQuestionService.ets')
+  const applier = read('services/RemoteOperationApplier.ets')
 
-  assert.match(bankSource, /if \(remoteApply\) \{\s*return/)
-  assert.match(wrongSource, /if \(remoteApply\) \{\s*return/)
+  assert.doesNotMatch(applier, /SyncOutboxService\.enqueue/)
+  assert.match(applier, /serverSequence/)
+  assert.match(applier, /SyncSequence\.compare/)
 })
 
 test('sync payload factory includes text only and excludes device image data', () => {

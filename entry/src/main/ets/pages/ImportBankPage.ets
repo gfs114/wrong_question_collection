@@ -18,6 +18,8 @@ import {
 } from '../constants/AppTheme'
 import { PdfImportLimits } from '../constants/PdfImportLimits'
 import { ImportErrorCode, ImportResult } from '../models/ImportResult'
+import { AccountSessionState } from '../models/AccountSession'
+import { AccountSessionService } from '../services/AccountSessionService'
 import { ImportService } from '../services/ImportService'
 import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
 
@@ -47,9 +49,24 @@ struct ImportBankPage {
     if (this.importing || this.pdfSelecting) {
       return
     }
-    this.importing = true
-    this.errorMessage = ''
-    this.importBank()
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      this.showToast('暂时无法获取应用上下文')
+      return
+    }
+    AccountSessionService.state(hostContext)
+      .then((session: AccountSessionState) => {
+        if (!session.signedIn) {
+          this.showToast('请先登录华为账号')
+          return
+        }
+        this.importing = true
+        this.errorMessage = ''
+        this.importBank()
+      })
+      .catch(() => {
+        this.showToast('导入失败，请稍后重试')
+      })
   }
 
   private async importBank(): Promise<void> {

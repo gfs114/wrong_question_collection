@@ -1,11 +1,7 @@
 import { relationalStore } from '@kit.ArkData'
 import { WrongQuestionFilter, WrongQuestionListItem, WrongQuestionSummary } from '../models/WrongQuestion'
-import { SyncEntityType, SyncOperationType } from '../models/SyncModels'
 import { IdUtils } from '../utils/IdUtils'
 import { DatabaseService } from './DatabaseService'
-import { SyncIdentityService } from './SyncIdentityService'
-import { SyncOutboxService } from './SyncOutboxService'
-import { SyncPayloadFactory } from './SyncPayloadFactory'
 
 const WRONG_QUESTION_COLUMNS: string = 'w.id, w.question_id, w.bank_id, w.subject, w.add_time, ' +
   'w.mastered, w.user_answer, q.content, q.options_json, q.answer, q.analysis, b.bank_name, q.type'
@@ -19,8 +15,7 @@ const WRITE_TRANSACTION_OPTIONS: relationalStore.TransactionOptions = {
 }
 
 export class WrongQuestionService {
-  static async add(questionId: string, bankId: string, subject: string,
-    remoteApply: boolean = false): Promise<boolean> {
+  static async add(questionId: string, bankId: string, subject: string): Promise<boolean> {
     const store: relationalStore.RdbStore = DatabaseService.getStore()
     const transaction: relationalStore.Transaction = await store.createTransaction(WRITE_TRANSACTION_OPTIONS)
     try {
@@ -65,8 +60,6 @@ export class WrongQuestionService {
       if (rowId < 0) {
         throw new Error('Failed to insert wrong question')
       }
-      await WrongQuestionService.enqueueWrongQuestion(
-        transaction, questionId, false, SyncOperationType.UPSERT, remoteApply)
       await transaction.commit()
       return true
     } catch (err) {
@@ -171,15 +164,14 @@ export class WrongQuestionService {
     }
   }
 
-  static async markMastered(wrongId: string, remoteApply: boolean = false): Promise<void> {
+  static async markMastered(wrongId: string): Promise<void> {
     const store: relationalStore.RdbStore = DatabaseService.getStore()
     const transaction: relationalStore.Transaction = await store.createTransaction(WRITE_TRANSACTION_OPTIONS)
     try {
-      const questionId: string = await WrongQuestionService.questionIdForWrong(transaction, wrongId)
+      // 校验错题记录存在，缺失时抛错回滚。
+      await WrongQuestionService.questionIdForWrong(transaction, wrongId)
       const args: Array<relationalStore.ValueType> = [1, wrongId]
       await transaction.execute('UPDATE wrong_question SET mastered = ? WHERE id = ?', args)
-      await WrongQuestionService.enqueueWrongQuestion(
-        transaction, questionId, true, SyncOperationType.UPSERT, remoteApply)
       await transaction.commit()
     } catch (err) {
       try {
@@ -193,15 +185,14 @@ export class WrongQuestionService {
     }
   }
 
-  static async remove(wrongId: string, remoteApply: boolean = false): Promise<void> {
+  static async remove(wrongId: string): Promise<void> {
     const store: relationalStore.RdbStore = DatabaseService.getStore()
     const transaction: relationalStore.Transaction = await store.createTransaction(WRITE_TRANSACTION_OPTIONS)
     try {
-      const questionId: string = await WrongQuestionService.questionIdForWrong(transaction, wrongId)
+      // 校验错题记录存在，缺失时抛错回滚。
+      await WrongQuestionService.questionIdForWrong(transaction, wrongId)
       const args: Array<relationalStore.ValueType> = [wrongId]
       await transaction.execute('DELETE FROM wrong_question WHERE id = ?', args)
-      await WrongQuestionService.enqueueWrongQuestion(
-        transaction, questionId, false, SyncOperationType.DELETE, remoteApply)
       await transaction.commit()
     } catch (err) {
       try {
@@ -215,24 +206,10 @@ export class WrongQuestionService {
     }
   }
 
-  static async clear(remoteApply: boolean = false): Promise<void> {
+  static async clear(): Promise<void> {
     const store: relationalStore.RdbStore = DatabaseService.getStore()
     const transaction: relationalStore.Transaction = await store.createTransaction(WRITE_TRANSACTION_OPTIONS)
     try {
-      const resultSet: relationalStore.ResultSet = await transaction.querySql(
-        'SELECT question_id FROM wrong_question ORDER BY rowid ASC')
-      const questionIds: Array<string> = new Array<string>()
-      try {
-        while (resultSet.goToNextRow()) {
-          questionIds.push(resultSet.getString(0))
-        }
-      } finally {
-        resultSet.close()
-      }
-      for (let index: number = 0; index < questionIds.length; index++) {
-        await WrongQuestionService.enqueueWrongQuestion(
-          transaction, questionIds[index], false, SyncOperationType.DELETE, remoteApply)
-      }
       await transaction.execute('DELETE FROM wrong_question')
       await transaction.commit()
     } catch (err) {
@@ -260,20 +237,6 @@ export class WrongQuestionService {
     } finally {
       resultSet.close()
     }
-  }
-
-  private static async enqueueWrongQuestion(transaction: relationalStore.Transaction,
-    questionId: string, mastered: boolean, operationType: SyncOperationType,
-    remoteApply: boolean): Promise<void> {
-    if (remoteApply) {
-      return
-    }
-    const questionUuid: string = await SyncIdentityService.clientUuid(
-      SyncEntityType.QUESTION, questionId, transaction)
-    const payload: string = operationType === SyncOperationType.DELETE ? '{}' :
-      SyncPayloadFactory.wrongQuestionPayload(mastered)
-    await SyncOutboxService.enqueue(
-      SyncEntityType.WRONG_QUESTION, questionUuid, operationType, payload, transaction)
   }
 
   private static async questionIdForWrong(transaction: relationalStore.Transaction,

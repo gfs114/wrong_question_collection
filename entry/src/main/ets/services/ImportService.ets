@@ -5,7 +5,7 @@ import { ImportResult } from '../models/ImportResult'
 import { QuestionBank } from '../models/QuestionBank'
 import { JsonParser } from '../utils/JsonParser'
 import { Utf8Utils } from '../utils/Utf8Utils'
-import { QuestionBankService } from './QuestionBankService'
+import { CloudQuestionRepository } from './CloudQuestionRepository'
 
 const READ_CHUNK_BYTES: number = 64 * 1024
 
@@ -40,7 +40,10 @@ export class ImportService {
     }
 
     try {
-      const bankId: string = await QuestionBankService.saveImportedBank(bank, false)
+      // Server-first import: the bank and its questions are pushed through
+      // POST /v1/sync/push and enter the account cloud cache only after the
+      // server acknowledges them. No legacy table write and no outbox row.
+      const bankId: string = await CloudQuestionRepository.createBank(bank, context)
       return ImportResult.success(bankId)
     } catch {
       return ImportResult.saveError('题库保存失败')

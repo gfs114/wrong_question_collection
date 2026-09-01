@@ -1,19 +1,11 @@
 import { Context } from '@kit.AbilityKit'
 import { AccountSessionState } from '../models/AccountSession'
-import { ApiHttpError } from '../models/ApiModels'
 import {
   CloudSyncResult,
-  SyncDisplayState,
-  SyncOutboxOperation,
-  SyncPullResponse,
-  SyncPushBody,
-  SyncPushOperation,
-  SyncPushResponse
+  SyncDisplayState
 } from '../models/SyncModels'
 import { AccountSessionService } from './AccountSessionService'
-import { ApiHttpClient } from './ApiHttpClient'
-import { RemoteOperationApplier } from './RemoteOperationApplier'
-import { SyncOutboxService } from './SyncOutboxService'
+import { CloudQuestionRepository } from './CloudQuestionRepository'
 
 export class CloudSyncService {
   private static syncInFlight: Promise<CloudSyncResult> | null = null
@@ -61,80 +53,21 @@ export class CloudSyncService {
       CloudSyncService.displayStateValue = SyncDisplayState.LOCAL
       return new CloudSyncResult(SyncDisplayState.LOCAL)
     }
-    const userId: string = session.userId
     CloudSyncService.displayStateValue = SyncDisplayState.SYNCING
-    let pushedCount: number = 0
-    let pulledCount: number = 0
     try {
-      while (true) {
-        const pending: Array<SyncOutboxOperation> = await SyncOutboxService.pending(100)
-        if (pending.length === 0) {
-          break
-        }
-        const pushOperations: Array<SyncPushOperation> = new Array<SyncPushOperation>()
-        const operationIds: Array<string> = new Array<string>()
-        for (let index: number = 0; index < pending.length; index++) {
-          pushOperations.push(new SyncPushOperation(pending[index]))
-          operationIds.push(pending[index].operationId)
-        }
-        const body: SyncPushBody = new SyncPushBody(pushOperations)
-        await CloudSyncService.authorizedPost<SyncPushResponse>('/v1/sync/push', body, context)
-        await SyncOutboxService.acknowledge(operationIds)
-        pushedCount += operationIds.length
-      }
-
-      let cursor: string = await SyncOutboxService.cursor(userId)
-      let hasMore: boolean = true
-      while (hasMore) {
-        const response: SyncPullResponse = await CloudSyncService.authorizedGet<SyncPullResponse>(
-          '/v1/sync/pull?cursor=' + encodeURIComponent(cursor) + '&limit=100', context)
-        await RemoteOperationApplier.apply(userId, response.operations, response.nextCursor)
-        pulledCount += response.operations.length
-        cursor = response.nextCursor
-        hasMore = response.hasMore
-      }
+      // Server-first refresh: pulls the authoritative operation stream into
+      // the account cloud cache. The legacy outbox push/pull main flow is
+      // retired; residual outbox rows and the v5 tables stay untouched for
+      // migration recovery.
+      await CloudQuestionRepository.refresh(session.userId, context)
       CloudSyncService.displayStateValue = SyncDisplayState.SYNCED
-      return new CloudSyncResult(SyncDisplayState.SYNCED, pushedCount, pulledCount)
+      return new CloudSyncResult(SyncDisplayState.SYNCED, 0, 0)
     } catch (err) {
       CloudSyncService.displayStateValue = SyncDisplayState.FAILED
       if (err instanceof Error) {
         throw err
       }
       throw new Error('Cloud synchronization failed')
-    }
-  }
-
-  private static async authorizedPost<T>(path: string, body: object, context: Context,
-    retried: boolean = false): Promise<T> {
-    const accessToken: string = await AccountSessionService.accessToken(context)
-    try {
-      return await ApiHttpClient.authorizedPost<T>(path, body, accessToken)
-    } catch (err) {
-      if (!retried && err instanceof ApiHttpError && err.statusCode === 401) {
-        const refreshed: string = await AccountSessionService.refresh(context)
-        return ApiHttpClient.authorizedPost<T>(path, body, refreshed)
-      }
-      if (err instanceof Error) {
-        throw err
-      }
-      throw new Error('Authorized cloud request failed')
-    }
-  }
-
-  private static async authorizedGet<T>(path: string, context: Context,
-    retried: boolean = false): Promise<T> {
-    const accessToken: string = await AccountSessionService.accessToken(context)
-    try {
-      return await ApiHttpClient.authorizedGet<T>(path, accessToken)
-    } catch (err) {
-      if (!retried && err instanceof ApiHttpError && err.statusCode === 401) {
-        const refreshed: string = await AccountSessionService.refresh(context)
-        return ApiHttpClient.authorizedGet<T>(path, refreshed)
-      }
-      if (err instanceof Error) {
-        throw err
-      }
-      throw new Error('Authorized cloud request failed')
     }
   }
 }

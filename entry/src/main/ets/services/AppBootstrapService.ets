@@ -2,7 +2,6 @@ import { Context } from '@kit.AbilityKit'
 import { DatabaseService } from './DatabaseService'
 import { SampleDataService } from './SampleDataService'
 import { AccountSessionService } from './AccountSessionService'
-import { SyncBootstrapService } from './SyncBootstrapService'
 import { LegacyCloudMigrationService } from './LegacyCloudMigrationService'
 
 export class AppBootstrapService {
@@ -29,12 +28,11 @@ export class AppBootstrapService {
 
   private static async run(context: Context): Promise<void> {
     await DatabaseService.initialize(context)
-    await SyncBootstrapService.enqueueLegacyLocalText(context)
     await SampleDataService.ensureSample(context)
     try {
       await AccountSessionService.restore(context)
     } catch {
-      // Cloud session recovery must never block local-first app startup.
+      // Cloud session recovery must never block app startup.
     }
     try {
       // Restores the legacy migration state for the UI. It never claims an
@@ -43,5 +41,10 @@ export class AppBootstrapService {
     } catch {
       // Migration state restore must never block app startup.
     }
+    // The legacy outbox backfill is retired from the production startup
+    // path: server-first accounts move legacy text only through the opt-in
+    // LegacyCloudMigrationService after the user confirms the account
+    // binding. sync_outbox rows and the v5 tables stay preserved for
+    // migration recovery.
   }
 }

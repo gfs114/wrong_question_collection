@@ -2,12 +2,8 @@ import { relationalStore } from '@kit.ArkData'
 import { Question } from '../models/Question'
 import { QuestionBank, QuestionBankSummary } from '../models/QuestionBank'
 import { QuestionImage } from '../models/QuestionImage'
-import { SyncEntityType, SyncOperationType } from '../models/SyncModels'
 import { IdUtils } from '../utils/IdUtils'
 import { DatabaseService } from './DatabaseService'
-import { SyncIdentityService } from './SyncIdentityService'
-import { SyncOutboxService } from './SyncOutboxService'
-import { SyncPayloadFactory } from './SyncPayloadFactory'
 
 const BANK_COLUMNS: string = 'id, bank_name, subject, question_count, create_time, is_sample'
 const QUESTION_COLUMNS: string = 'id, bank_id, type, content, options_json, answer, analysis, ' +
@@ -97,8 +93,7 @@ export class PdfBankSaveUncertainError extends Error {
 }
 
 export class QuestionBankService {
-  static async savePdfBank(bank: QuestionBank, bankId: string,
-    remoteApply: boolean = false): Promise<string> {
+  static async savePdfBank(bank: QuestionBank, bankId: string): Promise<string> {
     const createTime: number = bank.createTime > 0 ? bank.createTime : Date.now()
     const snapshot: ImportedBankSnapshot =
       QuestionBankService.createImportSnapshot(bank, false, bankId, createTime)
@@ -151,7 +146,6 @@ export class QuestionBankService {
           }
         }
       }
-      await QuestionBankService.enqueueImportedSnapshot(transaction, snapshot, remoteApply)
       await transaction.commit()
       committed = true
     } catch (err) {
@@ -292,8 +286,7 @@ export class QuestionBankService {
     return 'inconsistent'
   }
 
-  static async saveImportedBank(bank: QuestionBank, isSample: boolean,
-    remoteApply: boolean = false): Promise<string> {
+  static async saveImportedBank(bank: QuestionBank, isSample: boolean): Promise<string> {
     const bankId: string = IdUtils.create('bank_')
     const createTime: number = Date.now()
     const snapshot: ImportedBankSnapshot =
@@ -347,7 +340,6 @@ export class QuestionBankService {
           }
         }
       }
-      await QuestionBankService.enqueueImportedSnapshot(transaction, snapshot, remoteApply)
       await transaction.commit()
       committed = true
     } catch (err) {
@@ -498,7 +490,7 @@ export class QuestionBankService {
       ' FROM question WHERE bank_id = ? AND instr(content, ?) > 0 ORDER BY rowid ASC', args)
   }
 
-  static async updateQuestion(question: Question, remoteApply: boolean = false): Promise<void> {
+  static async updateQuestion(question: Question): Promise<void> {
     const store: relationalStore.RdbStore = DatabaseService.getStore()
     const transaction: relationalStore.Transaction = await store.createTransaction()
     const storedReviewState: string = question.question.trim().length > 0 ? 'confirmed' : question.reviewState
@@ -517,15 +509,6 @@ export class QuestionBankService {
       if (changedRows !== 1) {
         throw new Error('Failed to update question ' + question.id)
       }
-      if (!remoteApply) {
-        const bankUuid: string = await SyncIdentityService.clientUuid(
-          SyncEntityType.QUESTION_BANK, question.bankId, transaction)
-        const questionUuid: string = await SyncIdentityService.clientUuid(
-          SyncEntityType.QUESTION, question.id, transaction)
-        await SyncOutboxService.enqueue(
-          SyncEntityType.QUESTION, questionUuid, SyncOperationType.UPSERT,
-          SyncPayloadFactory.questionPayload(question, bankUuid), transaction)
-      }
       await transaction.commit()
       question.reviewState = storedReviewState
     } catch (err) {
@@ -540,32 +523,12 @@ export class QuestionBankService {
     }
   }
 
-  static async deleteBank(id: string, remoteApply: boolean = false): Promise<Array<string>> {
+  static async deleteBank(id: string): Promise<Array<string>> {
     const store: relationalStore.RdbStore = DatabaseService.getStore()
     const args: Array<relationalStore.ValueType> = [id]
     const transaction: relationalStore.Transaction = await store.createTransaction()
     const imagePaths: Array<string> = new Array<string>()
     try {
-      const questionIds: Array<string> = new Array<string>()
-      const questionResultSet: relationalStore.ResultSet = await transaction.querySql(
-        'SELECT id FROM question WHERE bank_id = ? ORDER BY rowid ASC', args)
-      try {
-        while (questionResultSet.goToNextRow()) {
-          questionIds.push(questionResultSet.getString(0))
-        }
-      } finally {
-        questionResultSet.close()
-      }
-      const wrongQuestionIds: Array<string> = new Array<string>()
-      const wrongResultSet: relationalStore.ResultSet = await transaction.querySql(
-        'SELECT question_id FROM wrong_question WHERE bank_id = ? ORDER BY rowid ASC', args)
-      try {
-        while (wrongResultSet.goToNextRow()) {
-          wrongQuestionIds.push(wrongResultSet.getString(0))
-        }
-      } finally {
-        wrongResultSet.close()
-      }
       const imageResultSet: relationalStore.ResultSet = await transaction.querySql(
         'SELECT qi.image_path FROM question_image qi INNER JOIN question q ON q.id = qi.question_id ' +
         'WHERE q.bank_id = ? ORDER BY qi.rowid ASC', args)
@@ -585,8 +548,6 @@ export class QuestionBankService {
         await transaction.execute(
           'INSERT OR IGNORE INTO question_image_cleanup_debt(path, create_time) VALUES (?, ?)', debtArgs)
       }
-      await QuestionBankService.enqueueBankDeletion(
-        transaction, id, questionIds, wrongQuestionIds, remoteApply)
       await transaction.execute(
         'DELETE FROM question_image WHERE question_id IN (SELECT id FROM question WHERE bank_id = ?)', args)
       await transaction.execute('DELETE FROM wrong_question WHERE bank_id = ?', args)
@@ -605,51 +566,6 @@ export class QuestionBankService {
       }
       throw new Error('Failed to delete question bank')
     }
-  }
-
-  private static async enqueueImportedSnapshot(transaction: relationalStore.Transaction,
-    snapshot: ImportedBankSnapshot, remoteApply: boolean): Promise<void> {
-    if (remoteApply || snapshot.isSample) {
-      return
-    }
-    const bankUuid: string = await SyncIdentityService.clientUuid(
-      SyncEntityType.QUESTION_BANK, snapshot.bankId, transaction)
-    await SyncOutboxService.enqueue(
-      SyncEntityType.QUESTION_BANK, bankUuid, SyncOperationType.UPSERT,
-      SyncPayloadFactory.bankPayload(snapshot.bankName, snapshot.subject), transaction)
-    for (let index: number = 0; index < snapshot.questions.length; index++) {
-      const question: ImportedQuestionSnapshot = snapshot.questions[index]
-      const questionUuid: string = await SyncIdentityService.clientUuid(
-        SyncEntityType.QUESTION, question.storedQuestionId, transaction)
-      const options: Array<string> = JSON.parse(question.optionsJson)
-      const payload: string = SyncPayloadFactory.questionFieldsPayload(
-        question.type, question.content, options, question.answer, question.analysis, bankUuid)
-      await SyncOutboxService.enqueue(
-        SyncEntityType.QUESTION, questionUuid, SyncOperationType.UPSERT, payload, transaction)
-    }
-  }
-
-  private static async enqueueBankDeletion(transaction: relationalStore.Transaction, bankId: string,
-    questionIds: Array<string>, wrongQuestionIds: Array<string>, remoteApply: boolean): Promise<void> {
-    if (remoteApply) {
-      return
-    }
-    for (let index: number = 0; index < wrongQuestionIds.length; index++) {
-      const questionUuid: string = await SyncIdentityService.clientUuid(
-        SyncEntityType.QUESTION, wrongQuestionIds[index], transaction)
-      await SyncOutboxService.enqueue(
-        SyncEntityType.WRONG_QUESTION, questionUuid, SyncOperationType.DELETE, '{}', transaction)
-    }
-    for (let index: number = 0; index < questionIds.length; index++) {
-      const questionUuid: string = await SyncIdentityService.clientUuid(
-        SyncEntityType.QUESTION, questionIds[index], transaction)
-      await SyncOutboxService.enqueue(
-        SyncEntityType.QUESTION, questionUuid, SyncOperationType.DELETE, '{}', transaction)
-    }
-    const bankUuid: string = await SyncIdentityService.clientUuid(
-      SyncEntityType.QUESTION_BANK, bankId, transaction)
-    await SyncOutboxService.enqueue(
-      SyncEntityType.QUESTION_BANK, bankUuid, SyncOperationType.DELETE, '{}', transaction)
   }
 
   private static async queryQuestions(sql: string,

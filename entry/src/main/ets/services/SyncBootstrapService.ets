@@ -55,6 +55,13 @@ class LegacyWrongQuestionRow {
   }
 }
 
+/**
+ * Recovery-compatible legacy backfill retained after the server-first
+ * cutover. Production startup no longer calls enqueueLegacyLocalText: legacy
+ * text now moves to the cloud only through the opt-in
+ * LegacyCloudMigrationService. The outbox rows this helper could create and
+ * the v5 legacy tables remain preserved for migration recovery.
+ */
 export class SyncBootstrapService {
   static async enqueueLegacyLocalText(context: Context): Promise<void> {
     const state: preferences.Preferences = await preferences.getPreferences(context, PREFERENCES_NAME)

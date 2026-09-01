@@ -222,9 +222,11 @@ test('failure states allow retry and resume from acknowledged banks', () => {
   assert.match(verify, /reboundBankIds\.indexOf\(bank\.id\) >= 0[\s\S]*continue/)
 })
 
-test('legacy OCR and PDF fallback services remain intact', () => {
-  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'OnDeviceOcrService.ets')), true)
-  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'PdfImportCoordinator.ets')), true)
+test('legacy OCR and PDF fallback services are retired and unreferenced by migration', () => {
+  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'OnDeviceOcrService.ets')), false,
+    'OnDeviceOcrService must be deleted after the cutover')
+  assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'PdfImportCoordinator.ets')), false,
+    'PdfImportCoordinator must be deleted after the cutover')
 
   const service = read('services/LegacyCloudMigrationService.ets')
   assert.doesNotMatch(service, /OnDeviceOcrService|PdfImportCoordinator/)

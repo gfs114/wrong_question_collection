@@ -334,70 +334,6 @@ test('pdf selection serializes picker work and removes only direct unregistered 
   assert.match(nameCheck, /name\.charCodeAt\(index\)/)
 })
 
-test('on device OCR initializes once, recognizes typed lines, and releases once', () => {
-  const source = fs.readFileSync('entry/src/main/ets/services/OnDeviceOcrService.ets', 'utf8')
-  assert.match(source, /from '@kit\.CoreVisionKit'/)
-  assert.match(source, /from '@kit\.ImageKit'/)
-  const initialize = extractMethod(source, 'async initialize')
-  const recognize = extractMethod(source, 'async recognize')
-  const release = extractMethod(source, 'async release')
-  assert.match(source, /from '..\/utils\/OcrLifecycleState'/)
-  assert.match(source, /private static instance:\s*OnDeviceOcrService\s*=\s*new OnDeviceOcrService\(\)/)
-  assert.match(source, /private constructor\(\)/)
-  assert.match(source, /static shared\(\): OnDeviceOcrService/)
-  assert.match(source, /private static initializePromise:\s*Promise<void> \| null/)
-  assert.match(source, /private static releasePromise:\s*Promise<void> \| null/)
-  assertOrdered(initialize, [
-    'this.lifecycle.currentState()',
-    "state === 'initializing'",
-    'await pendingInitialization',
-    'this.lifecycle.requireReady()',
-    "state === 'releasing'",
-    'await pendingRelease',
-    'continue',
-    'this.lifecycle.startInitialization()',
-    'OnDeviceOcrService.initializePromise = transition',
-    'await transition',
-    'this.lifecycle.requireReady()'
-  ])
-  assertOrdered(recognize, [
-    'await this.waitUntilReady()',
-    'const operation: OcrRecognitionOperation = this.lifecycle.beginRecognition()',
-    'await textRecognition.recognizeText(visionInfo, configuration)',
-    'finally',
-    'operation.complete()'
-  ])
-  assert.match(recognize, /const visionInfo:\s*textRecognition\.VisionInfo/)
-  assert.match(recognize, /const configuration:\s*textRecognition\.TextRecognitionConfiguration/)
-  assert.match(recognize, /isDirectionDetectionSupported:\s*true/)
-  assertOrdered(recognize, [
-    'const blocks: Array<textRecognition.TextBlock>',
-    'const line: textRecognition.TextLine',
-    'line.value.trim()',
-    'line.cornerPoints.length',
-    'Number.isFinite',
-    'new OcrLine'
-  ])
-  assertOrdered(release, [
-    'this.lifecycle.currentState()',
-    "state === 'initializing'",
-    'await pendingInitialization',
-    'continue',
-    "state === 'releasing'",
-    'await pendingRelease',
-    'this.lifecycle.requireIdle()',
-    'const transition: Promise<void> = this.performRelease()',
-    'OnDeviceOcrService.releasePromise = transition',
-    'await transition'
-  ])
-  const platformInitialize = extractMethod(source, 'private async performInitialize')
-  assert.match(platformInitialize,
-    /await textRecognition\.init\(\)[\s\S]*finishInitialization\(true\)[\s\S]*catch \(err\)[\s\S]*finishInitialization\(false\)/)
-  const platformRelease = extractMethod(source, 'private async performRelease')
-  assert.match(platformRelease,
-    /await this\.lifecycle\.beginRelease\(\)[\s\S]*await textRecognition\.release\(\)[\s\S]*finishRelease\(true\)[\s\S]*catch \(err\)[\s\S]*finishRelease\(false\)/)
-})
-
 test('question crop converts coordinates directly and owns every file and image resource', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/QuestionImageService.ets', 'utf8')
   assert.match(source, /from '@kit\.PDFKit'/)
@@ -479,131 +415,27 @@ test('question crop converts coordinates directly and owns every file and image 
   assert.doesNotMatch(lstatIfPresent, /accessible = await fs\.access/)
 })
 
-test('PDF coordinator is sequential, cancellation aware, failure tolerant, and fully cleaned', () => {
-  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
-  const modelSource = fs.readFileSync('entry/src/main/ets/models/PdfImportModels.ets', 'utf8')
-  assert.match(source, /from '@kit\.PDFKit'/)
-  assert.match(source, /from '@kit\.ImageKit'/)
-  assert.match(source, /export class PdfImportRunResult/)
-  assert.match(source, /export class PdfImportCancelledError extends Error/)
-  assert.match(source, /class PdfImportResourceError extends Error/)
-  assert.match(source, /private static taskSequence:\s*number\s*=\s*0/)
-  assert.match(source, /private static runInProgress:\s*boolean\s*=\s*false/)
-  assert.match(source, /OnDeviceOcrService\.shared\(\)/)
-  const progressModel = extractMethod(modelSource, 'export class PdfImportProgress')
-  assert.match(progressModel, /readonly stage:\s*string/)
-  assert.match(progressModel, /readonly currentPage:\s*number/)
-  assert.match(progressModel, /readonly totalPages:\s*number/)
-  assert.match(progressModel, /readonly processedPageCount:\s*number/)
-  assert.match(progressModel, /readonly questionCount:\s*number/)
-  assert.match(progressModel, /readonly message:\s*string/)
-  const run = extractMethod(source, 'static async run')
-  assertOrdered(run, [
-    'if (PdfImportCoordinator.runInProgress)',
-    'PdfImportCoordinator.runInProgress = true',
-    'const snapshot: PdfImportInputSnapshot = new PdfImportInputSnapshot(selection, settings)',
-    'await PdfImportCoordinator.runSnapshot',
-    'PdfImportCoordinator.runInProgress = false'
-  ])
-  const runSnapshot = extractMethod(source, 'private static async runSnapshot')
-  assert.match(run, /Promise<PdfImportRunResult>/)
-  assert.match(runSnapshot,
-    /PdfImportValidator\.validatePageRange\(\s*snapshot\.startPage, snapshot\.endPage, snapshot\.pageCount\)/)
-  assert.doesNotMatch(runSnapshot, /\bselection\.|\bsettings\./)
-  assertOrdered(runSnapshot, [
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    "new PdfImportProgress('opening'",
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'pdfDocument.isEncrypted(snapshot.uri)',
-    'pdfDocument.loadDocument(snapshot.uri)',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'await ocrService.initialize()',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'for (let pageNumber: number = snapshot.startPage',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    "progressCallback(new PdfImportProgress('recognizing'",
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'pdfDocument.getPage(pageNumber - 1)',
-    'PdfImportCoordinator.renderOcrPixelMap',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'await fullPixelMap.getImageInfo()',
-    'PdfImportCoordinator.validateImageInfo(fullImageInfo)',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'const lines = await ocrService.recognize(fullPixelMap, pageNumber)',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'candidatePage = new OcrPage',
-    '} catch (pageErr)',
-    'failures.push(new PdfPageFailure',
-    'ocrPages.push(candidatePage)',
-    'const drafts: Array<PdfQuestionDraft> = PdfSuccessfulPageParser.parse(',
-    "new PdfImportProgress('cropping'",
-    'const path: string = await QuestionImageService.saveCrop',
-    'createdPaths.push(path)',
-    'PdfImportCoordinator.throwIfCancelled(isCancelled)',
-    'result = new PdfImportRunResult',
-    'processingSucceeded = true',
-    'resultReady = true',
-    'await ocrService.release()',
-    'pdfDocument.releaseDocument()',
-    "new PdfImportProgress('complete'",
-    'return result'
-  ])
-  assert.match(runSnapshot,
-    /finally\s*{[\s\S]*fullPixelMap = null[\s\S]*await pixelMapToRelease\.release\(\)[\s\S]*page = null[\s\S]*pageToRelease\.release\(\)/)
-  assert.match(runSnapshot, /resourceFatalError/)
-  assert.match(runSnapshot, /pageErr instanceof PdfImportResourceError/)
-  assert.match(runSnapshot, /if \(resourceFatalError !== null\)[\s\S]*throw resourceFatalError/)
-  assert.match(runSnapshot, /finally\s*{[\s\S]*await ocrService\.release\(\)[\s\S]*pdfDocument\.releaseDocument\(\)/)
-  assert.match(runSnapshot,
-    /if \(!processingSucceeded \|\| cleanupFailures\.length > 0\)[\s\S]*QuestionImageService\.deletePaths\(context, createdPaths\)/)
-  assert.match(runSnapshot,
-    /const pageToRelease:\s*pdfService\.PdfPage = cropPage[\s\S]*cropPage = null[\s\S]*pageToRelease\.release\(\)/)
-  assert.equal((runSnapshot.match(/new PdfImportProgress\('recognizing', pageNumber, totalPages, processedPageCount,\s*0,/g) || []).length,
-    2)
-  assert.match(runSnapshot, /const taskId:\s*string\s*=\s*PdfImportCoordinator\.createTaskId\(\)/)
-  assert.match(runSnapshot,
-    /PdfSuccessfulPageParser\.parse\(\s*ocrPages, snapshot\.startPage, snapshot\.endPage\)/)
-  assert.match(runSnapshot, /if \(ocrPages\.length === 0 && failures\.length > 0\)[\s\S]*所选页面均识别失败/)
-  const renderer = extractMethod(source, 'private static async renderOcrPixelMap')
-  assert.match(renderer,
-    /catch \(releaseErr\)[\s\S]*new PdfImportResourceError[\s\S]*throw resourceError/)
-  assertOrdered(renderer, [
-    'page.getPagePixelMap()',
-    'await originalPixelMap.getImageInfo()',
-    'if (longEdge <= PdfImportLimits.MAX_RENDER_LONG_EDGE)',
-    'const originalToRelease: image.PixelMap = originalPixelMap'
-  ])
-  const oversizedRender = renderer.slice(renderer.indexOf('const originalToRelease: image.PixelMap = originalPixelMap'))
-  assertOrdered(oversizedRender, [
-    'const originalToRelease: image.PixelMap = originalPixelMap',
-    'originalPixelMap = null',
-    'await originalToRelease.release()',
-    'page.getAreaPixelMapWithOptions'
-  ])
-  const completeProgress = runSnapshot.indexOf("progressCallback(new PdfImportProgress('complete'")
-  const outerOcrRelease = runSnapshot.lastIndexOf('await ocrService.release()')
-  const outerDocumentRelease = runSnapshot.lastIndexOf('pdfDocument.releaseDocument()')
-  assert.ok(outerOcrRelease < outerDocumentRelease, 'OCR release must precede document release')
-  assert.ok(outerDocumentRelease < completeProgress, 'complete progress must follow all outer release work')
-  const completeTail = runSnapshot.slice(completeProgress)
-  assertOrdered(completeTail, [
-    "progressCallback(new PdfImportProgress('complete'",
-    '} catch (progressErr)',
-    'await QuestionImageService.deletePaths(context, createdPaths)',
-    'throw new PdfImportCancelledError',
-    'throw new Error',
-    'return result'
-  ])
-})
-
 test('PDF import device pipeline stays offline even with app-level INTERNET permission', () => {
   const paths = [
-    'entry/src/main/ets/services/OnDeviceOcrService.ets',
-    'entry/src/main/ets/services/QuestionImageService.ets',
-    'entry/src/main/ets/services/PdfImportCoordinator.ets'
+    'entry/src/main/ets/services/QuestionImageService.ets'
   ]
   const source = paths.map((path) => fs.readFileSync(path, 'utf8')).join('\n')
   assert.doesNotMatch(source, /@kit\.NetworkKit|ohos\.permission\.INTERNET|\bhttp\b|\bhttps\b|HttpClient|createHttp/)
+})
+
+test('device OCR and PDF coordinator services are retired after the cloud cutover', () => {
+  const ocrPath = 'entry/src/main/ets/services/OnDeviceOcrService.ets'
+  const coordinatorPath = 'entry/src/main/ets/services/PdfImportCoordinator.ets'
+  assert.equal(fs.existsSync(ocrPath), false, 'OnDeviceOcrService must be deleted')
+  assert.equal(fs.existsSync(coordinatorPath), false, 'PdfImportCoordinator must be deleted')
+
+  const pdfPages = [
+    'entry/src/main/ets/pages/PdfImportSetupPage.ets',
+    'entry/src/main/ets/pages/PdfImportProgressPage.ets',
+    'entry/src/main/ets/pages/PdfImportReviewPage.ets'
+  ].map((path) => fs.readFileSync(path, 'utf8')).join('\n')
+  assert.match(pdfPages, /CloudImportService/)
+  assert.doesNotMatch(pdfPages, /OnDeviceOcrService|PdfImportCoordinator|recognizeText|PdfImportService|\bpdfService\b/)
 })
 
 test('PDF import routes and cloud setup copy are registered', () => {
@@ -730,25 +562,6 @@ test('import entry serializes JSON and cloud PDF selection, blocks back, and gro
 
 // Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
-test('coordinator exports structured cleanup errors with copied reachable paths', () => {
-  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
-  assert.match(source, /export class PdfImportCleanupError extends Error/)
-  assert.match(source, /export class PdfImportCancelledCleanupError extends PdfImportCancelledError/)
-  const cleanupError = extractMethod(source, 'export class PdfImportCleanupError')
-  const cancelledCleanupError = extractMethod(source, 'export class PdfImportCancelledCleanupError')
-  assert.match(cleanupError, /readonly paths:\s*Array<string>/)
-  assert.match(cleanupError, /this\.paths = paths\.slice\(\)/)
-  assert.match(cancelledCleanupError, /readonly paths:\s*Array<string>/)
-  assert.match(cancelledCleanupError, /this\.paths = paths\.slice\(\)/)
-  const run = extractMethod(source, 'private static async runSnapshot')
-  assert.match(run, /let createdPathCleanupFailed:\s*boolean\s*=\s*false/)
-  assert.match(run, /QuestionImageService\.deletePaths\(context, createdPaths\)[\s\S]*createdPathCleanupFailed = true/)
-  assert.match(run,
-    /createdPathCleanupFailed[\s\S]*PdfImportCancelledCleanupError\(message, createdPaths\)[\s\S]*PdfImportCleanupError\(message, createdPaths\)/)
-  assert.match(run,
-    /completionCleanupFailed[\s\S]*PdfImportCancelledCleanupError\(completionMessage, createdPaths\)[\s\S]*PdfImportCleanupError\(completionMessage, createdPaths\)/)
-})
-
 test('question image cleanup debt is idempotent and retry retains only failed paths', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/QuestionImageService.ets', 'utf8')
   assert.match(source, /private static readonly cleanupDebtPaths:\s*Array<string>/)
@@ -857,7 +670,7 @@ test('PDF stale cleanup isolates per-file failures so picker construction remain
 test('savePdfBank keeps bank questions and images in one transaction without changing JSON import API', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/QuestionBankService.ets', 'utf8')
   assert.match(source,
-    /static async savePdfBank\(bank: QuestionBank, bankId: string,\s*remoteApply: boolean = false\): Promise<string>/)
+    /static async savePdfBank\(bank: QuestionBank, bankId: string\): Promise<string>/)
   const method = extractMethod(source, 'static async savePdfBank')
   assertOrdered(method, [
     'QuestionBankService.createImportSnapshot',
@@ -1108,27 +921,10 @@ test('direct image deletion clears durable debt after safe absence or unlink and
 
 // Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
 
-test('each acquired crop page is released from its page ownership finally block', () => {
-  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
-  const run = extractMethod(source, 'private static async runSnapshot')
-  const cropStart = run.indexOf('const cropJobs: Array<CropJob>')
-  const cropEnd = run.indexOf('PdfImportCoordinator.appendCropPaths')
-  assert.ok(cropStart >= 0 && cropEnd > cropStart, 'crop ownership block must exist')
-  const cropOwnership = run.slice(cropStart, cropEnd)
-  assert.doesNotMatch(cropOwnership,
-    /if \(cropPage !== null\)[\s\S]{0,180}cropPage = null[\s\S]{0,120}pageToRelease\.release\(\)[\s\S]{0,120}cropPage = pdfDocument\.getPage/)
-  assert.match(cropOwnership,
-    /activeCropPage:\s*pdfService\.PdfPage = pdfDocument\.getPage[\s\S]*finally\s*{[\s\S]*pageToRelease\.release\(\)/)
-})
-
-// Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
-
 test('PDF import manifest allows INTERNET but device pipeline contains no network client', () => {
   const moduleSource = fs.readFileSync('entry/src/main/module.json5', 'utf8')
   const pipelineSource = [
     'entry/src/main/ets/services/PdfImportService.ets',
-    'entry/src/main/ets/services/PdfImportCoordinator.ets',
-    'entry/src/main/ets/services/OnDeviceOcrService.ets',
     'entry/src/main/ets/services/QuestionImageService.ets'
   ].map((file) => fs.readFileSync(file, 'utf8')).join('\n')
   assert.ok(moduleSource.includes('ohos.permission.INTERNET'))
@@ -1162,20 +958,6 @@ test('temporary PDF deletion is an idempotent direct-child operation under its r
   assert.match(pathCheck, /name\.indexOf\('\/'\) < 0/)
   assert.match(pathCheck, /name\.indexOf\('\\\\'\) < 0/)
   assert.match(pathCheck, /PdfImportService\.isTemporaryPdfName\(name\)/)
-})
-
-test('oversized OCR bitmap and platform OCR session release from finally ownership boundaries', () => {
-  const coordinatorSource = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
-  const renderer = extractMethod(coordinatorSource, 'private static async renderOcrPixelMap')
-  const oversized = renderer.slice(renderer.indexOf('const originalToRelease: image.PixelMap'))
-  assert.match(oversized,
-    /const originalToRelease:\s*image\.PixelMap[\s\S]*try\s*{[\s\S]*finally\s*{[\s\S]*await originalToRelease\.release\(\)[\s\S]*page\.getAreaPixelMapWithOptions/)
-  const ocrSource = fs.readFileSync('entry/src/main/ets/services/OnDeviceOcrService.ets', 'utf8')
-  const release = extractMethod(ocrSource, 'private async performRelease')
-  assert.match(release, /await this\.lifecycle\.beginRelease\(\)/)
-  assert.match(release, /finally\s*{[\s\S]*await textRecognition\.release\(\)/)
-  assert.match(release, /finishRelease\(true\)/)
-  assert.match(release, /finishRelease\(false\)/)
 })
 
 test('question image deletion accepts only exact service cache files or exact bank image hierarchy', () => {
@@ -1287,32 +1069,6 @@ test('structured PDF storage errors are preserved by retained local services', (
   assert.match(crop, /throw new PdfStorageError\(operationError\)/)
   const importSource = fs.readFileSync('entry/src/main/ets/services/PdfImportService.ets', 'utf8')
   assert.match(importSource, /new PdfStorageError\(/)
-  const coordinatorSource = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
-  assert.match(coordinatorSource,
-    /primaryError instanceof PdfStorageError[\s\S]*throw new PdfStorageError\(primaryError\.diagnostic\)/)
-})
-
-test('crop aggregation preserves PdfStorageError after cancellation and cleanup diagnostics', () => {
-  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportCoordinator.ets', 'utf8')
-  const run = extractMethod(source, 'private static async runSnapshot')
-  const cropStart = run.indexOf('if (cropError !== null || cropCleanupError.length > 0)')
-  const cropEnd = run.indexOf('PdfImportCoordinator.appendCropPaths', cropStart)
-  assert.ok(cropStart >= 0 && cropEnd > cropStart)
-  const aggregate = run.slice(cropStart, cropEnd)
-  assertOrdered(aggregate, [
-    'if (cropError instanceof PdfImportCancelledError)',
-    'throw new PdfImportCancelledError(combinedMessage)',
-    'if (cropError instanceof PdfStorageError)',
-    'cropError.diagnostic.length > 0 ?',
-    'cropError.diagnostic',
-    ": '题图生成失败'",
-    'PdfImportCoordinator.appendDiagnostic(storageDiagnostic, cropCleanupError)',
-    'throw new PdfStorageError(mergedDiagnostic)'
-  ])
-  assert.match(aggregate,
-    /if \(cropError instanceof PdfStorageError\)[\s\S]*cropError\.diagnostic[\s\S]*cropCleanupError[\s\S]*new PdfStorageError\(mergedDiagnostic\)/)
-  assert.doesNotMatch(aggregate,
-    /cropError instanceof PdfStorageError[\s\S]{0,100}new PdfStorageError\(combinedMessage\)/)
 })
 
 // Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.

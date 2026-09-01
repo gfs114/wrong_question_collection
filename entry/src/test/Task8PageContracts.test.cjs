@@ -18,7 +18,7 @@ function expectIncludes(source, text, message) {
 }
 
 const minePage = read('pages/MinePage.ets')
-expectIncludes(minePage, 'WrongQuestionService.clear', 'clear must use the local service')
+expectIncludes(minePage, 'CloudQuestionRepository.clearWrongQuestions', 'clear must use the server-first repository')
 expectIncludes(minePage, 'showAlertDialog', 'clear must require confirmation')
 expectIncludes(minePage, "value: '取消'", 'clear dialog must have a side-effect-free cancel action')
 expectIncludes(minePage, "value: '清空'", 'clear dialog must name the destructive action')

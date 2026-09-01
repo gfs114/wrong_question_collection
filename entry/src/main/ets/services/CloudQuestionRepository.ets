@@ -11,7 +11,7 @@ import {
 import { AccountSessionState } from '../models/AccountSession'
 import { ApiHttpError } from '../models/ApiModels'
 import { Question } from '../models/Question'
-import { QuestionBankSummary } from '../models/QuestionBank'
+import { QuestionBank, QuestionBankSummary } from '../models/QuestionBank'
 import { QuestionImage } from '../models/QuestionImage'
 import { Statistics } from '../models/Statistics'
 import {
@@ -33,6 +33,7 @@ import { AccountSessionService } from './AccountSessionService'
 import { ApiHttpClient } from './ApiHttpClient'
 
 const PULL_LIMIT: number = 100
+const PUSH_BATCH_LIMIT: number = 100
 
 const EMPTY_PAYLOAD: object = JSON.parse('{}')
 
@@ -299,6 +300,104 @@ export class CloudQuestionRepository {
     const accountId: string = await CloudQuestionRepository.requireSignedIn(context)
     await CloudQuestionRepository.pushOne(context, accountId, SyncEntityType.QUESTION_BANK,
       bankUuid, SyncOperationType.DELETE, EMPTY_PAYLOAD)
+  }
+
+  /**
+   * Creates a JSON-imported bank server-first: one bank upsert followed by
+   * one upsert per question, all pushed through /v1/sync/push in bounded
+   * batches. Only after the server acknowledges every operation are the
+   * returned authoritative operations applied to the account cache.
+   */
+  static async createBank(bank: QuestionBank, context: Context): Promise<string> {
+    if (bank.bankName.trim().length === 0) {
+      throw new Error('题库名不能为空')
+    }
+    const accountId: string = await CloudQuestionRepository.requireSignedIn(context)
+    const bankUuid: string = util.generateRandomUUID()
+    const operations: Array<SyncPushOperation> = new Array<SyncPushOperation>()
+    operations.push(new SyncPushOperation(new SyncOutboxOperation(
+      util.generateRandomUUID(), SyncEntityType.QUESTION_BANK, bankUuid, SyncOperationType.UPSERT,
+      SyncPayloadFactory.bankPayload(bank.bankName, bank.subject), Date.now())))
+    for (let index: number = 0; index < bank.questions.length; index++) {
+      const question: Question = bank.questions[index]
+      const questionUuid: string = util.generateRandomUUID()
+      operations.push(new SyncPushOperation(new SyncOutboxOperation(
+        util.generateRandomUUID(), SyncEntityType.QUESTION, questionUuid, SyncOperationType.UPSERT,
+        SyncPayloadFactory.questionPayload(question, bankUuid), Date.now())))
+    }
+    const applied: Array<RemoteSyncOperation> =
+      await CloudQuestionRepository.pushOperations(context, operations)
+    const snapshot: CloudCacheSnapshot = await CloudQuestionRepository.loadSnapshot(accountId)
+    CloudQuestionRepository.applyOrdered(accountId, snapshot, applied)
+    await CloudQuestionRepository.saveSnapshot(accountId, snapshot,
+      CloudQuestionRepository.maxSequence(applied))
+    return bankUuid
+  }
+
+  /**
+   * Clears every wrong-question row on the server first with one bounded
+   * push, then applies the authoritative returned operations to the cache.
+   * The legacy wrong_question table is never touched here.
+   */
+  static async clearWrongQuestions(context: Context): Promise<void> {
+    const accountId: string = await CloudQuestionRepository.requireSignedIn(context)
+    const wrong: Array<CloudWrongCache> = await CloudCacheService.wrongQuestions(accountId)
+    const operations: Array<SyncPushOperation> = new Array<SyncPushOperation>()
+    for (let index: number = 0; index < wrong.length; index++) {
+      operations.push(new SyncPushOperation(new SyncOutboxOperation(
+        util.generateRandomUUID(), SyncEntityType.WRONG_QUESTION, wrong[index].questionUuid,
+        SyncOperationType.DELETE, JSON.stringify(EMPTY_PAYLOAD), Date.now())))
+    }
+    if (operations.length === 0) {
+      return
+    }
+    const applied: Array<RemoteSyncOperation> =
+      await CloudQuestionRepository.pushOperations(context, operations)
+    const snapshot: CloudCacheSnapshot = await CloudQuestionRepository.loadSnapshot(accountId)
+    CloudQuestionRepository.applyOrdered(accountId, snapshot, applied)
+    await CloudQuestionRepository.saveSnapshot(accountId, snapshot,
+      CloudQuestionRepository.maxSequence(applied))
+  }
+
+  private static async pushOperations(context: Context,
+    operations: Array<SyncPushOperation>): Promise<Array<RemoteSyncOperation>> {
+    const applied: Array<RemoteSyncOperation> = new Array<RemoteSyncOperation>()
+    let offset: number = 0
+    while (offset < operations.length) {
+      const remaining: number = operations.length - offset
+      const size: number = remaining < PUSH_BATCH_LIMIT ? remaining : PUSH_BATCH_LIMIT
+      const batch: Array<SyncPushOperation> = operations.slice(offset, offset + size)
+      const response: SyncPushResponse = await CloudQuestionRepository.authorizedPush(
+        new SyncPushBody(batch), context)
+      if (response.operations.length !== batch.length) {
+        throw new Error('服务器未确认全部同步操作')
+      }
+      for (let index: number = 0; index < response.operations.length; index++) {
+        applied.push(response.operations[index])
+      }
+      offset += size
+    }
+    return applied
+  }
+
+  private static async authorizedPush(body: SyncPushBody, context: Context,
+    retried: boolean = false): Promise<SyncPushResponse> {
+    const accessToken: string = await AccountSessionService.accessToken(context)
+    if (accessToken.length === 0) {
+      throw new Error('请先登录华为账号')
+    }
+    try {
+      return await ApiHttpClient.authorizedPost<SyncPushResponse>('/v1/sync/push', body, accessToken)
+    } catch (err) {
+      if (!retried && err instanceof ApiHttpError && err.statusCode === 401) {
+        const refreshed: string = await AccountSessionService.refresh(context)
+        return ApiHttpClient.authorizedPost<SyncPushResponse>('/v1/sync/push', body, refreshed)
+      }
+      if (err instanceof Error) {
+        throw err
+      }
+      throw new Error('同步操作提交失败')
+    }
   }
 
   private static async pushOne(context: Context, accountId: string, entityType: SyncEntityType,
