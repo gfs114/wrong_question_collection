@@ -7,9 +7,28 @@
  *   the server (the account-scoped cloud cache stays visible, read-only);
  * - a signed-out user may never mutate and has no account-scoped cache.
  */
+import { BusinessError } from '@kit.BasicServicesKit'
+import { ApiHttpError } from '../models/ApiModels'
+
 export class ConnectivityPolicy {
   static canMutate(isSignedIn: boolean, isOnline: boolean): boolean {
     return isSignedIn && isOnline
+  }
+
+  /**
+   * Distinguishes real connection failures from server-answered failures.
+   * ApiHttpError means the server responded (any HTTP status), so the device
+   * is online even when the request failed. Network kit BusinessErrors in the
+   * 2300000–2319999 range are transport-level failures (DNS/TLS/connect/timeout)
+   * and count as offline. Anything else (local parsing or cache bugs) is NOT
+   * offline: it must surface as a sync failure, never as "离线浏览".
+   */
+  static isOfflineError(err: Error): boolean {
+    if (err instanceof ApiHttpError) {
+      return false
+    }
+    const code: number = (err as BusinessError).code
+    return code >= 2300000 && code < 2320000
   }
 
   static isOfflineBrowsing(isSignedIn: boolean, isOnline: boolean): boolean {

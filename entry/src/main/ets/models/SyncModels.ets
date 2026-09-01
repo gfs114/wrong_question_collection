@@ -51,15 +51,15 @@ export class SyncOutboxPolicy {
 }
 
 export interface SyncPayloadData {
-  name?: string
-  subject?: string
-  bankClientId?: string
-  type?: string
-  question?: string
-  options?: Record<string, string>
-  answer?: string
-  analysis?: string
-  status?: string
+  name?: string | null
+  subject?: string | null
+  bankClientId?: string | null
+  type?: string | null
+  question?: string | null
+  options?: Record<string, string> | null
+  answer?: string | null
+  analysis?: string | null
+  status?: string | null
 }
 
 export interface RemoteSyncOperation {

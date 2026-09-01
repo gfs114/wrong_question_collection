@@ -69,8 +69,8 @@ export class RemoteOperationApplier {
     }
     const payload: SyncPayloadData = operation.payload
     const values: Array<relationalStore.ValueType> = [
-      localId, payload.name === undefined ? '云端题库' : payload.name,
-      payload.subject === undefined ? '未分类' : payload.subject, Date.now()
+      localId, payload.name === undefined || payload.name === null ? '云端题库' : payload.name,
+      payload.subject === undefined || payload.subject === null ? '未分类' : payload.subject, Date.now()
     ]
     await transaction.execute(
       'INSERT INTO question_bank(id, bank_name, subject, question_count, create_time, is_sample) ' +
@@ -89,7 +89,8 @@ export class RemoteOperationApplier {
       return
     }
     const payload: SyncPayloadData = operation.payload
-    const bankClientId: string = payload.bankClientId === undefined ? '' : payload.bankClientId
+    const bankClientId: string = payload.bankClientId === undefined || payload.bankClientId === null ?
+      '' : payload.bankClientId
     const bankLocalId: string = await SyncIdentityService.localId(
       SyncEntityType.QUESTION_BANK, bankClientId, transaction)
     if (bankLocalId.length === 0) {
@@ -101,11 +102,11 @@ export class RemoteOperationApplier {
     }
     const values: Array<relationalStore.ValueType> = [
       localId, bankLocalId,
-      payload.type === undefined ? 'single_choice' : payload.type,
-      payload.question === undefined ? '未命名题目' : payload.question,
+      payload.type === undefined || payload.type === null ? 'single_choice' : payload.type,
+      payload.question === undefined || payload.question === null ? '未命名题目' : payload.question,
       RemoteOperationApplier.optionsJson(payload.options),
-      payload.answer === undefined ? '' : payload.answer,
-      payload.analysis === undefined ? '' : payload.analysis
+      payload.answer === undefined || payload.answer === null ? '' : payload.answer,
+      payload.analysis === undefined || payload.analysis === null ? '' : payload.analysis
     ]
     await transaction.execute(
       'INSERT INTO question(id, bank_id, type, content, options_json, answer, analysis, ' +
@@ -217,8 +218,8 @@ export class RemoteOperationApplier {
       'WHERE id = ?', [bankId, bankId])
   }
 
-  private static optionsJson(options: Record<string, string> | undefined): string {
-    if (options === undefined) {
+  private static optionsJson(options: Record<string, string> | null | undefined): string {
+    if (options === undefined || options === null) {
       return '[]'
     }
     const keys: Array<string> = Object.keys(options)

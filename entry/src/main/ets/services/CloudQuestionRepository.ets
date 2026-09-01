@@ -523,8 +523,10 @@ export class CloudQuestionRepository {
       }
       return
     }
-    const name: string = operation.payload.name === undefined ? '云端题库' : operation.payload.name
-    const subject: string = operation.payload.subject === undefined ? '未分类' : operation.payload.subject
+    const name: string = operation.payload.name === undefined || operation.payload.name === null ?
+      '云端题库' : operation.payload.name
+    const subject: string = operation.payload.subject === undefined || operation.payload.subject === null ?
+      '未分类' : operation.payload.subject
     const questionCount: number = existing === undefined ? 0 : existing.questionCount
     snapshot.banks.set(operation.entityId, new CloudBankCache(
       accountId, operation.entityId, name, subject, questionCount,
@@ -541,13 +543,17 @@ export class CloudQuestionRepository {
       }
       return
     }
-    const bankUuid: string = operation.payload.bankClientId === undefined ?
+    const bankUuid: string = operation.payload.bankClientId === undefined ||
+      operation.payload.bankClientId === null ?
       (existing === undefined ? '' : existing.bankUuid) : operation.payload.bankClientId
-    const type: string = operation.payload.type === undefined ? 'unclassified' : operation.payload.type
-    const content: string =
-      operation.payload.question === undefined ? '未命名题目' : operation.payload.question
-    const answer: string = operation.payload.answer === undefined ? '' : operation.payload.answer
-    const analysis: string = operation.payload.analysis === undefined ? '' : operation.payload.analysis
+    const type: string = operation.payload.type === undefined || operation.payload.type === null ?
+      'unclassified' : operation.payload.type
+    const content: string = operation.payload.question === undefined || operation.payload.question === null ?
+      '未命名题目' : operation.payload.question
+    const answer: string = operation.payload.answer === undefined || operation.payload.answer === null ?
+      '' : operation.payload.answer
+    const analysis: string = operation.payload.analysis === undefined || operation.payload.analysis === null ?
+      '' : operation.payload.analysis
     const sortOrder: number = existing === undefined ?
       CloudQuestionRepository.nextSortOrder(snapshot, bankUuid) : existing.sortOrder
     snapshot.questions.set(operation.entityId, new CloudQuestionCache(
@@ -575,7 +581,8 @@ export class CloudQuestionRepository {
         subject = bank.subject
       }
     }
-    const status: string = operation.payload.status === undefined ? 'pending' : operation.payload.status
+    const status: string = operation.payload.status === undefined || operation.payload.status === null ?
+      'pending' : operation.payload.status
     const userAnswer: string = ''
     snapshot.wrongQuestions.set(operation.entityId, new CloudWrongCache(
       accountId, operation.entityId, bankUuid, subject, status, userAnswer,
@@ -625,8 +632,8 @@ export class CloudQuestionRepository {
     return maximum + 1
   }
 
-  private static optionsJson(options: Record<string, string> | undefined): string {
-    if (options === undefined) {
+  private static optionsJson(options: Record<string, string> | null | undefined): string {
+    if (options === undefined || options === null) {
       return '[]'
     }
     const keys: Array<string> = Object.keys(options)

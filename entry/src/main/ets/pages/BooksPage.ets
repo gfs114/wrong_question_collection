@@ -30,6 +30,7 @@ export struct BooksPage {
   @State deletingBankId: string = ''
   @State signedIn: boolean = false
   @State offline: boolean = false
+  @State syncFailed: boolean = false
   @State accountId: string = ''
   private hasRequested: boolean = false
   private requestedVersion: number = -1
@@ -83,11 +84,18 @@ export struct BooksPage {
         return
       }
       this.offline = false
-    } catch {
+      this.syncFailed = false
+    } catch (err) {
       if (token !== this.requestToken) {
         return
       }
-      this.offline = true
+      if (err instanceof Error && ConnectivityPolicy.isOfflineError(err)) {
+        this.offline = true
+        this.syncFailed = false
+      } else {
+        this.offline = false
+        this.syncFailed = true
+      }
     }
     try {
       const banks: Array<QuestionBankSummary> =
@@ -114,6 +122,9 @@ export struct BooksPage {
   private bannerMessage(): string {
     if (!this.signedIn) {
       return '未登录：仅可浏览缓存数据，修改需先登录'
+    }
+    if (this.syncFailed) {
+      return '同步失败：正在显示本地缓存'
     }
     if (this.offline) {
       return '离线浏览：当前仅可查看缓存，修改需联网'
