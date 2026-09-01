@@ -2,6 +2,7 @@ import { Context } from '@kit.AbilityKit'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { HuaweiAccountCard } from '../components/HuaweiAccountCard'
+import { LegacyMigrationCard } from '../components/LegacyMigrationCard'
 import { SectionTitle } from '../components/SectionTitle'
 import { StatCard } from '../components/StatCard'
 import {
@@ -21,11 +22,16 @@ import {
 import { Statistics } from '../models/Statistics'
 import { AccountSessionState } from '../models/AccountSession'
 import { SyncDisplayState } from '../models/SyncModels'
+import {
+  LegacyMigrationStage,
+  LegacyMigrationState
+} from '../models/LegacyMigrationModels'
 import { StatisticsService } from '../services/StatisticsService'
 import { WrongQuestionService } from '../services/WrongQuestionService'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { HuaweiLoginService } from '../services/HuaweiLoginService'
 import { CloudSyncService } from '../services/CloudSyncService'
+import { LegacyCloudMigrationService } from '../services/LegacyCloudMigrationService'
 
 @Component
 export struct MinePage {
@@ -38,6 +44,10 @@ export struct MinePage {
   @State dialogPending: boolean = false
   @State signingIn: boolean = false
   @State authState: AccountSessionState = { signedIn: false, userId: '', deviceName: '' }
+  @State migrationState: LegacyMigrationState = new LegacyMigrationState(
+    '', LegacyMigrationStage.UNCLAIMED, new Array<string>(), '', new Array<string>(),
+    new Array<string>(), new Array<string>(), 0, 0, 0, '', '', 0)
+  @State migrationBusy: boolean = false
   @Prop syncState: SyncDisplayState = SyncDisplayState.LOCAL
   onSyncRequested: () => void = () => {
   }
@@ -50,6 +60,7 @@ export struct MinePage {
   aboutToAppear(): void {
     this.refreshWhenActive()
     this.loadAuthState()
+    this.loadMigrationState()
   }
 
   onActiveChanged(): void {
@@ -108,8 +119,124 @@ export struct MinePage {
     AccountSessionService.state(hostContext)
       .then((state: AccountSessionState) => {
         this.authState = state
+        this.loadMigrationState()
       })
       .catch(() => {
+      })
+  }
+
+  private loadMigrationState(): void {
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      return
+    }
+    LegacyCloudMigrationService.overview(hostContext)
+      .then((state: LegacyMigrationState) => {
+        this.migrationState = state
+      })
+      .catch(() => {
+      })
+  }
+
+  private showMigrationCard(): boolean {
+    return this.migrationState.totalBanks > 0 ||
+      this.migrationState.stage !== LegacyMigrationStage.UNCLAIMED
+  }
+
+  private confirmMigration(): void {
+    if (this.migrationBusy || this.dialogPending) {
+      return
+    }
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      this.showToast('暂时无法获取应用上下文')
+      return
+    }
+    if (!this.authState.signedIn) {
+      this.showToast('请先登录华为账号')
+      return
+    }
+    this.dialogPending = true
+    try {
+      this.getUIContext().showAlertDialog({
+        title: '迁移本机旧数据？',
+        message: '共 ' + this.migrationState.totalBanks.toString() + ' 个题库、' +
+          this.migrationState.totalQuestions.toString() + ' 道题目、' +
+          this.migrationState.totalImages.toString() + ' 张本机题图。' +
+          '文字将上传并绑定到当前登录的华为账号，本机数据不会被删除。',
+        autoCancel: false,
+        primaryButton: {
+          value: '开始迁移',
+          action: () => {
+            this.dialogPending = false
+            this.persistMigration(hostContext)
+          }
+        },
+        secondaryButton: {
+          value: '取消',
+          action: () => {
+            this.dialogPending = false
+          }
+        }
+      })
+    } catch {
+      this.dialogPending = false
+      this.showToast('暂时无法打开确认窗口')
+    }
+  }
+
+  private persistMigration(context: Context): void {
+    if (this.migrationBusy) {
+      return
+    }
+    this.migrationBusy = true
+    LegacyCloudMigrationService.claim(context)
+      .then((state: LegacyMigrationState) => {
+        this.migrationState = state
+        return LegacyCloudMigrationService.run(context)
+      })
+      .then((state: LegacyMigrationState) => {
+        this.migrationState = state
+        this.migrationBusy = false
+        if (state.stage === LegacyMigrationStage.COMPLETED) {
+          this.showToast('旧数据迁移完成')
+        } else if (state.stage === LegacyMigrationStage.FAILED) {
+          this.showToast('迁移失败，可稍后重试')
+        }
+      })
+      .catch(() => {
+        this.migrationBusy = false
+        this.showToast('迁移启动失败，请稍后重试')
+        this.loadMigrationState()
+      })
+  }
+
+  private retryMigration(): void {
+    if (this.migrationBusy || this.dialogPending) {
+      return
+    }
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      this.showToast('暂时无法获取应用上下文')
+      return
+    }
+    if (!this.authState.signedIn) {
+      this.showToast('请先登录华为账号')
+      return
+    }
+    this.migrationBusy = true
+    LegacyCloudMigrationService.run(hostContext)
+      .then((state: LegacyMigrationState) => {
+        this.migrationState = state
+        this.migrationBusy = false
+        if (state.stage === LegacyMigrationStage.COMPLETED) {
+          this.showToast('旧数据迁移完成')
+        }
+      })
+      .catch(() => {
+        this.migrationBusy = false
+        this.showToast('迁移启动失败，请稍后重试')
+        this.loadMigrationState()
       })
   }
 
@@ -183,6 +310,7 @@ export struct MinePage {
       .then(() => {
         this.authState = { signedIn: false, userId: '', deviceName: '' }
         this.showToast('已退出登录')
+        this.loadMigrationState()
         this.onSessionChanged()
       })
       .catch(() => {
@@ -350,6 +478,22 @@ export struct MinePage {
                 this.onSyncRequested()
               }
             })
+
+            if (this.showMigrationCard()) {
+              SectionTitle({ title: '旧数据迁移' })
+
+              LegacyMigrationCard({
+                state: this.migrationState,
+                signedIn: this.authState.signedIn,
+                busy: this.migrationBusy,
+                onStart: () => {
+                  this.confirmMigration()
+                },
+                onRetry: () => {
+                  this.retryMigration()
+                }
+              })
+            }
 
             SectionTitle({ title: '学习概览' })
 

@@ -50,6 +50,27 @@ class CloudCacheSnapshot {
 }
 
 /**
+ * Server-authoritative in-memory snapshot of the whole account stream. It is
+ * produced from GET /v1/sync/pull without touching the local cloud cache and
+ * is used by the legacy migration to verify uploaded text before the cache
+ * is updated.
+ */
+export class AuthoritativeSnapshot {
+  banks: Map<string, CloudBankCache>
+  questions: Map<string, CloudQuestionCache>
+  wrongQuestions: Map<string, CloudWrongCache>
+  cursor: string
+
+  constructor(banks: Map<string, CloudBankCache>, questions: Map<string, CloudQuestionCache>,
+    wrongQuestions: Map<string, CloudWrongCache>, cursor: string) {
+    this.banks = banks
+    this.questions = questions
+    this.wrongQuestions = wrongQuestions
+    this.cursor = cursor
+  }
+}
+
+/**
  * Server-first repository for normal question data.
  *
  * Reads come from the account-scoped read-only cloud cache. Every mutation
@@ -194,6 +215,38 @@ export class CloudQuestionRepository {
     const snapshot: CloudCacheSnapshot = await CloudQuestionRepository.loadSnapshot(accountId)
     CloudQuestionRepository.applyOrdered(accountId, snapshot, operations)
     await CloudQuestionRepository.saveSnapshot(accountId, snapshot, cursor)
+  }
+
+  /**
+   * Pulls the full authoritative operation stream for the account from
+   * cursor 0 and reduces it to an in-memory snapshot WITHOUT writing the
+   * local cloud cache. Legacy migration uses this to verify uploaded text
+   * against the server before the cache is updated.
+   */
+  static async pullAuthoritativeSnapshot(accountId: string,
+    context: Context): Promise<AuthoritativeSnapshot> {
+    const accessToken: string = await AccountSessionService.accessToken(context)
+    if (accessToken.length === 0) {
+      throw new Error('请先登录华为账号')
+    }
+    const operations: Array<RemoteSyncOperation> = new Array<RemoteSyncOperation>()
+    let cursor: string = '0'
+    let hasMore: boolean = true
+    while (hasMore) {
+      const response: SyncPullResponse =
+        await CloudQuestionRepository.authorizedPull(accessToken, cursor, context)
+      for (let index: number = 0; index < response.operations.length; index++) {
+        operations.push(response.operations[index])
+      }
+      cursor = response.nextCursor
+      hasMore = response.hasMore
+    }
+    const snapshot: CloudCacheSnapshot = new CloudCacheSnapshot(
+      new Map<string, CloudBankCache>(),
+      new Map<string, CloudQuestionCache>(),
+      new Map<string, CloudWrongCache>())
+    CloudQuestionRepository.applyOrdered(accountId, snapshot, operations)
+    return new AuthoritativeSnapshot(snapshot.banks, snapshot.questions, snapshot.wrongQuestions, cursor)
   }
 
   /**

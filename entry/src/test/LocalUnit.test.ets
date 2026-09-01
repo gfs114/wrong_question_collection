@@ -42,6 +42,13 @@ import { SyncOperationType, SyncOutboxPolicy, SyncSequence } from '../main/ets/m
 import { CacheVersionPolicy } from '../main/ets/models/CloudCacheModels';
 import { DeviceImageScope } from '../main/ets/services/DeviceImageStore';
 import { ConnectivityPolicy } from '../main/ets/services/ConnectivityPolicy';
+import {
+  LegacyCanonicalQuestion,
+  LegacyMigrationStage,
+  LegacyMigrationState,
+  LegacyTextNormalizer,
+  MigrationPolicy
+} from '../main/ets/models/LegacyMigrationModels';
 
 class ParserAssertions {
   static expectRejected(text: string): void {
@@ -101,6 +108,101 @@ class JsonSamples {
 }
 
 export default function localUnitTest(): void {
+  describe('legacyMigrationPolicy', () => {
+    it('claims only an unclaimed or same-account migration', 0, () => {
+      expect(MigrationPolicy.canClaim('', 'user-a')).assertTrue()
+      expect(MigrationPolicy.canClaim('user-a', 'user-a')).assertTrue()
+      expect(MigrationPolicy.canClaim('user-a', 'user-b')).assertFalse()
+      expect(MigrationPolicy.canClaim('user-b', 'user-a')).assertFalse()
+    })
+
+    it('retires legacy only when all three conditions hold', 0, () => {
+      expect(MigrationPolicy.canRetireLegacy(true, true, true)).assertTrue()
+      expect(MigrationPolicy.canRetireLegacy(true, true, false)).assertFalse()
+      expect(MigrationPolicy.canRetireLegacy(true, false, true)).assertFalse()
+      expect(MigrationPolicy.canRetireLegacy(false, true, true)).assertFalse()
+      expect(MigrationPolicy.canRetireLegacy(false, false, false)).assertFalse()
+    })
+  })
+
+  describe('legacyMigrationStage', () => {
+    it('covers the five migration stages', 0, () => {
+      expect(LegacyMigrationStage.UNCLAIMED).assertEqual('unclaimed')
+      expect(LegacyMigrationStage.UPLOADING).assertEqual('uploading')
+      expect(LegacyMigrationStage.VERIFYING).assertEqual('verifying')
+      expect(LegacyMigrationStage.COMPLETED).assertEqual('completed')
+      expect(LegacyMigrationStage.FAILED).assertEqual('failed')
+    })
+
+    it('derives completion flags and retry availability from progress', 0, () => {
+      const state: LegacyMigrationState = new LegacyMigrationState(
+        'user-a', LegacyMigrationStage.UPLOADING, ['b1', 'b2'], 'b1', ['b1'], [], [],
+        2, 5, 3, '', '', 1000)
+      expect(state.serverAcknowledged()).assertFalse()
+      expect(state.cacheVerified()).assertFalse()
+      expect(state.imageMappingsCommitted()).assertFalse()
+      expect(state.processedBanks()).assertEqual(0)
+      expect(state.canRetry()).assertTrue()
+
+      const complete: LegacyMigrationState = new LegacyMigrationState(
+        'user-a', LegacyMigrationStage.COMPLETED, ['b1', 'b2'], 'b2', ['b1', 'b2'],
+        ['b1', 'b2'], ['b1', 'b2'], 2, 5, 3, '', '', 2000)
+      expect(complete.serverAcknowledged()).assertTrue()
+      expect(complete.cacheVerified()).assertTrue()
+      expect(complete.imageMappingsCommitted()).assertTrue()
+      expect(complete.processedBanks()).assertEqual(2)
+      expect(complete.canRetry()).assertFalse()
+
+      const failed: LegacyMigrationState = new LegacyMigrationState(
+        'user-a', LegacyMigrationStage.FAILED, ['b1'], 'b1', [], [], [],
+        1, 2, 1, 'DIGEST_MISMATCH', '服务器文字校验不一致', 3000)
+      expect(failed.canRetry()).assertTrue()
+    })
+  })
+
+  describe('legacyTextNormalizer', () => {
+    it('orders questions by server UUID regardless of input order', 0, () => {
+      const later: LegacyCanonicalQuestion =
+        new LegacyCanonicalQuestion('uuid-later', 'single_choice', '第二题', ['A. 2'], 'A', '')
+      const earlier: LegacyCanonicalQuestion =
+        new LegacyCanonicalQuestion('uuid-earlier', 'single_choice', '第一题', ['A. 1'], 'A', '')
+      const forward: string = LegacyTextNormalizer.canonicalText('题库', '数学', [earlier, later])
+      const reversed: string = LegacyTextNormalizer.canonicalText('题库', '数学', [later, earlier])
+      expect(forward === reversed).assertTrue()
+      expect(forward.indexOf('第一题') < forward.indexOf('第二题')).assertTrue()
+    })
+
+    it('produces identical canonical text for the same content', 0, () => {
+      const first: LegacyCanonicalQuestion =
+        new LegacyCanonicalQuestion('q-1', 'single_choice', '题目', ['A. 1', 'B. 2'], 'A', '解析')
+      const second: LegacyCanonicalQuestion =
+        new LegacyCanonicalQuestion('q-1', 'single_choice', '题目', ['A. 1', 'B. 2'], 'A', '解析')
+      const text: string = LegacyTextNormalizer.canonicalText('题库', '数学', [first])
+      expect(text === LegacyTextNormalizer.canonicalText('题库', '数学', [second])).assertTrue()
+      expect(text.indexOf('name=题库')).assertEqual(0)
+      expect(text.indexOf('type=single_choice') > 0).assertTrue()
+      expect(text.indexOf('options=["0=A. 1","1=B. 2"]') > 0).assertTrue()
+    })
+
+    it('trims the question text exactly like the server store', 0, () => {
+      const question: LegacyCanonicalQuestion =
+        new LegacyCanonicalQuestion('q-1', 'short_answer', '  带空白的题干  ', [], '', '')
+      const text: string = LegacyTextNormalizer.canonicalText('  题库  ', ' 数学 ', [question])
+      expect(text.indexOf('name=题库') >= 0).assertTrue()
+      expect(text.indexOf('subject=数学') >= 0).assertTrue()
+      expect(text.indexOf('question=带空白的题干') >= 0).assertTrue()
+      expect(text.indexOf('question=  带空白的题干') < 0).assertTrue()
+    })
+
+    it('keeps options in numeric index order', 0, () => {
+      const question: LegacyCanonicalQuestion =
+        new LegacyCanonicalQuestion('q-1', 'single_choice', '题目', ['A. 一', 'B. 二', 'C. 三'], 'B', '')
+      const text: string = LegacyTextNormalizer.canonicalText('题库', '数学', [question])
+      expect(text.indexOf('0=A. 一') < text.indexOf('1=B. 二')).assertTrue()
+      expect(text.indexOf('1=B. 二') < text.indexOf('2=C. 三')).assertTrue()
+    })
+  })
+
   describe('connectivityPolicy', () => {
     it('allows mutation only when signed in and online', 0, () => {
       expect(ConnectivityPolicy.canMutate(true, true)).assertTrue()

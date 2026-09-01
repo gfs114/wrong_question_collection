@@ -3,6 +3,7 @@ import { DatabaseService } from './DatabaseService'
 import { SampleDataService } from './SampleDataService'
 import { AccountSessionService } from './AccountSessionService'
 import { SyncBootstrapService } from './SyncBootstrapService'
+import { LegacyCloudMigrationService } from './LegacyCloudMigrationService'
 
 export class AppBootstrapService {
   private static initialization: Promise<void> | null = null
@@ -34,6 +35,13 @@ export class AppBootstrapService {
       await AccountSessionService.restore(context)
     } catch {
       // Cloud session recovery must never block local-first app startup.
+    }
+    try {
+      // Restores the legacy migration state for the UI. It never claims an
+      // account or starts an upload without explicit user confirmation.
+      await LegacyCloudMigrationService.initialize(context)
+    } catch {
+      // Migration state restore must never block app startup.
     }
   }
 }
