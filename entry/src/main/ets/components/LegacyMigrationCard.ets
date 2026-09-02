@@ -1,14 +1,9 @@
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_SUCCESS_TEXT,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 import {
   LegacyMigrationStage,
   LegacyMigrationState
@@ -21,9 +16,14 @@ export struct LegacyMigrationCard {
     new Array<string>(), new Array<string>(), 0, 0, 0, '', '', 0)
   @Prop signedIn: boolean = false
   @Prop busy: boolean = false
+  @StorageProp('darkMode') darkMode: boolean = false
   onStart: () => void = () => {
   }
   onRetry: () => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   private stageLabel(): string {
@@ -44,12 +44,12 @@ export struct LegacyMigrationCard {
 
   private stageColor(): string {
     if (this.state.stage === LegacyMigrationStage.COMPLETED) {
-      return COLOR_SUCCESS_TEXT
+      return this.colors().successText
     }
     if (this.state.stage === LegacyMigrationStage.FAILED) {
-      return COLOR_DANGER
+      return this.colors().error
     }
-    return COLOR_PRIMARY
+    return this.colors().brand
   }
 
   private progressText(): string {
@@ -72,16 +72,16 @@ export struct LegacyMigrationCard {
           .height(36)
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
-          .fontColor(COLOR_PRIMARY)
+          .fontColor(this.colors().brand)
           .textAlign(TextAlign.Center)
-          .backgroundColor(COLOR_PAGE_BG)
+          .backgroundColor(this.colors().pageBackground)
           .borderRadius(18)
 
         Column({ space: 2 }) {
           Text('旧数据迁移')
             .fontSize(BODY_FONT_SIZE)
             .fontWeight(FontWeight.Medium)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
 
           Text(this.stageLabel())
             .fontSize(13)
@@ -98,18 +98,18 @@ export struct LegacyMigrationCard {
         this.state.totalImages.toString() + ' 张本机题图')
         .width('100%')
         .fontSize(13)
-        .fontColor(COLOR_TEXT_CAPTION)
+        .fontColor(this.colors().textCaption)
 
       Text('迁移会把本机文字数据绑定到当前登录的华为账号，本机数据不会被删除。')
         .width('100%')
         .fontSize(13)
-        .fontColor(COLOR_TEXT_CAPTION)
+        .fontColor(this.colors().textCaption)
 
       if (!this.signedIn) {
         Text('登录后才能开始迁移')
           .width('100%')
           .fontSize(13)
-          .fontColor(COLOR_TEXT_CAPTION)
+          .fontColor(this.colors().textCaption)
       }
 
       if (this.state.stage === LegacyMigrationStage.UNCLAIMED) {
@@ -118,8 +118,8 @@ export struct LegacyMigrationCard {
           .width('100%')
           .height(44)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor('#FFFFFF')
-          .backgroundColor(this.signedIn && !this.busy ? COLOR_PRIMARY : '#8E99AA')
+          .fontColor(this.colors().onBrand)
+          .backgroundColor(this.signedIn && !this.busy ? this.colors().brand : this.colors().disabled)
           .borderRadius(12)
           .enabled(this.signedIn && !this.busy)
           .onClick(() => {
@@ -131,11 +131,11 @@ export struct LegacyMigrationCard {
           LoadingProgress()
             .width(20)
             .height(20)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text(this.progressText())
             .fontSize(13)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
 
           Blank()
         }
@@ -146,7 +146,7 @@ export struct LegacyMigrationCard {
           Text(this.state.errorMessage)
             .width('100%')
             .fontSize(13)
-            .fontColor(COLOR_DANGER)
+            .fontColor(this.colors().error)
         }
 
         Button(this.busy ? '正在重试…' : '重试')
@@ -154,8 +154,8 @@ export struct LegacyMigrationCard {
           .width('100%')
           .height(44)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor('#FFFFFF')
-          .backgroundColor(this.signedIn && !this.busy ? COLOR_PRIMARY : '#8E99AA')
+          .fontColor(this.colors().onBrand)
+          .backgroundColor(this.signedIn && !this.busy ? this.colors().brand : this.colors().disabled)
           .borderRadius(12)
           .enabled(this.signedIn && !this.busy)
           .onClick(() => {
@@ -165,7 +165,7 @@ export struct LegacyMigrationCard {
     }
     .width('100%')
     .padding(16)
-    .backgroundColor(COLOR_CARD_BG)
+    .backgroundColor(this.colors().cardBackground)
     .borderRadius(CARD_RADIUS)
   }
 }

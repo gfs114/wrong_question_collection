@@ -31,7 +31,7 @@ expectIncludes(index, 'active: this.selectedIndex === MainTabIndex.BOOKS', 'book
 expectIncludes(index, 'active: this.selectedIndex === MainTabIndex.WRONG_QUESTIONS',
   'wrong-question active contract must remain')
 expectIncludes(index, 'active: this.selectedIndex === MainTabIndex.MINE', 'mine active contract must remain')
-expectIncludes(navigation, '.systemMaterial(ImmersiveMaterials.navigation)',
+expectIncludes(navigation, '.systemMaterial(ImmersiveMaterials.navigationFor(this.darkMode))',
   'navigation must use official immersive material')
 expectIncludes(navigation, "this.NavigationItem('首页'", 'home must be first')
 expectIncludes(navigation, "this.NavigationItem('书籍'", 'books must be second')

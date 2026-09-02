@@ -1,14 +1,10 @@
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 
 @Component
 export struct CloudImportStatusCard {
@@ -18,6 +14,11 @@ export struct CloudImportStatusCard {
   @Prop errorMessage: string = ''
   @Prop retryHint: string = '网络异常时可重试'
   @Prop serverStatus: string = '服务器识别中'
+  @StorageProp('darkMode') darkMode: boolean = false
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   private safeProgressTotal(): number {
     if (!Number.isFinite(this.progressTotal) || this.progressTotal <= 0) {
@@ -41,20 +42,20 @@ export struct CloudImportStatusCard {
           .height(42)
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
-          .fontColor(COLOR_PRIMARY)
+          .fontColor(this.colors().brand)
           .textAlign(TextAlign.Center)
-          .backgroundColor(COLOR_PAGE_BG)
+          .backgroundColor(this.colors().pageBackground)
           .borderRadius(21)
 
         Column({ space: 3 }) {
           Text('当前状态')
             .fontSize(12)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
 
           Text(this.status)
             .fontSize(SUBTITLE_FONT_SIZE)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.errorMessage.length > 0 ? COLOR_DANGER : COLOR_TEXT_PRIMARY)
+            .fontColor(this.errorMessage.length > 0 ? this.colors().error : this.colors().textPrimary)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -65,14 +66,14 @@ export struct CloudImportStatusCard {
         Row() {
           Text('处理进度')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
 
           Blank()
 
           Text(this.progressCurrent.toString() + ' / ' + this.progressTotal.toString())
             .fontSize(BODY_FONT_SIZE)
             .fontWeight(FontWeight.Medium)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
         }
         .width('100%')
 
@@ -83,22 +84,22 @@ export struct CloudImportStatusCard {
         })
           .width('100%')
           .height(8)
-          .color(COLOR_PRIMARY)
-          .backgroundColor(COLOR_PAGE_BG)
+          .color(this.colors().brand)
+          .backgroundColor(this.colors().pageBackground)
       }
       .width('100%')
 
       Row() {
         Text('服务端识别状态')
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(COLOR_TEXT_CAPTION)
+          .fontColor(this.colors().textCaption)
 
         Blank()
 
         Text(this.serverStatus)
           .fontSize(BODY_FONT_SIZE)
           .fontWeight(FontWeight.Medium)
-          .fontColor(COLOR_TEXT_PRIMARY)
+          .fontColor(this.colors().textPrimary)
       }
       .width('100%')
 
@@ -107,9 +108,9 @@ export struct CloudImportStatusCard {
           .width('100%')
           .padding(12)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(COLOR_DANGER)
+          .fontColor(this.colors().error)
           .lineHeight(21)
-          .backgroundColor('#FFF2F2')
+          .backgroundColor(this.colors().errorSoft)
           .borderRadius(12)
       }
 
@@ -117,14 +118,14 @@ export struct CloudImportStatusCard {
         Text('重试提示：' + this.retryHint)
           .width('100%')
           .fontSize(12)
-          .fontColor(COLOR_TEXT_CAPTION)
+          .fontColor(this.colors().textCaption)
           .lineHeight(19)
       }
     }
     .width('100%')
     .padding(20)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(COLOR_CARD_BG)
+    .backgroundColor(this.colors().cardBackground)
     .borderRadius(CARD_RADIUS)
   }
 }

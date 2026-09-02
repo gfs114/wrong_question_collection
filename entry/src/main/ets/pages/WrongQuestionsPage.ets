@@ -1,4 +1,5 @@
 import { router } from '@kit.ArkUI'
+import uiMaterial from '@ohos.arkui.uiMaterial'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { SectionTitle } from '../components/SectionTitle'
@@ -7,26 +8,30 @@ import { WrongQuestionCard } from '../components/WrongQuestionCard'
 import {
   BODY_FONT_SIZE,
   CARD_GAP,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_SUCCESS_TEXT,
-  COLOR_TEXT_CAPTION,
-  PAGE_PADDING
+  CONTENT_MAX_WIDTH,
+  PAGE_PADDING,
+  themePalette
 } from '../constants/AppTheme'
+import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
 import { AccountSessionState } from '../models/AccountSession'
 import { Statistics } from '../models/Statistics'
 import { WrongQuestionSummary } from '../models/WrongQuestion'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct WrongQuestionsPage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   @State statistics: Statistics = new Statistics(0, 0, 0, 0)
   @State subjects: Array<string> = new Array<string>()
   @State selectedSubject: string = ''
@@ -41,6 +46,10 @@ export struct WrongQuestionsPage {
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.refreshWhenActive()
@@ -222,11 +231,11 @@ export struct WrongQuestionsPage {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
-            .fontColor('#8A5A00')
+            .fontColor(this.colors().warningText)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
+        .backgroundColor(this.colors().warning)
       }
 
       if (this.loading) {
@@ -234,11 +243,11 @@ export struct WrongQuestionsPage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在整理错题')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -264,7 +273,7 @@ export struct WrongQuestionsPage {
                   label: '全部错题',
                   value: this.statistics.wrongCount,
                   glyph: '全',
-                  accentColor: COLOR_PRIMARY
+                  accentColor: this.colors().brand
                 })
               }
 
@@ -273,7 +282,7 @@ export struct WrongQuestionsPage {
                   label: '已掌握',
                   value: this.statistics.masteredCount,
                   glyph: '✓',
-                  accentColor: COLOR_SUCCESS_TEXT
+                  accentColor: this.colors().successText
                 })
               }
 
@@ -282,7 +291,7 @@ export struct WrongQuestionsPage {
                   label: '待复习',
                   value: this.statistics.pendingCount,
                   glyph: '复',
-                  accentColor: COLOR_DANGER
+                  accentColor: this.colors().error
                 })
               }
             }
@@ -298,13 +307,17 @@ export struct WrongQuestionsPage {
                   Text('全部')
                     .fontSize(14)
                     .fontWeight(FontWeight.Medium)
-                    .fontColor(this.selectedSubject.length === 0 ? '#FFFFFF' : COLOR_TEXT_CAPTION)
+                    .fontColor(this.selectedSubject.length === 0 ?
+                      this.colors().onBrand : this.colors().textCaption)
                 }
                 .type(ButtonType.Normal)
                 .height(40)
                 .padding({ left: 18, right: 18 })
-                .backgroundColor(this.selectedSubject.length === 0 ? COLOR_PRIMARY : '#FFFFFF')
+                .backgroundColor(this.selectedSubject.length === 0 ?
+                  Color.Transparent : this.colors().cardBackground)
                 .borderRadius(20)
+                .systemMaterial(this.selectedSubject.length === 0 ?
+                  ImmersiveMaterials.selectedControlFor(this.darkMode) : uiMaterial.Material.empty)
                 .onClick(() => {
                   this.selectSubject('')
                 })
@@ -314,13 +327,17 @@ export struct WrongQuestionsPage {
                     Text(subject)
                       .fontSize(14)
                       .fontWeight(FontWeight.Medium)
-                      .fontColor(this.selectedSubject === subject ? '#FFFFFF' : COLOR_TEXT_CAPTION)
+                      .fontColor(this.selectedSubject === subject ?
+                        this.colors().onBrand : this.colors().textCaption)
                   }
                   .type(ButtonType.Normal)
                   .height(40)
                   .padding({ left: 18, right: 18 })
-                  .backgroundColor(this.selectedSubject === subject ? COLOR_PRIMARY : '#FFFFFF')
+                  .backgroundColor(this.selectedSubject === subject ?
+                    Color.Transparent : this.colors().cardBackground)
                   .borderRadius(20)
+                  .systemMaterial(this.selectedSubject === subject ?
+                    ImmersiveMaterials.selectedControlFor(this.darkMode) : uiMaterial.Material.empty)
                   .onClick(() => {
                     this.selectSubject(subject)
                   })
@@ -371,12 +388,17 @@ export struct WrongQuestionsPage {
         }
         .layoutWeight(1)
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
         .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

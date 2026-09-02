@@ -9,15 +9,10 @@ import {
   BODY_FONT_SIZE,
   CARD_GAP,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_SUCCESS_TEXT,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { Statistics } from '../models/Statistics'
 import { AccountSessionState } from '../models/AccountSession'
@@ -32,11 +27,19 @@ import { HuaweiLoginService } from '../services/HuaweiLoginService'
 import { CloudSyncService } from '../services/CloudSyncService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { LegacyCloudMigrationService } from '../services/LegacyCloudMigrationService'
+import { AppColors } from '../theme/AppColors'
+import { ThemeManager, ThemeMode } from '../theme/ThemeManager'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct MinePage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
+  @StorageProp('themeMode') themeMode: ThemeMode = ThemeMode.SYSTEM
   @State statistics: Statistics = new Statistics(0, 0, 0, 0)
   @State loading: boolean = false
   @State errorMessage: string = ''
@@ -56,6 +59,14 @@ export struct MinePage {
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
+
+  private modeLabel(): string {
+    return ThemeManager.modeLabel(this.themeMode)
+  }
 
   aboutToAppear(): void {
     this.refreshWhenActive()
@@ -409,6 +420,45 @@ export struct MinePage {
     }
   }
 
+  private selectThemeMode(): void {
+    if (this.dialogPending || this.clearing) {
+      return
+    }
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      this.showToast('暂时无法获取应用上下文')
+      return
+    }
+    try {
+      this.getUIContext().showActionSheet({
+        title: '深色模式',
+        message: '选择应用主题模式',
+        sheets: [
+          {
+            title: '跟随系统',
+            action: () => {
+              ThemeManager.setMode(hostContext, ThemeMode.SYSTEM)
+            }
+          },
+          {
+            title: '浅色模式',
+            action: () => {
+              ThemeManager.setMode(hostContext, ThemeMode.LIGHT)
+            }
+          },
+          {
+            title: '深色模式',
+            action: () => {
+              ThemeManager.setMode(hostContext, ThemeMode.DARK)
+            }
+          }
+        ]
+      })
+    } catch {
+      this.showToast('暂时无法打开主题选择')
+    }
+  }
+
   build() {
     Column() {
       AppHeader({ title: '我的' })
@@ -418,11 +468,11 @@ export struct MinePage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在加载学习数据')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -448,23 +498,23 @@ export struct MinePage {
                 .height(72)
                 .fontSize(30)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_PRIMARY)
+                .fontColor(this.colors().brand)
                 .textAlign(TextAlign.Center)
-                .backgroundColor(COLOR_PAGE_BG)
+                .backgroundColor(this.colors().pageBackground)
                 .borderRadius(36)
 
               Text('学习中心')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Text('整理错题，让每次复习更有方向')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
             }
             .width('100%')
             .padding({ top: 22, bottom: 22 })
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             SectionTitle({ title: '账号' })
@@ -514,7 +564,7 @@ export struct MinePage {
                   label: '题库数量',
                   value: this.statistics.bankCount,
                   glyph: '书',
-                  accentColor: COLOR_PRIMARY
+                  accentColor: this.colors().brand
                 })
               }
 
@@ -523,7 +573,7 @@ export struct MinePage {
                   label: '错题数量',
                   value: this.statistics.wrongCount,
                   glyph: '错',
-                  accentColor: COLOR_DANGER
+                  accentColor: this.colors().error
                 })
               }
 
@@ -532,7 +582,7 @@ export struct MinePage {
                   label: '已掌握',
                   value: this.statistics.masteredCount,
                   glyph: '✓',
-                  accentColor: COLOR_SUCCESS_TEXT
+                  accentColor: this.colors().successText
                 })
               }
 
@@ -541,7 +591,7 @@ export struct MinePage {
                   label: '待复习',
                   value: this.statistics.pendingCount,
                   glyph: '复',
-                  accentColor: COLOR_DANGER
+                  accentColor: this.colors().error
                 })
               }
             }
@@ -560,17 +610,17 @@ export struct MinePage {
                   .height(36)
                   .fontSize(14)
                   .fontWeight(FontWeight.Bold)
-                  .fontColor(COLOR_PRIMARY)
+                  .fontColor(this.colors().brand)
                   .textAlign(TextAlign.Center)
-                  .backgroundColor(COLOR_PAGE_BG)
+                  .backgroundColor(this.colors().pageBackground)
                   .borderRadius(18)
                 Text('数据管理')
                   .fontSize(BODY_FONT_SIZE)
-                  .fontColor(COLOR_TEXT_PRIMARY)
+                  .fontColor(this.colors().textPrimary)
                 Blank()
                 Text('›')
                   .fontSize(24)
-                  .fontColor(COLOR_TEXT_CAPTION)
+                  .fontColor(this.colors().textCaption)
               }
               .width('100%')
               .height(60)
@@ -582,17 +632,17 @@ export struct MinePage {
                     .height(36)
                     .fontSize(14)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor(COLOR_DANGER)
+                    .fontColor(this.colors().error)
                     .textAlign(TextAlign.Center)
-                    .backgroundColor(COLOR_PAGE_BG)
+                    .backgroundColor(this.colors().pageBackground)
                     .borderRadius(18)
                   Text(this.clearing ? '正在清空…' : '清空错题')
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .fontColor(this.colors().textPrimary)
                   Blank()
                   Text('›')
                     .fontSize(24)
-                    .fontColor(COLOR_TEXT_CAPTION)
+                    .fontColor(this.colors().textCaption)
                 }
                 .width('100%')
                 .height(60)
@@ -601,11 +651,48 @@ export struct MinePage {
               .width('100%')
               .height(60)
               .padding(0)
-              .backgroundColor(COLOR_CARD_BG)
+              .backgroundColor(this.colors().cardBackground)
               .enabled(!this.clearing && !this.dialogPending)
               .accessibilityText('清空错题')
               .onClick(() => {
                 this.confirmClear()
+              })
+
+              Button() {
+                Row({ space: 12 }) {
+                  Text('深')
+                    .width(36)
+                    .height(36)
+                    .fontSize(14)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(this.colors().brand)
+                    .textAlign(TextAlign.Center)
+                    .backgroundColor(this.colors().pageBackground)
+                    .borderRadius(18)
+                  Text('深色模式')
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(this.colors().textPrimary)
+                  Blank()
+                  Text(this.modeLabel())
+                    .fontSize(13)
+                    .fontColor(this.colors().textCaption)
+                    .margin({ right: 6 })
+                  Text('›')
+                    .fontSize(24)
+                    .fontColor(this.colors().textCaption)
+                }
+                .width('100%')
+                .height(60)
+              }
+              .type(ButtonType.Normal)
+              .width('100%')
+              .height(60)
+              .padding(0)
+              .backgroundColor(this.colors().cardBackground)
+              .enabled(!this.dialogPending)
+              .accessibilityText('深色模式')
+              .onClick(() => {
+                this.selectThemeMode()
               })
 
               Button() {
@@ -615,17 +702,17 @@ export struct MinePage {
                     .height(36)
                     .fontSize(14)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor(COLOR_SUCCESS_TEXT)
+                    .fontColor(this.colors().successText)
                     .textAlign(TextAlign.Center)
-                    .backgroundColor(COLOR_PAGE_BG)
+                    .backgroundColor(this.colors().pageBackground)
                     .borderRadius(18)
                   Text('关于应用')
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .fontColor(this.colors().textPrimary)
                   Blank()
                   Text('›')
                     .fontSize(24)
-                    .fontColor(COLOR_TEXT_CAPTION)
+                    .fontColor(this.colors().textCaption)
                 }
                 .width('100%')
                 .height(60)
@@ -634,7 +721,7 @@ export struct MinePage {
               .width('100%')
               .height(60)
               .padding(0)
-              .backgroundColor(COLOR_CARD_BG)
+              .backgroundColor(this.colors().cardBackground)
               .enabled(!this.clearing && !this.dialogPending)
               .accessibilityText('关于应用')
               .onClick(() => {
@@ -643,19 +730,24 @@ export struct MinePage {
             }
             .width('100%')
             .padding({ left: 16, right: 16 })
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
           }
           .width('100%')
-          .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+          .padding({
+            left: PAGE_PADDING,
+            right: PAGE_PADDING,
+            bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+          })
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

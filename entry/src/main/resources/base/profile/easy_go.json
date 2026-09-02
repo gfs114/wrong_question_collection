@@ -1,0 +1,23 @@
+{
+  "common": {
+    "displayModeOptions": {
+      "wideWindowMode": "original",
+      "squareWindowMode": "routerSplit",
+      "routerSplitOptions": {
+        "homePage": "pages/Index",
+        "mode": 1,
+        "enableReducedContainerSize": true,
+        "fullScreenPages": [
+          "pages/ImportBankPage",
+          "pages/PdfImportSetupPage",
+          "pages/PdfImportProgressPage",
+          "pages/PdfImportReviewPage",
+          "pages/EditQuestionPage"
+        ],
+        "squareSplit": {
+          "isDraggable": true
+        }
+      }
+    }
+  }
+}

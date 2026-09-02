@@ -1,16 +1,14 @@
 import { router } from '@kit.ArkUI'
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { QuestionCard } from '../components/QuestionCard'
 import {
   BODY_FONT_SIZE,
   CARD_GAP,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
-  PAGE_PADDING
+  CONTENT_MAX_WIDTH,
+  PAGE_PADDING,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
@@ -18,7 +16,9 @@ import { QuestionBankSummary } from '../models/QuestionBank'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 class QuestionListDataSource implements IDataSource {
   private items: Array<Question> = new Array<Question>()
@@ -67,11 +67,19 @@ struct QuestionListPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private bankId: string = ''
   private cachedBankId: string = ''
   private requestToken: number = 0
   private bankQuestions: Array<Question> = new Array<Question>()
   private readonly questionDataSource: QuestionListDataSource = new QuestionListDataSource()
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   onPageShow(): void {
     const selectedBankId: string = NavigationState.shared().selectedBankId
@@ -85,6 +93,16 @@ struct QuestionListPage {
       this.loadBank()
     } else {
       this.search(this.query)
+    }
+    this.logEasySplitState()
+  }
+
+  private logEasySplitState(): void {
+    try {
+      if (this.getUIContext().isEasySplit()) {
+        hilog.info(0x0000, 'WQC_EASYGO', 'QuestionListPage is running in easy split mode')
+      }
+    } catch {
     }
   }
 
@@ -302,40 +320,22 @@ struct QuestionListPage {
     })
   }
 
-  build() {
+  @Builder
+  private QuestionListPane() {
     Column() {
-      AppHeader({
-        title: this.bankName,
-        showBack: true,
-        onBack: () => {
-          this.goBack()
-        }
-      })
-
-      if (this.bannerMessage().length > 0) {
-        Row() {
-          Text(this.bannerMessage())
-            .fontSize(13)
-            .fontColor('#8A5A00')
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
-      }
-
       Row({ space: 10 }) {
         Text('搜')
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
-          .fontColor(COLOR_PRIMARY)
+          .fontColor(this.colors().brand)
 
         TextInput({ placeholder: '搜索题目内容', text: this.query })
           .layoutWeight(1)
           .height(48)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(COLOR_TEXT_PRIMARY)
-          .placeholderColor(COLOR_TEXT_CAPTION)
-          .backgroundColor(COLOR_CARD_BG)
+          .fontColor(this.colors().textPrimary)
+          .placeholderColor(this.colors().textCaption)
+          .backgroundColor(this.colors().cardBackground)
           .onChange((value: string) => {
             this.search(value)
           })
@@ -344,7 +344,7 @@ struct QuestionListPage {
       .height(56)
       .padding({ left: 14, right: 8 })
       .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 14 })
-      .backgroundColor(COLOR_CARD_BG)
+      .backgroundColor(this.colors().cardBackground)
       .borderRadius(16)
 
       if (this.loading) {
@@ -352,11 +352,11 @@ struct QuestionListPage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text(this.query.length === 0 ? '正在加载题目' : '正在搜索题目')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -398,12 +398,45 @@ struct QuestionListPage {
         }
         .layoutWeight(1)
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
         .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .layoutWeight(1)
+  }
+
+  build() {
+    Column() {
+      AppHeader({
+        title: this.bankName,
+        showBack: true,
+        onBack: () => {
+          this.goBack()
+        }
+      })
+
+      if (this.bannerMessage().length > 0) {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor(this.colors().warningText)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor(this.colors().warning)
+      }
+
+      this.QuestionListPane()
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(this.colors().pageBackground)
   }
 }

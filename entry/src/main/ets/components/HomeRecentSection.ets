@@ -1,11 +1,9 @@
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 import { SectionTitle } from './SectionTitle'
 
 @Component
@@ -13,7 +11,12 @@ export struct HomeRecentSection {
   @Prop title: string = ''
   @Prop emptyText: string = ''
   @Prop items: Array<string> = new Array<string>()
+  @StorageProp('darkMode') darkMode: boolean = false
   onOpen: (index: number) => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   build() {
@@ -31,19 +34,19 @@ export struct HomeRecentSection {
             .height(30)
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_PRIMARY)
+            .fontColor(this.colors().brand)
             .textAlign(TextAlign.Center)
-            .backgroundColor('#1418A66A')
+            .backgroundColor(this.colors().brandSoft)
             .borderRadius(15)
 
           Text(this.emptyText)
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .width('100%')
         .height(62)
         .padding({ left: 16, right: 16 })
-        .backgroundColor(COLOR_CARD_BG)
+        .backgroundColor(this.colors().cardBackground)
         .borderRadius(CARD_RADIUS)
       } else {
         Column() {
@@ -54,21 +57,21 @@ export struct HomeRecentSection {
                 .height(30)
                 .fontSize(13)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_PRIMARY)
+                .fontColor(this.colors().brand)
                 .textAlign(TextAlign.Center)
-                .backgroundColor('#1418A66A')
+                .backgroundColor(this.colors().brandSoft)
                 .borderRadius(15)
 
               Text(item)
                 .layoutWeight(1)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
                 .maxLines(2)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
 
               Text('›')
                 .fontSize(24)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
             }
             .width('100%')
             .height(58)
@@ -80,12 +83,12 @@ export struct HomeRecentSection {
             if (index < this.items.length - 1) {
               Divider()
                 .margin({ left: 58 })
-                .color('#14536077')
+                .color(this.colors().divider)
             }
           }, (item: string, index: number): string => index.toString() + item)
         }
         .width('100%')
-        .backgroundColor(COLOR_CARD_BG)
+        .backgroundColor(this.colors().cardBackground)
         .borderRadius(CARD_RADIUS)
       }
     }

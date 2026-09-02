@@ -3,13 +3,10 @@ import { BusinessError } from '@kit.BasicServicesKit'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
 import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
+import { AppColors } from '../theme/AppColors'
 
 @Component
 export struct HuaweiAccountCard {
@@ -19,6 +16,7 @@ export struct HuaweiAccountCard {
   @Prop @Watch('onSigningInChanged') signingIn: boolean = false
   @Prop syncLabel: string = '本地模式'
   @Prop syncing: boolean = false
+  @StorageProp('darkMode') darkMode: boolean = false
   onAuthorizationCode: (authorizationCode: string) => void = () => {
   }
   onLoginError: (code: number) => void = () => {
@@ -36,6 +34,10 @@ export struct HuaweiAccountCard {
     supportDarkMode: true,
     loginType: loginComponentManager.LoginType.ID,
     textAndIconStyle: true
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   aboutToAppear(): void {
@@ -75,29 +77,29 @@ export struct HuaweiAccountCard {
             .height(48)
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_PRIMARY)
+            .fontColor(this.colors().brand)
             .textAlign(TextAlign.Center)
-            .backgroundColor(COLOR_PAGE_BG)
+            .backgroundColor(this.colors().pageBackground)
             .borderRadius(24)
 
           Column({ space: 4 }) {
             Text('已登录华为账号')
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
-              .fontColor(COLOR_TEXT_PRIMARY)
+              .fontColor(this.colors().textPrimary)
 
             Text('当前设备：' + this.deviceName)
               .fontSize(13)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
 
             Text('文字数据可同步，PDF 与题图仍只保存在本机')
               .fontSize(12)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
               .maxLines(2)
 
             Text(this.syncLabel)
               .fontSize(12)
-              .fontColor(COLOR_PRIMARY)
+              .fontColor(this.colors().brand)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
@@ -109,8 +111,8 @@ export struct HuaweiAccountCard {
           .width('100%')
           .height(46)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor('#FFFFFF')
-          .backgroundColor(COLOR_PRIMARY)
+          .fontColor(this.colors().onBrand)
+          .backgroundColor(this.colors().brand)
           .borderRadius(16)
           .enabled(!this.signingIn && !this.syncing)
           .onClick(() => {
@@ -122,8 +124,8 @@ export struct HuaweiAccountCard {
           .width('100%')
           .height(46)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(COLOR_DANGER)
-          .backgroundColor(COLOR_PAGE_BG)
+          .fontColor(this.colors().error)
+          .backgroundColor(this.colors().pageBackground)
           .borderRadius(16)
           .enabled(!this.signingIn)
           .onClick(() => {
@@ -134,15 +136,15 @@ export struct HuaweiAccountCard {
           Text('登录后开启云同步')
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
 
           Text('本地功能无需登录即可使用')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
 
           Text('登录后可在多台设备间同步题库与错题文字')
             .fontSize(12)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .width('100%')
         .alignItems(HorizontalAlign.Start)
@@ -159,10 +161,10 @@ export struct HuaweiAccountCard {
             LoadingProgress()
               .width(18)
               .height(18)
-              .color(COLOR_PRIMARY)
+              .color(this.colors().brand)
             Text('正在建立安全会话')
               .fontSize(12)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
           }
         }
       }
@@ -170,6 +172,6 @@ export struct HuaweiAccountCard {
     .width('100%')
     .padding(18)
     .borderRadius(CARD_RADIUS)
-    .systemMaterial(ImmersiveMaterials.accountCard)
+    .systemMaterial(ImmersiveMaterials.accountCardFor(this.darkMode))
   }
 }

@@ -1,12 +1,9 @@
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 
 @Component
 export struct QuestionCard {
@@ -14,7 +11,12 @@ export struct QuestionCard {
   @Prop typeLabel: string = ''
   @Prop questionText: string = ''
   @Prop needsReview: boolean = false
+  @StorageProp('darkMode') darkMode: boolean = false
   onOpen: () => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   build() {
@@ -25,24 +27,24 @@ export struct QuestionCard {
           .height(40)
           .fontSize(15)
           .fontWeight(FontWeight.Bold)
-          .fontColor(COLOR_PRIMARY)
+          .fontColor(this.colors().brand)
           .textAlign(TextAlign.Center)
-          .backgroundColor(COLOR_PAGE_BG)
+          .backgroundColor(this.colors().pageBackground)
           .borderRadius(20)
 
         Column({ space: 8 }) {
           Row({ space: 8 }) {
             Text(this.typeLabel)
               .fontSize(12)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
 
             if (this.needsReview) {
               Text('待确认')
                 .padding({ left: 8, right: 8, top: 3, bottom: 3 })
                 .fontSize(11)
                 .fontWeight(FontWeight.Medium)
-                .fontColor('#9A5A00')
-                .backgroundColor('#FFF1D6')
+                .fontColor(this.colors().warningText)
+                .backgroundColor(this.colors().warning)
                 .borderRadius(9)
             }
           }
@@ -51,7 +53,7 @@ export struct QuestionCard {
           Text(this.questionText)
             .fontSize(BODY_FONT_SIZE)
             .fontWeight(FontWeight.Medium)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
             .maxLines(3)
         }
         .layoutWeight(1)
@@ -59,7 +61,7 @@ export struct QuestionCard {
 
         Text('›')
           .fontSize(24)
-          .fontColor(COLOR_PRIMARY)
+          .fontColor(this.colors().brand)
       }
       .width('100%')
       .padding(18)
@@ -67,7 +69,7 @@ export struct QuestionCard {
     .type(ButtonType.Normal)
     .width('100%')
     .padding(0)
-    .backgroundColor(COLOR_CARD_BG)
+    .backgroundColor(this.colors().cardBackground)
     .borderRadius(CARD_RADIUS)
     .onClick(() => {
       this.onOpen()

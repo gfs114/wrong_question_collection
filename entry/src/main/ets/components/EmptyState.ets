@@ -1,11 +1,9 @@
 import {
   BODY_FONT_SIZE,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 
 @Component
 export struct EmptyState {
@@ -14,7 +12,12 @@ export struct EmptyState {
   @Prop description: string = ''
   @Prop actionLabel: string = ''
   @Prop showAction: boolean = false
+  @StorageProp('darkMode') darkMode: boolean = false
   onAction: () => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   build() {
@@ -24,20 +27,20 @@ export struct EmptyState {
         .height(64)
         .fontSize(28)
         .fontWeight(FontWeight.Bold)
-        .fontColor(COLOR_PRIMARY)
+        .fontColor(this.colors().brand)
         .textAlign(TextAlign.Center)
-        .backgroundColor(COLOR_PAGE_BG)
+        .backgroundColor(this.colors().pageBackground)
         .borderRadius(32)
 
       Text(this.title)
         .fontSize(SUBTITLE_FONT_SIZE)
         .fontWeight(FontWeight.Bold)
-        .fontColor(COLOR_TEXT_PRIMARY)
+        .fontColor(this.colors().textPrimary)
         .textAlign(TextAlign.Center)
 
       Text(this.description)
         .fontSize(BODY_FONT_SIZE)
-        .fontColor(COLOR_TEXT_CAPTION)
+        .fontColor(this.colors().textCaption)
         .textAlign(TextAlign.Center)
         .lineHeight(22)
 
@@ -46,13 +49,13 @@ export struct EmptyState {
           Text(this.actionLabel)
             .fontSize(15)
             .fontWeight(FontWeight.Medium)
-            .fontColor('#FFFFFF')
+            .fontColor(this.colors().onBrand)
         }
         .type(ButtonType.Normal)
         .height(48)
         .padding({ left: 24, right: 24 })
         .margin({ top: 10 })
-        .backgroundColor(COLOR_PRIMARY)
+        .backgroundColor(this.colors().brand)
         .borderRadius(16)
         .onClick(() => {
           this.onAction()

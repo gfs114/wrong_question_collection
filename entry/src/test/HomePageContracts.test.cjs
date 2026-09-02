@@ -36,7 +36,7 @@ expectIncludes(page, '最近错题', 'home must show recent wrong questions')
 expectIncludes(page, '开始复习', 'home must expose review action')
 expectIncludes(page, '导入资料', 'home must expose import action')
 expectIncludes(page, '暂无学习数据', 'home must provide a real empty state')
-expectIncludes(overview, '.systemMaterial(ImmersiveMaterials.overviewCard)',
+expectIncludes(overview, '.systemMaterial(ImmersiveMaterials.overviewCardFor(this.darkMode))',
   'the primary dashboard card must use official immersive material')
 expectIncludes(recent, 'items.length === 0', 'recent sections must render empty data explicitly')
 

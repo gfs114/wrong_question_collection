@@ -7,14 +7,10 @@ import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { ApiHttpError } from '../models/ApiModels'
@@ -23,8 +19,10 @@ import { PdfPageRangeValidation } from '../models/PdfImportModels'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { ApiHttpClient } from '../services/ApiHttpClient'
 import { CloudImportService } from '../services/CloudImportService'
+import { AppColors } from '../theme/AppColors'
 import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
 import { PdfImportValidator } from '../utils/PdfImportValidator'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -40,7 +38,15 @@ struct PdfImportSetupPage {
   @State selectionReady: boolean = false
   @State creating: boolean = false
   @State leaving: boolean = false
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private subjects: Array<string> = ['数学', '语文', '英语', '物理', '化学', '其他']
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     const state: PdfImportState = PdfImportState.shared()
@@ -257,14 +263,14 @@ struct PdfImportSetupPage {
         Column({ space: 18 }) {
           Text(this.errorMessage)
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_DANGER)
+            .fontColor(this.colors().error)
             .textAlign(TextAlign.Center)
 
           Button('返回导入')
             .type(ButtonType.Normal)
             .height(48)
-            .backgroundColor(COLOR_PRIMARY)
-            .fontColor('#FFFFFF')
+            .backgroundColor(this.colors().brand)
+            .fontColor(this.colors().onBrand)
             .borderRadius(14)
             .onClick(() => {
               this.leaveImport()
@@ -272,6 +278,7 @@ struct PdfImportSetupPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .padding(PAGE_PADDING)
         .justifyContent(FlexAlign.Center)
       } else {
@@ -282,35 +289,35 @@ struct PdfImportSetupPage {
                 .width('100%')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
                 .maxLines(2)
 
               Text('文件大小 ' + Math.ceil(this.fileSize / 1024).toString() + ' KB')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
 
               Text('PDF 将上传到服务器识别，单次最多识别 20 页')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(18)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Column({ space: 10 }) {
               Text('题库名')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               TextInput({ placeholder: '请输入题库名', text: this.bankName })
                 .width('100%')
                 .height(50)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor(COLOR_PAGE_BG)
+                .fontColor(this.colors().textPrimary)
+                .backgroundColor(this.colors().pageBackground)
                 .borderRadius(14)
                 .onChange((value: string) => {
                   this.bankName = value
@@ -320,14 +327,14 @@ struct PdfImportSetupPage {
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(18)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Column({ space: 12 }) {
               Text('选择科目')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Flex({ wrap: FlexWrap.Wrap }) {
                 ForEach(this.subjects, (item: string) => {
@@ -337,8 +344,10 @@ struct PdfImportSetupPage {
                     .margin({ right: 8, bottom: 8 })
                     .padding({ left: 18, right: 18 })
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.isSubjectSelected(item) ? '#FFFFFF' : COLOR_TEXT_PRIMARY)
-                    .backgroundColor(this.isSubjectSelected(item) ? COLOR_PRIMARY : COLOR_PAGE_BG)
+                    .fontColor(this.isSubjectSelected(item) ?
+                      this.colors().onBrand : this.colors().textPrimary)
+                    .backgroundColor(this.isSubjectSelected(item) ?
+                      this.colors().brand : this.colors().pageBackground)
                     .borderRadius(21)
                     .onClick(() => {
                       this.selectSubject(item)
@@ -352,8 +361,8 @@ struct PdfImportSetupPage {
                   .width('100%')
                   .height(50)
                   .fontSize(BODY_FONT_SIZE)
-                  .fontColor(COLOR_TEXT_PRIMARY)
-                  .backgroundColor(COLOR_PAGE_BG)
+                  .fontColor(this.colors().textPrimary)
+                  .backgroundColor(this.colors().pageBackground)
                   .borderRadius(14)
                   .onChange((value: string) => {
                     this.subject = value
@@ -364,7 +373,7 @@ struct PdfImportSetupPage {
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(18)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Row({ space: 12 }) {
@@ -372,11 +381,11 @@ struct PdfImportSetupPage {
                 Text('起始页')
                   .fontSize(BODY_FONT_SIZE)
                   .fontWeight(FontWeight.Medium)
-                  .fontColor(COLOR_TEXT_PRIMARY)
+                  .fontColor(this.colors().textPrimary)
                 TextInput({ placeholder: '1', text: this.startPageText })
                   .type(InputType.Number)
                   .height(48)
-                  .backgroundColor(COLOR_PAGE_BG)
+                  .backgroundColor(this.colors().pageBackground)
                   .borderRadius(14)
                   .onChange((value: string) => {
                     this.startPageText = value
@@ -390,11 +399,11 @@ struct PdfImportSetupPage {
                 Text('结束页')
                   .fontSize(BODY_FONT_SIZE)
                   .fontWeight(FontWeight.Medium)
-                  .fontColor(COLOR_TEXT_PRIMARY)
+                  .fontColor(this.colors().textPrimary)
                 TextInput({ placeholder: '1', text: this.endPageText })
                   .type(InputType.Number)
                   .height(48)
-                  .backgroundColor(COLOR_PAGE_BG)
+                  .backgroundColor(this.colors().pageBackground)
                   .borderRadius(14)
                   .onChange((value: string) => {
                     this.endPageText = value
@@ -406,7 +415,7 @@ struct PdfImportSetupPage {
             }
             .width('100%')
             .padding(18)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             if (this.errorMessage.length > 0) {
@@ -414,8 +423,8 @@ struct PdfImportSetupPage {
                 .width('100%')
                 .padding(16)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_DANGER)
-                .backgroundColor('#FFF2F2')
+                .fontColor(this.colors().error)
+                .backgroundColor(this.colors().errorSoft)
                 .borderRadius(14)
             }
 
@@ -425,8 +434,8 @@ struct PdfImportSetupPage {
               .height(52)
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
-              .backgroundColor(COLOR_PRIMARY)
+              .fontColor(this.colors().onBrand)
+              .backgroundColor(this.colors().brand)
               .borderRadius(16)
               .enabled(!this.creating && !this.leaving)
               .onClick(() => {
@@ -434,15 +443,20 @@ struct PdfImportSetupPage {
               })
           }
           .width('100%')
-          .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+          .padding({
+            left: PAGE_PADDING,
+            right: PAGE_PADDING,
+            bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+          })
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

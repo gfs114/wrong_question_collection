@@ -1,14 +1,23 @@
 import {
-  COLOR_NAV_INACTIVE,
-  COLOR_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
 import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
+import { AppColors } from '../theme/AppColors'
 import { MainTabIndex } from '../models/MainTab'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct MainBottomNavigation {
   @Prop selectedIndex: number = MainTabIndex.HOME
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   onSelect: (index: number) => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   @Builder
@@ -18,12 +27,12 @@ export struct MainBottomNavigation {
         SymbolGlyph(symbol)
           .fontSize(25)
           .fontWeight(this.selectedIndex === index ? FontWeight.Bold : FontWeight.Medium)
-          .fontColor([this.selectedIndex === index ? COLOR_PRIMARY : COLOR_NAV_INACTIVE])
+          .fontColor([this.selectedIndex === index ? this.colors().brand : this.colors().navInactive])
 
         Text(label)
           .fontSize(12)
           .fontWeight(this.selectedIndex === index ? FontWeight.Bold : FontWeight.Medium)
-          .fontColor(this.selectedIndex === index ? COLOR_PRIMARY : COLOR_NAV_INACTIVE)
+          .fontColor(this.selectedIndex === index ? this.colors().brand : this.colors().navInactive)
       }
       .width('100%')
       .height('100%')
@@ -36,9 +45,9 @@ export struct MainBottomNavigation {
     }
     .type(ButtonType.Normal)
     .layoutWeight(1)
-    .height(60)
+    .height('100%')
     .padding(0)
-    .backgroundColor('#00000000')
+    .backgroundColor(Color.Transparent)
     .borderRadius(24)
     .accessibilityText(label)
     .onClick(() => {
@@ -58,8 +67,8 @@ export struct MainBottomNavigation {
     .width('92%')
     .height(76)
     .padding({ left: 10, right: 10, top: 8, bottom: 8 })
-    .margin({ bottom: 12 })
+    .margin({ bottom: 12 + SafeAreaUtils.bottom(this.safeAreaInsets) })
     .borderRadius(38)
-    .systemMaterial(ImmersiveMaterials.navigation)
+    .systemMaterial(ImmersiveMaterials.navigationFor(this.darkMode))
   }
 }

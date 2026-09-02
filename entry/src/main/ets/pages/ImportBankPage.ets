@@ -7,21 +7,19 @@ import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { PdfImportLimits } from '../constants/PdfImportLimits'
 import { ImportErrorCode, ImportResult } from '../models/ImportResult'
 import { AccountSessionState } from '../models/AccountSession'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { ImportService } from '../services/ImportService'
+import { AppColors } from '../theme/AppColors'
 import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -29,6 +27,14 @@ struct ImportBankPage {
   @State importing: boolean = false
   @State pdfSelecting: boolean = false
   @State errorMessage: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   private goBack(): void {
     if (this.importing || this.pdfSelecting) {
@@ -305,31 +311,31 @@ struct ImportBankPage {
               Text('JSON 格式说明')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Blank()
 
               Text('仅支持单选题')
                 .fontSize(12)
-                .fontColor(COLOR_PRIMARY)
+                .fontColor(this.colors().brand)
             }
             .width('100%')
 
             Text('文件需要包含题库名称 bankName、学科 subject 和题目数组 questions。每道题需包含 id、type、question、options、answer 与 analysis。')
               .width('100%')
               .fontSize(BODY_FONT_SIZE)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
               .lineHeight(22)
 
             Text('type 请填写 single_choice，answer 使用与选项对应的字母。文件编码需为 UTF-8。')
               .width('100%')
               .fontSize(BODY_FONT_SIZE)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
               .lineHeight(22)
           }
           .width('100%')
           .padding(20)
-          .backgroundColor(COLOR_CARD_BG)
+          .backgroundColor(this.colors().cardBackground)
           .borderRadius(CARD_RADIUS)
 
           if (this.importing) {
@@ -337,16 +343,16 @@ struct ImportBankPage {
               LoadingProgress()
                 .width(24)
                 .height(24)
-                .color(COLOR_PRIMARY)
+                .color(this.colors().brand)
 
               Text('正在读取并导入题库…')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
             }
             .width('100%')
             .height(56)
             .justifyContent(FlexAlign.Center)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(16)
           }
 
@@ -356,8 +362,8 @@ struct ImportBankPage {
               .constraintSize({ minHeight: 48 })
               .padding({ left: 16, right: 16, top: 13, bottom: 13 })
               .fontSize(BODY_FONT_SIZE)
-              .fontColor(COLOR_DANGER)
-              .backgroundColor('#FFF2F2')
+              .fontColor(this.colors().error)
+              .backgroundColor(this.colors().errorSoft)
               .borderRadius(14)
               .accessibilityText('导入失败：' + this.errorMessage)
           }
@@ -366,12 +372,12 @@ struct ImportBankPage {
             Text(this.importing ? '正在导入…' : '选择 JSON 文件')
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
+              .fontColor(this.colors().onBrand)
           }
           .type(ButtonType.Normal)
           .width('100%')
           .height(52)
-          .backgroundColor(COLOR_PRIMARY)
+          .backgroundColor(this.colors().brand)
           .borderRadius(16)
           .enabled(!this.importing && !this.pdfSelecting)
           .accessibilityText(this.importing ? '正在导入题库' : '选择 JSON 文件')
@@ -383,13 +389,13 @@ struct ImportBankPage {
             Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor(COLOR_PRIMARY)
+              .fontColor(this.colors().brand)
           }
           .type(ButtonType.Normal)
           .width('100%')
           .height(52)
-          .backgroundColor(COLOR_CARD_BG)
-          .border({ width: 1, color: COLOR_PRIMARY })
+          .backgroundColor(this.colors().cardBackground)
+          .border({ width: 1, color: this.colors().brand })
           .borderRadius(16)
           .enabled(!this.pdfSelecting && !this.importing)
           .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')
@@ -398,14 +404,19 @@ struct ImportBankPage {
           })
         }
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
       }
       .layoutWeight(1)
       .width('100%')
+      .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
       .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

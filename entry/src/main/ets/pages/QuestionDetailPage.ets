@@ -1,25 +1,24 @@
 import { router } from '@kit.ArkUI'
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { QuestionSourceImages } from '../components/QuestionSourceImages'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_SUCCESS_TEXT,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -35,10 +34,28 @@ struct QuestionDetailPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   onPageShow(): void {
     this.loadCurrentQuestion()
+    this.logEasySplitState()
+  }
+
+  private logEasySplitState(): void {
+    try {
+      if (this.getUIContext().isEasySplit()) {
+        hilog.info(0x0000, 'WQC_EASYGO', 'QuestionDetailPage is running in easy split mode')
+      }
+    } catch {
+    }
   }
 
   private goBack(): void {
@@ -230,11 +247,11 @@ struct QuestionDetailPage {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
-            .fontColor('#8A5A00')
+            .fontColor(this.colors().warningText)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
+        .backgroundColor(this.colors().warning)
       }
 
       if (this.loading) {
@@ -242,11 +259,11 @@ struct QuestionDetailPage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在加载题目详情')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -274,19 +291,19 @@ struct QuestionDetailPage {
               Text(this.currentQuestion.getTypeLabel())
                 .fontSize(13)
                 .fontWeight(FontWeight.Medium)
-                .fontColor(COLOR_PRIMARY)
+                .fontColor(this.colors().brand)
 
               Text(this.currentQuestion.question)
                 .width('100%')
                 .fontSize(18)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
                 .lineHeight(28)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(20)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Column({ space: 10 }) {
@@ -297,20 +314,20 @@ struct QuestionDetailPage {
                     .height(36)
                     .fontSize(14)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor(COLOR_PRIMARY)
+                    .fontColor(this.colors().brand)
                     .textAlign(TextAlign.Center)
-                    .backgroundColor(COLOR_PAGE_BG)
+                    .backgroundColor(this.colors().pageBackground)
                     .borderRadius(18)
 
                   Text(option)
                     .layoutWeight(1)
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .fontColor(this.colors().textPrimary)
                     .lineHeight(22)
                 }
                 .width('100%')
                 .padding({ left: 12, right: 14, top: 10, bottom: 10 })
-                .backgroundColor(COLOR_CARD_BG)
+                .backgroundColor(this.colors().cardBackground)
                 .borderRadius(16)
               }, (option: string, index: number): string => this.currentQuestion.id + '_' + index.toString())
             }
@@ -320,35 +337,35 @@ struct QuestionDetailPage {
               Text('正确答案')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Text(this.currentQuestion.answer.length === 0 ? '未填写' : this.currentQuestion.answer)
                 .fontSize(20)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_SUCCESS_TEXT)
+                .fontColor(this.colors().successText)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(20)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Column({ space: 10 }) {
               Text('题目解析')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Text(this.currentQuestion.analysis.length === 0 ? '暂无解析' : this.currentQuestion.analysis)
                 .width('100%')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
                 .lineHeight(23)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(20)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Button('编辑题目')
@@ -356,8 +373,8 @@ struct QuestionDetailPage {
               .height(48)
               .fontSize(BODY_FONT_SIZE)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
-              .backgroundColor(COLOR_PRIMARY)
+              .fontColor(this.colors().onBrand)
+              .backgroundColor(this.colors().brand)
               .borderRadius(14)
               .enabled(!this.navigationPending && !this.adding)
               .onClick(() => {
@@ -369,6 +386,7 @@ struct QuestionDetailPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .scrollBar(BarState.Off)
 
         Row({ space: 8 }) {
@@ -376,12 +394,12 @@ struct QuestionDetailPage {
             Text('上一题')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
-              .fontColor(this.canMove(-1) && !this.adding ? COLOR_PRIMARY : COLOR_TEXT_CAPTION)
+              .fontColor(this.canMove(-1) && !this.adding ? this.colors().brand : this.colors().textCaption)
           }
           .type(ButtonType.Normal)
           .layoutWeight(1)
           .height(48)
-          .backgroundColor(COLOR_CARD_BG)
+          .backgroundColor(this.colors().cardBackground)
           .borderRadius(14)
           .enabled(this.canMove(-1) && !this.adding)
           .onClick(() => {
@@ -392,12 +410,12 @@ struct QuestionDetailPage {
             Text(this.isWrong ? '已加入错题' : this.adding ? '正在加入…' : '加入错题')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
+              .fontColor(this.colors().onBrand)
           }
           .type(ButtonType.Normal)
           .layoutWeight(1.35)
           .height(48)
-          .backgroundColor(this.isWrong || this.adding ? '#8E99AA' : COLOR_PRIMARY)
+          .backgroundColor(this.isWrong || this.adding ? this.colors().disabled : this.colors().brand)
           .borderRadius(14)
           .enabled(!this.isWrong && !this.adding && this.canMutate())
           .onClick(() => {
@@ -408,12 +426,12 @@ struct QuestionDetailPage {
             Text('下一题')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
-              .fontColor(this.canMove(1) && !this.adding ? COLOR_PRIMARY : COLOR_TEXT_CAPTION)
+              .fontColor(this.canMove(1) && !this.adding ? this.colors().brand : this.colors().textCaption)
           }
           .type(ButtonType.Normal)
           .layoutWeight(1)
           .height(48)
-          .backgroundColor(COLOR_CARD_BG)
+          .backgroundColor(this.colors().cardBackground)
           .borderRadius(14)
           .enabled(this.canMove(1) && !this.adding)
           .onClick(() => {
@@ -421,12 +439,18 @@ struct QuestionDetailPage {
           })
         }
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 10, bottom: 14 })
-        .backgroundColor(COLOR_PAGE_BG)
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          top: 10,
+          bottom: 14 + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
+        .backgroundColor(this.colors().pageBackground)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

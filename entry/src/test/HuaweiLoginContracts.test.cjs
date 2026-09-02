@@ -31,7 +31,7 @@ expectIncludes(card, "from '@kit.AccountKit'", 'account card must use Account Ki
 expectIncludes(card, 'LoginWithHuaweiIDButton', 'account card must render the official login button')
 expectIncludes(card, 'loginComponentManager', 'account card must use the official controller')
 expectIncludes(card, 'authorizationCode', 'account card must return only the short-lived code')
-expectIncludes(card, '.systemMaterial(ImmersiveMaterials.accountCard)',
+expectIncludes(card, '.systemMaterial(ImmersiveMaterials.accountCardFor(this.darkMode))',
   'account card must use the official immersive account material')
 expectIncludes(card, '登录后开启云同步', 'signed-out copy must explain optional sync')
 expectIncludes(card, '本地功能无需登录即可使用', 'signed-out copy must preserve local-first behavior')

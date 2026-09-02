@@ -5,11 +5,9 @@ import { HomeRecentSection } from '../components/HomeRecentSection'
 import {
   BODY_FONT_SIZE,
   CARD_GAP,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
-  PAGE_PADDING
+  CONTENT_MAX_WIDTH,
+  PAGE_PADDING,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { HomeDashboardSnapshot } from '../models/HomeDashboard'
@@ -19,11 +17,17 @@ import { WrongQuestionSummary } from '../models/WrongQuestion'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct HomePage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   @State dashboard: HomeDashboardSnapshot = new HomeDashboardSnapshot(
     new Statistics(0, 0, 0, 0), new Array<QuestionBankSummary>(), new Array<WrongQuestionSummary>())
   @State loading: boolean = false
@@ -42,6 +46,10 @@ export struct HomePage {
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.refreshWhenActive()
@@ -178,11 +186,11 @@ export struct HomePage {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
-            .fontColor('#8A5A00')
+            .fontColor(this.colors().warningText)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
+        .backgroundColor(this.colors().warning)
       }
 
       if (this.loading) {
@@ -190,11 +198,11 @@ export struct HomePage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在整理学习进度')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -218,15 +226,15 @@ export struct HomePage {
               Text('今天也要稳稳进步')
                 .fontSize(22)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Text('复习一点，掌握就多一点')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
 
               Text(this.syncLabel)
                 .fontSize(12)
-                .fontColor(COLOR_PRIMARY)
+                .fontColor(this.colors().brand)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
@@ -263,8 +271,8 @@ export struct HomePage {
             .type(ButtonType.Normal)
             .width('100%')
             .height(54)
-            .fontColor('#FFFFFF')
-            .backgroundColor(this.canMutate() ? COLOR_PRIMARY : '#8E99AA')
+            .fontColor(this.colors().onBrand)
+            .backgroundColor(this.canMutate() ? this.colors().brand : this.colors().disabled)
             .borderRadius(18)
             .enabled(this.canMutate())
             .onClick(() => {
@@ -311,12 +319,17 @@ export struct HomePage {
         }
         .layoutWeight(1)
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 112 })
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          bottom: 112 + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
         .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

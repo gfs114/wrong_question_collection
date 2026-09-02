@@ -1,9 +1,11 @@
 import {
-  COLOR_PRIMARY,
-  COLOR_TEXT_PRIMARY,
   PAGE_PADDING,
-  TITLE_FONT_SIZE
+  TITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
+import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
+import { AppColors } from '../theme/AppColors'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct AppHeader {
@@ -11,9 +13,17 @@ export struct AppHeader {
   @Prop actionLabel: string = ''
   @Prop showAction: boolean = false
   @Prop showBack: boolean = false
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   onAction: () => void = () => {
   }
   onBack: () => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   build() {
@@ -23,15 +33,15 @@ export struct AppHeader {
           Text('‹')
             .fontSize(30)
             .fontWeight(FontWeight.Medium)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
         }
         .type(ButtonType.Normal)
         .width(48)
         .height(48)
         .padding(0)
         .margin({ right: 8 })
-        .backgroundColor('#00000000')
         .borderRadius(24)
+        .systemMaterial(ImmersiveMaterials.floatingButtonFor(this.darkMode))
         .accessibilityText('返回')
         .onClick(() => {
           this.onBack()
@@ -41,7 +51,7 @@ export struct AppHeader {
       Text(this.title)
         .fontSize(TITLE_FONT_SIZE)
         .fontWeight(FontWeight.Bold)
-        .fontColor(COLOR_TEXT_PRIMARY)
+        .fontColor(this.colors().textPrimary)
         .maxLines(1)
 
       Blank()
@@ -51,12 +61,12 @@ export struct AppHeader {
           Text(this.actionLabel)
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
-            .fontColor('#FFFFFF')
+            .fontColor(this.colors().onBrand)
         }
         .type(ButtonType.Normal)
         .height(48)
         .padding({ left: 16, right: 16 })
-        .backgroundColor(COLOR_PRIMARY)
+        .backgroundColor(this.colors().brand)
         .borderRadius(14)
         .onClick(() => {
           this.onAction()
@@ -65,6 +75,11 @@ export struct AppHeader {
     }
     .width('100%')
     .height(76)
-    .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
+    .padding({
+      left: PAGE_PADDING,
+      right: PAGE_PADDING,
+      top: SafeAreaUtils.top(this.safeAreaInsets)
+    })
+    .systemMaterial(ImmersiveMaterials.headerFor(this.darkMode))
   }
 }

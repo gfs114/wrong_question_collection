@@ -2,16 +2,13 @@ import { router } from '@kit.ArkUI'
 import { MainBottomNavigation } from '../components/MainBottomNavigation'
 import {
   BODY_FONT_SIZE,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
 import { MainTabIndex } from '../models/MainTab'
 import { CloudSyncResult, SyncDisplayState } from '../models/SyncModels'
 import { AppBootstrapService } from '../services/AppBootstrapService'
 import { CloudSyncService } from '../services/CloudSyncService'
+import { AppColors } from '../theme/AppColors'
 import { BooksPage } from './BooksPage'
 import { HomePage } from './HomePage'
 import { MinePage } from './MinePage'
@@ -26,8 +23,13 @@ struct Index {
   @State refreshVersion: number = 0
   @State navigationPending: boolean = false
   @State syncState: SyncDisplayState = SyncDisplayState.LOCAL
+  @StorageProp('darkMode') darkMode: boolean = false
   private bootstrapToken: number = 0
   private pageShown: boolean = false
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.initialize()
@@ -179,38 +181,38 @@ struct Index {
             LoadingProgress()
               .width(44)
               .height(44)
-              .color(COLOR_PRIMARY)
+              .color(this.colors().brand)
 
             Text('正在准备本地数据')
               .fontSize(BODY_FONT_SIZE)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
           } else {
             Text('!')
               .width(64)
               .height(64)
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
-              .fontColor(COLOR_PRIMARY)
+              .fontColor(this.colors().brand)
               .textAlign(TextAlign.Center)
-              .backgroundColor(COLOR_CARD_BG)
+              .backgroundColor(this.colors().cardBackground)
               .borderRadius(32)
 
             Text(this.startupError)
               .fontSize(16)
               .fontWeight(FontWeight.Bold)
-              .fontColor(COLOR_TEXT_PRIMARY)
+              .fontColor(this.colors().textPrimary)
               .textAlign(TextAlign.Center)
 
             Button() {
               Text('重新初始化')
                 .fontSize(15)
                 .fontWeight(FontWeight.Medium)
-                .fontColor('#FFFFFF')
+                .fontColor(this.colors().onBrand)
             }
             .type(ButtonType.Normal)
             .height(48)
             .padding({ left: 24, right: 24 })
-            .backgroundColor(COLOR_PRIMARY)
+            .backgroundColor(this.colors().brand)
             .borderRadius(16)
             .onClick(() => {
               this.initialize()
@@ -225,6 +227,6 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

@@ -3,6 +3,42 @@
     {
       "name": "start_window_background",
       "value": "#F5F7FB"
+    },
+    {
+      "name": "page_background",
+      "value": "#F5F7FB"
+    },
+    {
+      "name": "card_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#17233C"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#6B768A"
+    },
+    {
+      "name": "divider",
+      "value": "#1A536077"
+    },
+    {
+      "name": "brand",
+      "value": "#18A66A"
+    },
+    {
+      "name": "success",
+      "value": "#14966A"
+    },
+    {
+      "name": "warning",
+      "value": "#FFF4D6"
+    },
+    {
+      "name": "error",
+      "value": "#D94848"
     }
   ]
 }

@@ -3,12 +3,8 @@ import { QuestionSourceImages } from '../components/QuestionSourceImages'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
-  PAGE_PADDING
+  PAGE_PADDING,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
@@ -16,7 +12,9 @@ import { QuestionImage } from '../models/QuestionImage'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -37,7 +35,15 @@ struct EditQuestionPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.loadSelectedQuestion()
@@ -252,11 +258,11 @@ struct EditQuestionPage {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
-            .fontColor('#8A5A00')
+            .fontColor(this.colors().warningText)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
+        .backgroundColor(this.colors().warning)
       }
 
       if (this.loading) {
@@ -264,11 +270,11 @@ struct EditQuestionPage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在加载题目')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -277,13 +283,13 @@ struct EditQuestionPage {
         Column({ space: 18 }) {
           Text(this.errorMessage)
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
             .textAlign(TextAlign.Center)
 
           Button('重新加载')
             .height(44)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
+            .fontColor(this.colors().onBrand)
+            .backgroundColor(this.colors().brand)
             .onClick(() => {
               this.loadSelectedQuestion()
             })
@@ -302,14 +308,16 @@ struct EditQuestionPage {
                 .width('100%')
                 .fontSize(BODY_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Row({ space: 8 }) {
                 Button('单选')
                   .layoutWeight(1)
                   .height(38)
-                  .fontColor(this.questionType === 'single_choice' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(this.questionType === 'single_choice' ? COLOR_PRIMARY : '#EEF5FF')
+                  .fontColor(this.questionType === 'single_choice' ?
+                    this.colors().onBrand : this.colors().brand)
+                  .backgroundColor(this.questionType === 'single_choice' ?
+                    this.colors().brand : this.colors().chipBackground)
                   .enabled(!this.pending && !this.navigationPending)
                   .onClick(() => {
                     this.selectType('single_choice')
@@ -318,8 +326,10 @@ struct EditQuestionPage {
                 Button('填空')
                   .layoutWeight(1)
                   .height(38)
-                  .fontColor(this.questionType === 'fill_blank' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(this.questionType === 'fill_blank' ? COLOR_PRIMARY : '#EEF5FF')
+                  .fontColor(this.questionType === 'fill_blank' ?
+                    this.colors().onBrand : this.colors().brand)
+                  .backgroundColor(this.questionType === 'fill_blank' ?
+                    this.colors().brand : this.colors().chipBackground)
                   .enabled(!this.pending && !this.navigationPending)
                   .onClick(() => {
                     this.selectType('fill_blank')
@@ -328,8 +338,10 @@ struct EditQuestionPage {
                 Button('解答')
                   .layoutWeight(1)
                   .height(38)
-                  .fontColor(this.questionType === 'short_answer' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(this.questionType === 'short_answer' ? COLOR_PRIMARY : '#EEF5FF')
+                  .fontColor(this.questionType === 'short_answer' ?
+                    this.colors().onBrand : this.colors().brand)
+                  .backgroundColor(this.questionType === 'short_answer' ?
+                    this.colors().brand : this.colors().chipBackground)
                   .enabled(!this.pending && !this.navigationPending)
                   .onClick(() => {
                     this.selectType('short_answer')
@@ -338,8 +350,10 @@ struct EditQuestionPage {
                 Button('待确认')
                   .layoutWeight(1)
                   .height(38)
-                  .fontColor(this.questionType === 'unclassified' ? '#FFFFFF' : COLOR_PRIMARY)
-                  .backgroundColor(this.questionType === 'unclassified' ? COLOR_PRIMARY : '#EEF5FF')
+                  .fontColor(this.questionType === 'unclassified' ?
+                    this.colors().onBrand : this.colors().brand)
+                  .backgroundColor(this.questionType === 'unclassified' ?
+                    this.colors().brand : this.colors().chipBackground)
                   .enabled(!this.pending && !this.navigationPending)
                   .onClick(() => {
                     this.selectType('unclassified')
@@ -351,8 +365,8 @@ struct EditQuestionPage {
                 .width('100%')
                 .height(112)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor('#F7F9FC')
+                .fontColor(this.colors().textPrimary)
+                .backgroundColor(this.colors().inputBackground)
                 .enabled(!this.pending && !this.navigationPending)
                 .onChange((value: string) => {
                   this.questionText = value
@@ -363,8 +377,8 @@ struct EditQuestionPage {
                   .width('100%')
                   .height(46)
                   .fontSize(BODY_FONT_SIZE)
-                  .fontColor(COLOR_TEXT_PRIMARY)
-                  .backgroundColor('#F7F9FC')
+                  .fontColor(this.colors().textPrimary)
+                  .backgroundColor(this.colors().inputBackground)
                   .enabled(!this.pending && !this.navigationPending)
                   .onChange((value: string) => {
                     this.updateOption(index, value)
@@ -376,8 +390,8 @@ struct EditQuestionPage {
                 .width('100%')
                 .height(46)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor('#F7F9FC')
+                .fontColor(this.colors().textPrimary)
+                .backgroundColor(this.colors().inputBackground)
                 .enabled(!this.pending && !this.navigationPending)
                 .onChange((value: string) => {
                   this.answer = value
@@ -387,8 +401,8 @@ struct EditQuestionPage {
                 .width('100%')
                 .height(100)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor('#F7F9FC')
+                .fontColor(this.colors().textPrimary)
+                .backgroundColor(this.colors().inputBackground)
                 .enabled(!this.pending && !this.navigationPending)
                 .onChange((value: string) => {
                   this.analysis = value
@@ -396,14 +410,14 @@ struct EditQuestionPage {
             }
             .width('100%')
             .padding(18)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             if (this.errorMessage.length > 0) {
               Text(this.errorMessage)
                 .width('100%')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor('#D94848')
+                .fontColor(this.colors().error)
             }
           }
           .width('100%')
@@ -416,12 +430,17 @@ struct EditQuestionPage {
         Button('保存修改')
           .width('100%')
           .height(50)
-          .margin({ left: PAGE_PADDING, right: PAGE_PADDING, top: 10, bottom: 14 })
+          .margin({
+            left: PAGE_PADDING,
+            right: PAGE_PADDING,
+            top: 10,
+            bottom: 14 + SafeAreaUtils.bottom(this.safeAreaInsets)
+          })
           .fontSize(BODY_FONT_SIZE)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
+          .fontColor(this.colors().onBrand)
           .backgroundColor(this.pending || this.navigationPending || !this.canMutate() ?
-            '#8E99AA' : COLOR_PRIMARY)
+            this.colors().disabled : this.colors().brand)
           .borderRadius(14)
           .enabled(!this.pending && !this.navigationPending && this.canMutate())
           .onClick(() => {
@@ -431,6 +450,6 @@ struct EditQuestionPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

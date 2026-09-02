@@ -1,19 +1,21 @@
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 
 @Component
 export struct StatCard {
   @Prop label: string = ''
   @Prop value: number = 0
   @Prop glyph: string = '·'
-  @Prop accentColor: string = COLOR_PRIMARY
+  @Prop accentColor: string = ''
+  @StorageProp('darkMode') darkMode: boolean = false
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   build() {
     Column({ space: 8 }) {
@@ -25,7 +27,7 @@ export struct StatCard {
           .fontWeight(FontWeight.Bold)
           .fontColor(this.accentColor)
           .textAlign(TextAlign.Center)
-          .backgroundColor(COLOR_PAGE_BG)
+          .backgroundColor(this.colors().pageBackground)
           .borderRadius(16)
 
         Blank()
@@ -33,20 +35,20 @@ export struct StatCard {
         Text(this.value.toString())
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
-          .fontColor(COLOR_TEXT_PRIMARY)
+          .fontColor(this.colors().textPrimary)
       }
       .width('100%')
 
       Text(this.label)
         .fontSize(BODY_FONT_SIZE)
-        .fontColor(COLOR_TEXT_CAPTION)
+        .fontColor(this.colors().textCaption)
     }
     .width('100%')
     .height('100%')
     .padding(16)
     .alignItems(HorizontalAlign.Start)
     .justifyContent(FlexAlign.SpaceBetween)
-    .backgroundColor(COLOR_CARD_BG)
+    .backgroundColor(this.colors().cardBackground)
     .borderRadius(CARD_RADIUS)
   }
 }

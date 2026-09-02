@@ -5,18 +5,19 @@ import { QuestionBankCard } from '../components/QuestionBankCard'
 import {
   BODY_FONT_SIZE,
   CARD_GAP,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  PAGE_PADDING
+  CONTENT_MAX_WIDTH,
+  PAGE_PADDING,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { QuestionBankSummary } from '../models/QuestionBank'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct BooksPage {
@@ -32,9 +33,17 @@ export struct BooksPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.refreshWhenActive()
@@ -255,11 +264,11 @@ export struct BooksPage {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
-            .fontColor('#8A5A00')
+            .fontColor(this.colors().warningText)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
+        .backgroundColor(this.colors().warning)
       }
 
       if (this.loading) {
@@ -267,11 +276,11 @@ export struct BooksPage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在加载题库')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -324,12 +333,17 @@ export struct BooksPage {
         }
         .layoutWeight(1)
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
         .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

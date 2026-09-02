@@ -5,14 +5,10 @@ import { CloudImportStatusCard } from '../components/CloudImportStatusCard'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import {
@@ -22,7 +18,9 @@ import {
 } from '../models/CloudImportModels'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudImportService } from '../services/CloudImportService'
+import { AppColors } from '../theme/AppColors'
 import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -38,6 +36,10 @@ struct PdfImportProgressPage {
   @State actionPending: boolean = false
   @State reviewNavigationPending: boolean = false
   @State accountVerified: boolean = false
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private initialized: boolean = false
   private pageActive: boolean = false
   private flowInFlight: boolean = false
@@ -48,6 +50,10 @@ struct PdfImportProgressPage {
   private pollAttempt: number = 0
   private pollTimerId: number = -1
   private reviewNavigationCompleted: boolean = false
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.pageActive = true
@@ -603,16 +609,16 @@ struct PdfImportProgressPage {
                 .width('100%')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Text(this.subject.length > 0 ? this.subject : '未设置学科')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
             }
             .width('100%')
             .padding(18)
             .alignItems(HorizontalAlign.Start)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
           }
 
@@ -623,8 +629,8 @@ struct PdfImportProgressPage {
               .height(52)
               .fontSize(SUBTITLE_FONT_SIZE)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
-              .backgroundColor(COLOR_PRIMARY)
+              .fontColor(this.colors().onBrand)
+              .backgroundColor(this.colors().brand)
               .borderRadius(16)
               .enabled(!this.reviewNavigationPending && !this.actionPending && this.accountVerified)
               .onClick(() => {
@@ -637,8 +643,8 @@ struct PdfImportProgressPage {
               .width('100%')
               .height(52)
               .fontSize(SUBTITLE_FONT_SIZE)
-              .fontColor('#FFFFFF')
-              .backgroundColor(this.statusLabel === '处理失败' ? COLOR_DANGER : COLOR_PRIMARY)
+              .fontColor(this.colors().onBrand)
+              .backgroundColor(this.statusLabel === '处理失败' ? this.colors().error : this.colors().brand)
               .borderRadius(16)
               .onClick(() => {
                 this.goBack()
@@ -650,8 +656,8 @@ struct PdfImportProgressPage {
                 .layoutWeight(1)
                 .height(50)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_PRIMARY)
-                .backgroundColor(COLOR_CARD_BG)
+                .fontColor(this.colors().textPrimary)
+                .backgroundColor(this.colors().cardBackground)
                 .borderRadius(15)
                 .onClick(() => {
                   this.goBack()
@@ -662,8 +668,8 @@ struct PdfImportProgressPage {
                 .layoutWeight(1)
                 .height(50)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor('#FFFFFF')
-                .backgroundColor(COLOR_PRIMARY)
+                .fontColor(this.colors().onBrand)
+                .backgroundColor(this.colors().brand)
                 .borderRadius(15)
                 .enabled(!this.actionPending)
                 .onClick(() => {
@@ -676,19 +682,24 @@ struct PdfImportProgressPage {
           Text('离开此页面只会停止进度查询，不会取消服务器任务。')
             .width('100%')
             .fontSize(12)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
             .textAlign(TextAlign.Center)
             .lineHeight(19)
         }
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: PAGE_PADDING })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
       }
       .layoutWeight(1)
       .width('100%')
+      .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
       .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

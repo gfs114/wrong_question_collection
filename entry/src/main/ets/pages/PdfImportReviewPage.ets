@@ -7,15 +7,10 @@ import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
-  COLOR_TEXT_SECONDARY,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { ApiHttpError } from '../models/ApiModels'
@@ -34,7 +29,9 @@ import {
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudImportService } from '../services/CloudImportService'
 import { DeviceImageScope, DeviceImageStore } from '../services/DeviceImageStore'
+import { AppColors } from '../theme/AppColors'
 import { PdfImportState } from '../utils/PdfImportState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -48,6 +45,10 @@ struct PdfImportReviewPage {
   @State confirmationComplete: boolean = false
   @State artifactExpired: boolean = false
   @State errorMessage: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private initialized: boolean = false
   private jobId: string = ''
   private accountId: string = ''
@@ -56,6 +57,10 @@ struct PdfImportReviewPage {
   private unavailableArtifactCount: number = 0
   private draftStatus: CloudImportStatus = CloudImportStatus.REVIEW
   private draftExpiresAt: string = ''
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     if (this.initialized) {
@@ -731,8 +736,8 @@ struct PdfImportReviewPage {
           .padding({ left: 16, right: 16, top: 13, bottom: 13 })
           .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
           .fontSize(BODY_FONT_SIZE)
-          .fontColor('#A05A00')
-          .backgroundColor('#FFF7E8')
+          .fontColor(this.colors().warningText)
+          .backgroundColor(this.colors().warning)
           .borderRadius(14)
       }
 
@@ -743,8 +748,8 @@ struct PdfImportReviewPage {
           .padding({ left: 16, right: 16, top: 13, bottom: 13 })
           .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(COLOR_DANGER)
-          .backgroundColor('#FFF2F2')
+          .fontColor(this.colors().error)
+          .backgroundColor(this.colors().errorSoft)
           .borderRadius(14)
       }
 
@@ -753,10 +758,10 @@ struct PdfImportReviewPage {
           LoadingProgress()
             .width(42)
             .height(42)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
           Text('正在读取服务器识别草稿')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -766,18 +771,18 @@ struct PdfImportReviewPage {
           Text('云端题目已确认')
             .fontSize(SUBTITLE_FONT_SIZE)
             .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_PRIMARY)
+            .fontColor(this.colors().brand)
           Text('题库标识：' + this.confirmedBankId)
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
           Text('题目文字已由服务器保存，可返回导入页继续使用。')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
           Button(this.navigationPending ? '正在返回…' : '返回导入页')
             .width('100%')
             .height(52)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
+            .fontColor(this.colors().onBrand)
+            .backgroundColor(this.colors().brand)
             .borderRadius(16)
             .enabled(!this.navigationPending)
             .onClick(() => {
@@ -792,12 +797,12 @@ struct PdfImportReviewPage {
         Column({ space: 16 }) {
           Text('暂时无法显示云端识别草稿')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
           Button(this.pending ? '正在重试…' : '重新读取草稿')
             .width('100%')
             .height(52)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
+            .fontColor(this.colors().onBrand)
+            .backgroundColor(this.colors().brand)
             .borderRadius(16)
             .enabled(!this.pending)
             .onClick(() => {
@@ -814,16 +819,16 @@ struct PdfImportReviewPage {
             .width('100%')
             .fontSize(SUBTITLE_FONT_SIZE)
             .fontWeight(FontWeight.Bold)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
           Text('学科：' + this.subject + ' · 共 ' + this.draftQuestions.length.toString() + ' 题')
             .width('100%')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .width('100%')
         .padding(16)
         .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 12 })
-        .backgroundColor(COLOR_CARD_BG)
+        .backgroundColor(this.colors().cardBackground)
         .borderRadius(CARD_RADIUS)
 
         List({ space: 14 }) {
@@ -835,11 +840,12 @@ struct PdfImportReviewPage {
                     Text('第 ' + (questionIndex + 1).toString() + ' 题')
                       .fontSize(SUBTITLE_FONT_SIZE)
                       .fontWeight(FontWeight.Bold)
-                      .fontColor(COLOR_TEXT_PRIMARY)
+                      .fontColor(this.colors().textPrimary)
                     Blank()
                     Text(this.typeLabel(draftQuestion.type))
                       .fontSize(12)
-                      .fontColor(draftQuestion.type === 'unknown' ? COLOR_DANGER : COLOR_PRIMARY)
+                      .fontColor(draftQuestion.type === 'unknown' ?
+                        this.colors().error : this.colors().brand)
                   }
                   .width('100%')
 
@@ -848,14 +854,16 @@ struct PdfImportReviewPage {
                     Math.round(draftQuestion.confidence * 100).toString() + '%')
                     .width('100%')
                     .fontSize(12)
-                    .fontColor(COLOR_TEXT_SECONDARY)
+                    .fontColor(this.colors().textSecondary)
 
                   Row({ space: 6 }) {
                     Button('单选')
                       .layoutWeight(1)
                       .height(38)
-                      .fontColor(draftQuestion.type === 'single_choice' ? '#FFFFFF' : COLOR_PRIMARY)
-                      .backgroundColor(draftQuestion.type === 'single_choice' ? COLOR_PRIMARY : '#EEF5FF')
+                      .fontColor(draftQuestion.type === 'single_choice' ?
+                        this.colors().onBrand : this.colors().brand)
+                      .backgroundColor(draftQuestion.type === 'single_choice' ?
+                        this.colors().brand : this.colors().chipBackground)
                       .enabled(!this.pending)
                       .onClick(() => {
                         this.updateType(draftQuestion.draftQuestionId, 'single_choice')
@@ -863,8 +871,10 @@ struct PdfImportReviewPage {
                     Button('填空')
                       .layoutWeight(1)
                       .height(38)
-                      .fontColor(draftQuestion.type === 'blank' ? '#FFFFFF' : COLOR_PRIMARY)
-                      .backgroundColor(draftQuestion.type === 'blank' ? COLOR_PRIMARY : '#EEF5FF')
+                      .fontColor(draftQuestion.type === 'blank' ?
+                        this.colors().onBrand : this.colors().brand)
+                      .backgroundColor(draftQuestion.type === 'blank' ?
+                        this.colors().brand : this.colors().chipBackground)
                       .enabled(!this.pending)
                       .onClick(() => {
                         this.updateType(draftQuestion.draftQuestionId, 'blank')
@@ -872,8 +882,10 @@ struct PdfImportReviewPage {
                     Button('解答')
                       .layoutWeight(1)
                       .height(38)
-                      .fontColor(draftQuestion.type === 'short_answer' ? '#FFFFFF' : COLOR_PRIMARY)
-                      .backgroundColor(draftQuestion.type === 'short_answer' ? COLOR_PRIMARY : '#EEF5FF')
+                      .fontColor(draftQuestion.type === 'short_answer' ?
+                        this.colors().onBrand : this.colors().brand)
+                      .backgroundColor(draftQuestion.type === 'short_answer' ?
+                        this.colors().brand : this.colors().chipBackground)
                       .enabled(!this.pending)
                       .onClick(() => {
                         this.updateType(draftQuestion.draftQuestionId, 'short_answer')
@@ -881,8 +893,10 @@ struct PdfImportReviewPage {
                     Button('待确认')
                       .layoutWeight(1)
                       .height(38)
-                      .fontColor(draftQuestion.type === 'unknown' ? '#FFFFFF' : COLOR_PRIMARY)
-                      .backgroundColor(draftQuestion.type === 'unknown' ? COLOR_PRIMARY : '#EEF5FF')
+                      .fontColor(draftQuestion.type === 'unknown' ?
+                        this.colors().onBrand : this.colors().brand)
+                      .backgroundColor(draftQuestion.type === 'unknown' ?
+                        this.colors().brand : this.colors().chipBackground)
                       .enabled(!this.pending)
                       .onClick(() => {
                         this.updateType(draftQuestion.draftQuestionId, 'unknown')
@@ -894,8 +908,8 @@ struct PdfImportReviewPage {
                     .width('100%')
                     .height(108)
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
-                    .backgroundColor('#F7F9FC')
+                    .fontColor(this.colors().textPrimary)
+                    .backgroundColor(this.colors().inputBackground)
                     .enabled(!this.pending)
                     .onChange((value: string) => {
                       this.updateQuestionText(draftQuestion.draftQuestionId, value)
@@ -906,14 +920,14 @@ struct PdfImportReviewPage {
                       .width('100%')
                       .fontSize(12)
                       .fontWeight(FontWeight.Medium)
-                      .fontColor(COLOR_TEXT_CAPTION)
+                      .fontColor(this.colors().textCaption)
                     if (this.optionKeys(draftQuestion.options).length === 0) {
                       Text('暂无选项')
                         .width('100%')
                         .padding(12)
                         .fontSize(BODY_FONT_SIZE)
-                        .fontColor(COLOR_TEXT_SECONDARY)
-                        .backgroundColor('#F7F9FC')
+                        .fontColor(this.colors().textSecondary)
+                        .backgroundColor(this.colors().inputBackground)
                         .borderRadius(10)
                     } else {
                       ForEach(this.optionKeys(draftQuestion.options), (optionKey: string) => {
@@ -924,8 +938,8 @@ struct PdfImportReviewPage {
                           .width('100%')
                           .height(46)
                           .fontSize(BODY_FONT_SIZE)
-                          .fontColor(COLOR_TEXT_PRIMARY)
-                          .backgroundColor('#F7F9FC')
+                          .fontColor(this.colors().textPrimary)
+                          .backgroundColor(this.colors().inputBackground)
                           .enabled(!this.pending)
                           .onChange((value: string) => {
                             this.updateOption(draftQuestion.draftQuestionId, optionKey, value)
@@ -943,8 +957,8 @@ struct PdfImportReviewPage {
                     .width('100%')
                     .height(46)
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
-                    .backgroundColor('#F7F9FC')
+                    .fontColor(this.colors().textPrimary)
+                    .backgroundColor(this.colors().inputBackground)
                     .enabled(!this.pending)
                     .onChange((value: string) => {
                       this.updateAnswer(draftQuestion.draftQuestionId, value)
@@ -957,8 +971,8 @@ struct PdfImportReviewPage {
                     .width('100%')
                     .height(96)
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
-                    .backgroundColor('#F7F9FC')
+                    .fontColor(this.colors().textPrimary)
+                    .backgroundColor(this.colors().inputBackground)
                     .enabled(!this.pending)
                     .onChange((value: string) => {
                       this.updateAnalysis(draftQuestion.draftQuestionId, value)
@@ -968,12 +982,12 @@ struct PdfImportReviewPage {
                     Text('服务器标记：需要人工复核')
                       .width('100%')
                       .fontSize(12)
-                      .fontColor(COLOR_DANGER)
+                      .fontColor(this.colors().error)
                   }
                 }
                 .width('100%')
                 .padding(18)
-                .backgroundColor(COLOR_CARD_BG)
+                .backgroundColor(this.colors().cardBackground)
                 .borderRadius(CARD_RADIUS)
               }
             },
@@ -981,6 +995,7 @@ struct PdfImportReviewPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
         .scrollBar(BarState.Off)
 
@@ -989,14 +1004,14 @@ struct PdfImportReviewPage {
             Text('题目文字已确认；重试只会重新下载和保存图片，不会再次确认文字。')
               .width('100%')
               .fontSize(12)
-              .fontColor(COLOR_TEXT_CAPTION)
+              .fontColor(this.colors().textCaption)
           }
           Button(this.pending ? '正在处理…' :
             PdfImportState.shared().getConfirmResult() === null ? '确认题目并保存原图' : '重试保存原题图片')
             .width('100%')
             .height(52)
-            .fontColor('#FFFFFF')
-            .backgroundColor(COLOR_PRIMARY)
+            .fontColor(this.colors().onBrand)
+            .backgroundColor(this.colors().brand)
             .borderRadius(16)
             .enabled(!this.pending && !this.navigationPending)
             .onClick(() => {
@@ -1004,11 +1019,17 @@ struct PdfImportReviewPage {
             })
         }
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 12, bottom: PAGE_PADDING })
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          top: 12,
+          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }

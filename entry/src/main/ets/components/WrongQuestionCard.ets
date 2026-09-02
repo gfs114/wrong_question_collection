@@ -1,12 +1,9 @@
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_PAGE_BG,
-  COLOR_SUCCESS_TEXT,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY
+  themePalette
 } from '../constants/AppTheme'
+import { AppColors } from '../theme/AppColors'
 
 @Component
 export struct WrongQuestionCard {
@@ -15,7 +12,12 @@ export struct WrongQuestionCard {
   @Prop questionText: string = ''
   @Prop mastered: boolean = false
   @Prop addTimeText: string = ''
+  @StorageProp('darkMode') darkMode: boolean = false
   onOpen: () => void = () => {
+  }
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
   }
 
   build() {
@@ -25,15 +27,15 @@ export struct WrongQuestionCard {
           Text(this.subject)
             .fontSize(12)
             .fontWeight(FontWeight.Medium)
-            .fontColor(COLOR_TEXT_PRIMARY)
+            .fontColor(this.colors().textPrimary)
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor(COLOR_PAGE_BG)
+            .backgroundColor(this.colors().pageBackground)
             .borderRadius(12)
 
           Text(this.mastered ? '已掌握' : '待复习')
             .fontSize(12)
             .fontWeight(FontWeight.Medium)
-            .fontColor(this.mastered ? COLOR_SUCCESS_TEXT : COLOR_TEXT_CAPTION)
+            .fontColor(this.mastered ? this.colors().successText : this.colors().textCaption)
 
           Blank()
         }
@@ -43,20 +45,20 @@ export struct WrongQuestionCard {
           .width('100%')
           .fontSize(BODY_FONT_SIZE)
           .fontWeight(FontWeight.Medium)
-          .fontColor(COLOR_TEXT_PRIMARY)
+          .fontColor(this.colors().textPrimary)
           .maxLines(3)
 
         Row() {
           Text(this.bankName)
             .fontSize(12)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .layoutWeight(1)
 
           Text(this.addTimeText)
             .fontSize(12)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
             .margin({ left: 12 })
         }
         .width('100%')
@@ -68,7 +70,7 @@ export struct WrongQuestionCard {
     .type(ButtonType.Normal)
     .width('100%')
     .padding(0)
-    .backgroundColor(COLOR_CARD_BG)
+    .backgroundColor(this.colors().cardBackground)
     .borderRadius(CARD_RADIUS)
     .onClick(() => {
       this.onOpen()

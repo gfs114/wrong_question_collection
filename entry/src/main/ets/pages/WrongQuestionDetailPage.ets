@@ -3,23 +3,19 @@ import { EmptyState } from '../components/EmptyState'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
-  COLOR_CARD_BG,
-  COLOR_DANGER,
-  COLOR_PAGE_BG,
-  COLOR_PRIMARY,
-  COLOR_SUCCESS_TEXT,
-  COLOR_TEXT_CAPTION,
-  COLOR_TEXT_PRIMARY,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE
+  SUBTITLE_FONT_SIZE,
+  themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
 import { WrongQuestionListItem } from '../models/WrongQuestion'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
 @Component
@@ -37,7 +33,15 @@ struct WrongQuestionDetailPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+    top: 0, left: 0, right: 0, bottom: 0
+  }
+  @StorageProp('darkMode') darkMode: boolean = false
   private requestToken: number = 0
+
+  private colors(): AppColors {
+    return themePalette(this.darkMode)
+  }
 
   aboutToAppear(): void {
     this.loadDetail()
@@ -258,11 +262,11 @@ struct WrongQuestionDetailPage {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
-            .fontColor('#8A5A00')
+            .fontColor(this.colors().warningText)
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor('#FFF4D6')
+        .backgroundColor(this.colors().warning)
       }
 
       if (this.loading) {
@@ -270,11 +274,11 @@ struct WrongQuestionDetailPage {
           LoadingProgress()
             .width(40)
             .height(40)
-            .color(COLOR_PRIMARY)
+            .color(this.colors().brand)
 
           Text('正在加载错题详情')
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(COLOR_TEXT_CAPTION)
+            .fontColor(this.colors().textCaption)
         }
         .layoutWeight(1)
         .width('100%')
@@ -299,12 +303,12 @@ struct WrongQuestionDetailPage {
                 Text(this.typeLabel())
                   .fontSize(13)
                   .fontWeight(FontWeight.Medium)
-                  .fontColor(COLOR_PRIMARY)
+                  .fontColor(this.colors().brand)
 
                 Text(this.mastered ? '已掌握' : '待复习')
                   .fontSize(13)
                   .fontWeight(FontWeight.Medium)
-                  .fontColor(this.mastered ? COLOR_SUCCESS_TEXT : COLOR_TEXT_CAPTION)
+                  .fontColor(this.mastered ? this.colors().successText : this.colors().textCaption)
 
                 Blank()
               }
@@ -314,13 +318,13 @@ struct WrongQuestionDetailPage {
                 .width('100%')
                 .fontSize(18)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
                 .lineHeight(28)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(20)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Column({ space: 10 }) {
@@ -331,20 +335,20 @@ struct WrongQuestionDetailPage {
                     .height(36)
                     .fontSize(14)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor(COLOR_PRIMARY)
+                    .fontColor(this.colors().brand)
                     .textAlign(TextAlign.Center)
-                    .backgroundColor(COLOR_PAGE_BG)
+                    .backgroundColor(this.colors().pageBackground)
                     .borderRadius(18)
 
                   Text(option)
                     .layoutWeight(1)
                     .fontSize(BODY_FONT_SIZE)
-                    .fontColor(COLOR_TEXT_PRIMARY)
+                    .fontColor(this.colors().textPrimary)
                     .lineHeight(22)
                 }
                 .width('100%')
                 .padding({ left: 12, right: 14, top: 10, bottom: 10 })
-                .backgroundColor(COLOR_CARD_BG)
+                .backgroundColor(this.colors().cardBackground)
                 .borderRadius(16)
               }, (option: string, index: number): string => this.detail.id + '_' + index.toString())
             }
@@ -354,55 +358,55 @@ struct WrongQuestionDetailPage {
               Text('正确答案')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
 
               Text(this.detail.answer)
                 .fontSize(20)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_SUCCESS_TEXT)
+                .fontColor(this.colors().successText)
 
               Text('题目解析')
                 .fontSize(SUBTITLE_FONT_SIZE)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(COLOR_TEXT_PRIMARY)
+                .fontColor(this.colors().textPrimary)
                 .margin({ top: 8 })
 
               Text(this.detail.analysis.length === 0 ? '暂无解析' : this.detail.analysis)
                 .width('100%')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
                 .lineHeight(23)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(20)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
 
             Column({ space: 8 }) {
               Text('题库：' + this.detail.bankName)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
               Text('学科：' + this.detail.subject)
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
               Text('加入时间：' + DateUtils.formatDateTime(this.detail.addTime))
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
               if (this.detail.userAnswer.length > 0) {
                 Text('你的答案：' + this.detail.userAnswer)
                   .fontSize(BODY_FONT_SIZE)
-                  .fontColor(COLOR_TEXT_CAPTION)
+                  .fontColor(this.colors().textCaption)
               }
               Text('修改将同步到云端，离线时仅可查看缓存')
                 .fontSize(BODY_FONT_SIZE)
-                .fontColor(COLOR_TEXT_CAPTION)
+                .fontColor(this.colors().textCaption)
                 .margin({ top: 4 })
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .padding(20)
-            .backgroundColor(COLOR_CARD_BG)
+            .backgroundColor(this.colors().cardBackground)
             .borderRadius(CARD_RADIUS)
           }
           .width('100%')
@@ -417,12 +421,13 @@ struct WrongQuestionDetailPage {
             Text(this.mastered ? '已掌握' : this.marking ? '正在标记…' : '标记为已掌握')
               .fontSize(15)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#FFFFFF')
+              .fontColor(this.colors().onBrand)
           }
           .type(ButtonType.Normal)
           .layoutWeight(1)
           .height(48)
-          .backgroundColor(this.mastered || this.marking || !this.canMutate() ? '#8E99AA' : COLOR_PRIMARY)
+          .backgroundColor(this.mastered || this.marking || !this.canMutate() ?
+            this.colors().disabled : this.colors().brand)
           .borderRadius(14)
           .enabled(!this.mastered && !this.marking && !this.removing && !this.dialogPending &&
             this.canMutate())
@@ -434,12 +439,12 @@ struct WrongQuestionDetailPage {
             Text(this.removing ? '正在移出…' : '移出错题本')
               .fontSize(15)
               .fontWeight(FontWeight.Medium)
-              .fontColor(COLOR_DANGER)
+              .fontColor(this.colors().error)
           }
           .type(ButtonType.Normal)
           .layoutWeight(1)
           .height(48)
-          .backgroundColor(COLOR_CARD_BG)
+          .backgroundColor(this.colors().cardBackground)
           .borderRadius(14)
           .enabled(!this.marking && !this.removing && !this.dialogPending && this.canMutate())
           .onClick(() => {
@@ -447,12 +452,17 @@ struct WrongQuestionDetailPage {
           })
         }
         .width('100%')
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 10, bottom: 14 })
-        .backgroundColor(COLOR_PAGE_BG)
+        .padding({
+          left: PAGE_PADDING,
+          right: PAGE_PADDING,
+          top: 10,
+          bottom: 14 + SafeAreaUtils.bottom(this.safeAreaInsets)
+        })
+        .backgroundColor(this.colors().pageBackground)
       }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(COLOR_PAGE_BG)
+    .backgroundColor(this.colors().pageBackground)
   }
 }
