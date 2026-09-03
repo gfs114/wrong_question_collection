@@ -9,6 +9,7 @@ import {
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { HomeDashboardSnapshot } from '../models/HomeDashboard'
 import { QuestionBankSummary } from '../models/QuestionBank'
@@ -33,6 +34,7 @@ export struct HomePage {
   @State syncFailed: boolean = false
   @State accountId: string = ''
   @Prop syncLabel: string = '本地模式'
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   onSelectTab: (index: number) => void = () => {
   }
   onStartImport: () => void = () => {
@@ -42,13 +44,39 @@ export struct HomePage {
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
   }
 
   aboutToAppear(): void {
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
     this.refreshWhenActive()
+  }
+
+  aboutToDisappear(): void {
+    if (this.sizeObserver !== undefined) {
+      this.sizeObserver.stop()
+      this.sizeObserver = undefined
+    }
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) {
+      this.windowSizeClass = sizeClass
+    }
+  }
+
+  private contentMaxWidth(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return CONTENT_MAX_WIDTH
+    }
+    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
   }
 
   onActiveChanged(): void {
@@ -186,6 +214,81 @@ export struct HomePage {
     .backgroundColor(this.colors().warning)
   }
 
+  @Builder
+  private OverviewCard() {
+    HomeOverviewCard({
+      pendingCount: this.dashboard.statistics.pendingCount,
+      wrongCount: this.dashboard.statistics.wrongCount,
+      masteredCount: this.dashboard.statistics.masteredCount,
+      masteryRate: this.dashboard.masteryRate,
+      reviewLabel: '今日待复习',
+      wrongLabel: '错题总数',
+      masteredLabel: '已掌握',
+      masteryLabel: '掌握率',
+      reviewActionLabel: '开始复习',
+      onStartReview: () => {
+        this.onStartReview()
+      }
+    })
+  }
+
+  @Builder
+  private ImportButton() {
+    Button() {
+      Row({ space: 10 }) {
+        Text('+')
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
+        Text('导入资料')
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+      }
+    }
+    .type(ButtonType.Normal)
+    .width('100%')
+    .height(54)
+    .fontColor(this.colors().onBrand)
+    .backgroundColor(this.canMutate() ? this.colors().brand : this.colors().disabled)
+    .borderRadius(18)
+    .enabled(this.canMutate())
+    .onClick(() => {
+      this.onStartImport()
+    })
+  }
+
+  @Builder
+  private QuickActionsPane() {
+    Column({ space: CARD_GAP }) {
+      this.ImportButton()
+    }
+    .width(240)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private RecentBooks() {
+    HomeRecentSection({
+      title: '最近书籍',
+      emptyText: '还没有导入书籍',
+      items: this.bankLabels(),
+      onOpen: (index: number) => {
+        this.onSelectTab(1)
+      }
+    })
+  }
+
+  @Builder
+  private RecentWrongQuestions() {
+    HomeRecentSection({
+      title: '最近错题',
+      emptyText: '还没有收集错题',
+      items: this.wrongQuestionLabels(),
+      onOpen: (index: number) => {
+        this.onSelectTab(2)
+      }
+    })
+  }
+
   build() {
     Column() {
       if (this.loading) {
@@ -257,44 +360,27 @@ export struct HomePage {
             .alignItems(HorizontalAlign.Start)
           }
 
-          ListItem() {
-            HomeOverviewCard({
-              pendingCount: this.dashboard.statistics.pendingCount,
-              wrongCount: this.dashboard.statistics.wrongCount,
-              masteredCount: this.dashboard.statistics.masteredCount,
-              masteryRate: this.dashboard.masteryRate,
-              reviewLabel: '今日待复习',
-              wrongLabel: '错题总数',
-              masteredLabel: '已掌握',
-              masteryLabel: '掌握率',
-              reviewActionLabel: '开始复习',
-              onStartReview: () => {
-                this.onStartReview()
-              }
-            })
-          }
+          if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+            ListItem() {
+              Row({ space: CARD_GAP }) {
+                Column() {
+                  this.OverviewCard()
+                }
+                .layoutWeight(1)
 
-          ListItem() {
-            Button() {
-              Row({ space: 10 }) {
-                Text('+')
-                  .fontSize(24)
-                  .fontWeight(FontWeight.Bold)
-                Text('导入资料')
-                  .fontSize(16)
-                  .fontWeight(FontWeight.Bold)
+                this.QuickActionsPane()
               }
+              .width('100%')
+              .alignItems(VerticalAlign.Top)
             }
-            .type(ButtonType.Normal)
-            .width('100%')
-            .height(54)
-            .fontColor(this.colors().onBrand)
-            .backgroundColor(this.canMutate() ? this.colors().brand : this.colors().disabled)
-            .borderRadius(18)
-            .enabled(this.canMutate())
-            .onClick(() => {
-              this.onStartImport()
-            })
+          } else {
+            ListItem() {
+              this.OverviewCard()
+            }
+
+            ListItem() {
+              this.ImportButton()
+            }
           }
 
           if (!this.hasLearningData()) {
@@ -310,33 +396,35 @@ export struct HomePage {
                 }
               })
             }
+          } else if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+            ListItem() {
+              Row({ space: CARD_GAP }) {
+                Column() {
+                  this.RecentBooks()
+                }
+                .layoutWeight(1)
+
+                Column() {
+                  this.RecentWrongQuestions()
+                }
+                .layoutWeight(1)
+              }
+              .width('100%')
+              .alignItems(VerticalAlign.Top)
+            }
           } else {
             ListItem() {
-              HomeRecentSection({
-                title: '最近书籍',
-                emptyText: '还没有导入书籍',
-                items: this.bankLabels(),
-                onOpen: (index: number) => {
-                  this.onSelectTab(1)
-                }
-              })
+              this.RecentBooks()
             }
 
             ListItem() {
-              HomeRecentSection({
-                title: '最近错题',
-                emptyText: '还没有收集错题',
-                items: this.wrongQuestionLabels(),
-                onOpen: (index: number) => {
-                  this.onSelectTab(2)
-                }
-              })
+              this.RecentWrongQuestions()
             }
           }
         }
         .width('100%')
         .height('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
           left: PAGE_PADDING,

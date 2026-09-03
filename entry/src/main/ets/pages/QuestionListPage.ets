@@ -9,6 +9,7 @@ import {
   PAGE_PADDING,
   themePalette
 } from '../constants/AppTheme'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
 import { QuestionBankSummary } from '../models/QuestionBank'
@@ -70,17 +71,51 @@ struct QuestionListPage {
     top: 0, left: 0, right: 0, bottom: 0
   }
   @StorageProp('darkMode') darkMode: boolean = false
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   private bankId: string = ''
   private cachedBankId: string = ''
   private requestToken: number = 0
   private bankQuestions: Array<Question> = new Array<Question>()
   private readonly questionDataSource: QuestionListDataSource = new QuestionListDataSource()
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
   }
 
+  private startWindowObserver(): void {
+    if (this.sizeObserver !== undefined) {
+      return
+    }
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
+  }
+
+  private stopWindowObserver(): void {
+    if (this.sizeObserver !== undefined) {
+      this.sizeObserver.stop()
+      this.sizeObserver = undefined
+    }
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) {
+      this.windowSizeClass = sizeClass
+    }
+  }
+
+  private contentMaxWidth(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return CONTENT_MAX_WIDTH
+    }
+    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
+  }
+
   onPageShow(): void {
+    this.startWindowObserver()
     const selectedBankId: string = NavigationState.shared().selectedBankId
     if (selectedBankId !== this.bankId) {
       this.bankId = selectedBankId
@@ -94,6 +129,10 @@ struct QuestionListPage {
       this.search(this.query)
     }
     this.logEasySplitState()
+  }
+
+  onPageHide(): void {
+    this.stopWindowObserver()
   }
 
   private logEasySplitState(): void {
@@ -336,6 +375,7 @@ struct QuestionListPage {
       .height(56)
       .padding({ left: 14, right: 8 })
       .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 14 })
+      .constraintSize({ maxWidth: this.contentMaxWidth() - 2 * PAGE_PADDING })
       .backgroundColor(this.colors().cardBackground)
       .borderRadius(16)
 
@@ -390,7 +430,7 @@ struct QuestionListPage {
         }
         .layoutWeight(1)
         .width('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .padding({
           left: PAGE_PADDING,
           right: PAGE_PADDING,

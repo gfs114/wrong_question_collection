@@ -11,6 +11,7 @@ import {
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { Statistics } from '../models/Statistics'
 import { WrongQuestionSummary } from '../models/WrongQuestion'
@@ -20,6 +21,16 @@ import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+
+class WrongCardRow {
+  left: WrongQuestionSummary
+  right: WrongQuestionSummary | null
+
+  constructor(left: WrongQuestionSummary, right: WrongQuestionSummary | null) {
+    this.left = left
+    this.right = right
+  }
+}
 
 @Component
 export struct WrongQuestionsPage {
@@ -37,16 +48,67 @@ export struct WrongQuestionsPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
   }
 
   aboutToAppear(): void {
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
     this.refreshWhenActive()
+  }
+
+  aboutToDisappear(): void {
+    if (this.sizeObserver !== undefined) {
+      this.sizeObserver.stop()
+      this.sizeObserver = undefined
+    }
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) {
+      this.windowSizeClass = sizeClass
+    }
+  }
+
+  private contentMaxWidth(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return CONTENT_MAX_WIDTH
+    }
+    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
+  }
+
+  private statColumnsTemplate(): string {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return '1fr 1fr'
+    }
+    return '1fr 1fr 1fr'
+  }
+
+  private statGridHeight(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return 232
+    }
+    return 112
+  }
+
+  private wrongRows(): Array<WrongCardRow> {
+    const rows: Array<WrongCardRow> = new Array<WrongCardRow>()
+    for (let index: number = 0; index < this.items.length; index += 2) {
+      const right: WrongQuestionSummary | null =
+        index + 1 < this.items.length ? this.items[index + 1] : null
+      rows.push(new WrongCardRow(this.items[index], right))
+    }
+    return rows
   }
 
   onActiveChanged(): void {
@@ -229,6 +291,20 @@ export struct WrongQuestionsPage {
     .backgroundColor(this.colors().warning)
   }
 
+  @Builder
+  private WrongCard(item: WrongQuestionSummary) {
+    WrongQuestionCard({
+      subject: item.subject,
+      bankName: item.bankName,
+      questionText: item.question,
+      mastered: item.mastered,
+      addTimeText: DateUtils.formatDate(item.addTime),
+      onOpen: () => {
+        this.openWrongQuestion(item.id)
+      }
+    })
+  }
+
   build() {
     Column() {
       if (this.loading) {
@@ -310,9 +386,9 @@ export struct WrongQuestionsPage {
                 })
               }
             }
-            .columnsTemplate('1fr 1fr 1fr')
+            .columnsTemplate(this.statColumnsTemplate())
             .columnsGap(8)
-            .height(112)
+            .height(this.statGridHeight())
           }
 
           ListItem() {
@@ -410,26 +486,40 @@ export struct WrongQuestionsPage {
               .width('100%')
               .height(260)
             }
+          } else if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+            ForEach(this.wrongRows(), (row: WrongCardRow) => {
+              ListItem() {
+                Row({ space: CARD_GAP }) {
+                  Column() {
+                    this.WrongCard(row.left)
+                  }
+                  .layoutWeight(1)
+
+                  if (row.right === null) {
+                    Column()
+                      .layoutWeight(1)
+                  } else {
+                    Column() {
+                      this.WrongCard(row.right)
+                    }
+                    .layoutWeight(1)
+                  }
+                }
+                .width('100%')
+                .alignItems(VerticalAlign.Top)
+              }
+            }, (row: WrongCardRow): string => row.left.id)
           } else {
             ForEach(this.items, (item: WrongQuestionSummary) => {
               ListItem() {
-                WrongQuestionCard({
-                  subject: item.subject,
-                  bankName: item.bankName,
-                  questionText: item.question,
-                  mastered: item.mastered,
-                  addTimeText: DateUtils.formatDate(item.addTime),
-                  onOpen: () => {
-                    this.openWrongQuestion(item.id)
-                  }
-                })
+                this.WrongCard(item)
               }
             }, (item: WrongQuestionSummary): string => item.id)
           }
         }
         .width('100%')
         .height('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
           left: PAGE_PADDING,

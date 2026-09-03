@@ -9,6 +9,7 @@ import {
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { QuestionBankSummary } from '../models/QuestionBank'
 import { AccountSessionService } from '../services/AccountSessionService'
@@ -17,6 +18,16 @@ import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+
+class BankCardRow {
+  left: QuestionBankSummary
+  right: QuestionBankSummary | null
+
+  constructor(left: QuestionBankSummary, right: QuestionBankSummary | null) {
+    this.left = left
+    this.right = right
+  }
+}
 
 @Component
 export struct BooksPage {
@@ -33,16 +44,60 @@ export struct BooksPage {
   @State syncFailed: boolean = false
   @State accountId: string = ''
   @StorageProp('darkMode') darkMode: boolean = false
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
   }
 
   aboutToAppear(): void {
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
     this.refreshWhenActive()
+  }
+
+  aboutToDisappear(): void {
+    if (this.sizeObserver !== undefined) {
+      this.sizeObserver.stop()
+      this.sizeObserver = undefined
+    }
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) {
+      this.windowSizeClass = sizeClass
+    }
+  }
+
+  private contentMaxWidth(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return CONTENT_MAX_WIDTH
+    }
+    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
+  }
+
+  private gridColumns(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return 1
+    }
+    return 2
+  }
+
+  private bankRows(): Array<BankCardRow> {
+    const rows: Array<BankCardRow> = new Array<BankCardRow>()
+    for (let index: number = 0; index < this.banks.length; index += 2) {
+      const right: QuestionBankSummary | null =
+        index + 1 < this.banks.length ? this.banks[index + 1] : null
+      rows.push(new BankCardRow(this.banks[index], right))
+    }
+    return rows
   }
 
   onActiveChanged(): void {
@@ -257,6 +312,23 @@ export struct BooksPage {
     .backgroundColor(this.colors().warning)
   }
 
+  @Builder
+  private BankCard(bank: QuestionBankSummary) {
+    QuestionBankCard({
+      bankName: bank.bankName,
+      subject: bank.subject,
+      questionCount: bank.questionCount,
+      createDate: DateUtils.formatDate(bank.createTime),
+      deleting: this.deletingBankId === bank.id || this.dialogPending,
+      onOpen: () => {
+        this.openBank(bank.id)
+      },
+      onDelete: () => {
+        this.confirmDelete(bank)
+      }
+    })
+  }
+
   build() {
     Column() {
       if (this.loading) {
@@ -331,27 +403,40 @@ export struct BooksPage {
             }
           }
 
-          ForEach(this.banks, (bank: QuestionBankSummary) => {
-            ListItem() {
-              QuestionBankCard({
-                bankName: bank.bankName,
-                subject: bank.subject,
-                questionCount: bank.questionCount,
-                createDate: DateUtils.formatDate(bank.createTime),
-                deleting: this.deletingBankId === bank.id || this.dialogPending,
-                onOpen: () => {
-                  this.openBank(bank.id)
-                },
-                onDelete: () => {
-                  this.confirmDelete(bank)
+          if (this.gridColumns() === 1) {
+            ForEach(this.banks, (bank: QuestionBankSummary) => {
+              ListItem() {
+                this.BankCard(bank)
+              }
+            }, (bank: QuestionBankSummary): string => bank.id)
+          } else {
+            ForEach(this.bankRows(), (row: BankCardRow) => {
+              ListItem() {
+                Row({ space: CARD_GAP }) {
+                  Column() {
+                    this.BankCard(row.left)
+                  }
+                  .layoutWeight(1)
+
+                  if (row.right === null) {
+                    Column()
+                      .layoutWeight(1)
+                  } else {
+                    Column() {
+                      this.BankCard(row.right)
+                    }
+                    .layoutWeight(1)
+                  }
                 }
-              })
-            }
-          }, (bank: QuestionBankSummary): string => bank.id)
+                .width('100%')
+                .alignItems(VerticalAlign.Top)
+              }
+            }, (row: BankCardRow): string => row.left.id)
+          }
         }
         .width('100%')
         .height('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
           left: PAGE_PADDING,

@@ -229,6 +229,7 @@ struct Index {
         }
         .barOverlap(true)
         .barFloatingStyle({
+          barBottomMargin:23,
           systemMaterialEffect: {
             materialType: this.hdsMaterialType,
             materialLevel: this.hdsMaterialLevel

@@ -10,6 +10,7 @@ import {
   SUBTITLE_FONT_SIZE,
   themePalette
 } from '../constants/AppTheme'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { Question } from '../models/Question'
 import { AccountSessionService } from '../services/AccountSessionService'
@@ -37,10 +38,40 @@ struct QuestionDetailPage {
     top: 0, left: 0, right: 0, bottom: 0
   }
   @StorageProp('darkMode') darkMode: boolean = false
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   private requestToken: number = 0
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
+  }
+
+  aboutToAppear(): void {
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
+  }
+
+  aboutToDisappear(): void {
+    if (this.sizeObserver !== undefined) {
+      this.sizeObserver.stop()
+      this.sizeObserver = undefined
+    }
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) {
+      this.windowSizeClass = sizeClass
+    }
+  }
+
+  private contentMaxWidth(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return CONTENT_MAX_WIDTH
+    }
+    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
   }
 
   onPageShow(): void {
@@ -371,7 +402,7 @@ struct QuestionDetailPage {
         }
         .layoutWeight(1)
         .width('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .scrollBar(BarState.Off)
 
         Row({ space: 8 }) {
@@ -424,7 +455,7 @@ struct QuestionDetailPage {
           })
         }
         .width('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .padding({
           left: PAGE_PADDING,
           right: PAGE_PADDING,

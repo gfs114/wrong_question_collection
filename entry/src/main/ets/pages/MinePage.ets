@@ -14,6 +14,7 @@ import {
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { Statistics } from '../models/Statistics'
 import { AccountSessionState } from '../models/AccountSession'
 import { SyncDisplayState } from '../models/SyncModels'
@@ -48,6 +49,7 @@ export struct MinePage {
     new Array<string>(), new Array<string>(), 0, 0, 0, '', '', 0)
   @State migrationBusy: boolean = false
   @Prop syncState: SyncDisplayState = SyncDisplayState.LOCAL
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   onSyncRequested: () => void = () => {
   }
   onSessionChanged: () => void = () => {
@@ -55,6 +57,7 @@ export struct MinePage {
   private hasRequested: boolean = false
   private requestedVersion: number = -1
   private requestToken: number = 0
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
@@ -65,9 +68,55 @@ export struct MinePage {
   }
 
   aboutToAppear(): void {
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
     this.refreshWhenActive()
     this.loadAuthState()
     this.loadMigrationState()
+  }
+
+  aboutToDisappear(): void {
+    if (this.sizeObserver !== undefined) {
+      this.sizeObserver.stop()
+      this.sizeObserver = undefined
+    }
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) {
+      this.windowSizeClass = sizeClass
+    }
+  }
+
+  private contentMaxWidth(): number {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      return CONTENT_MAX_WIDTH
+    }
+    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
+  }
+
+  private statColumnsTemplate(): string {
+    if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+      return '1fr 1fr 1fr 1fr'
+    }
+    return '1fr 1fr'
+  }
+
+  private statRowsTemplate(): string {
+    if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+      return '112vp'
+    }
+    return '112vp 112vp'
+  }
+
+  private statGridHeight(): number {
+    if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+      return 112
+    }
+    return 236
   }
 
   onActiveChanged(): void {
@@ -455,6 +504,260 @@ export struct MinePage {
     }
   }
 
+  @Builder
+  private HeaderCard() {
+    Column({ space: 10 }) {
+      Text('人')
+        .width(72)
+        .height(72)
+        .fontSize(30)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.colors().brand)
+        .textAlign(TextAlign.Center)
+        .backgroundColor(this.colors().pageBackground)
+        .borderRadius(36)
+
+      Text('学习中心')
+        .fontSize(SUBTITLE_FONT_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.colors().textPrimary)
+
+      Text('整理错题，让每次复习更有方向')
+        .fontSize(BODY_FONT_SIZE)
+        .fontColor(this.colors().textCaption)
+    }
+    .width('100%')
+    .padding({ top: 22, bottom: 22 })
+    .backgroundColor(this.colors().cardBackground)
+    .borderRadius(CARD_RADIUS)
+  }
+
+  @Builder
+  private AccountSection() {
+    SectionTitle({ title: '账号' })
+
+    HuaweiAccountCard({
+      signedIn: this.authState.signedIn,
+      userId: this.authState.userId,
+      deviceName: this.authState.deviceName,
+      signingIn: this.signingIn,
+      syncLabel: CloudSyncService.label(this.syncState),
+      syncing: this.syncState === SyncDisplayState.SYNCING,
+      onAuthorizationCode: (authorizationCode: string) => {
+        this.exchangeAuthorizationCode(authorizationCode)
+      },
+      onLoginError: (code: number) => {
+        this.handleLoginError(code)
+      },
+      onSignOut: () => {
+        this.signOut()
+      },
+      onSync: () => {
+        this.onSyncRequested()
+      }
+    })
+  }
+
+  @Builder
+  private MigrationSection() {
+    SectionTitle({ title: '旧数据迁移' })
+
+    LegacyMigrationCard({
+      state: this.migrationState,
+      signedIn: this.authState.signedIn,
+      busy: this.migrationBusy,
+      onStart: () => {
+        this.confirmMigration()
+      },
+      onRetry: () => {
+        this.retryMigration()
+      }
+    })
+  }
+
+  @Builder
+  private StatsSection() {
+    SectionTitle({ title: '学习概览' })
+
+    Grid() {
+      GridItem() {
+        StatCard({
+          label: '题库数量',
+          value: this.statistics.bankCount,
+          glyph: '书',
+          accentColor: this.colors().brand
+        })
+      }
+
+      GridItem() {
+        StatCard({
+          label: '错题数量',
+          value: this.statistics.wrongCount,
+          glyph: '错',
+          accentColor: this.colors().error
+        })
+      }
+
+      GridItem() {
+        StatCard({
+          label: '已掌握',
+          value: this.statistics.masteredCount,
+          glyph: '✓',
+          accentColor: this.colors().successText
+        })
+      }
+
+      GridItem() {
+        StatCard({
+          label: '待复习',
+          value: this.statistics.pendingCount,
+          glyph: '复',
+          accentColor: this.colors().error
+        })
+      }
+    }
+    .columnsTemplate(this.statColumnsTemplate())
+    .rowsTemplate(this.statRowsTemplate())
+    .columnsGap(CARD_GAP)
+    .rowsGap(CARD_GAP)
+    .height(this.statGridHeight())
+  }
+
+  @Builder
+  private SettingsSection() {
+    SectionTitle({ title: '设置' })
+
+    Column() {
+      Row({ space: 12 }) {
+        Text('数')
+          .width(36)
+          .height(36)
+          .fontSize(14)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.colors().brand)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(this.colors().pageBackground)
+          .borderRadius(18)
+        Text('数据管理')
+          .fontSize(BODY_FONT_SIZE)
+          .fontColor(this.colors().textPrimary)
+        Blank()
+        Text('›')
+          .fontSize(24)
+          .fontColor(this.colors().textCaption)
+      }
+      .width('100%')
+      .height(60)
+
+      Button() {
+        Row({ space: 12 }) {
+          Text('清')
+            .width(36)
+            .height(36)
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().error)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.colors().pageBackground)
+            .borderRadius(18)
+          Text(this.clearing ? '正在清空…' : '清空错题')
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.colors().textPrimary)
+          Blank()
+          Text('›')
+            .fontSize(24)
+            .fontColor(this.colors().textCaption)
+        }
+        .width('100%')
+        .height(60)
+      }
+      .type(ButtonType.Normal)
+      .width('100%')
+      .height(60)
+      .padding(0)
+      .backgroundColor(this.colors().cardBackground)
+      .enabled(!this.clearing && !this.dialogPending)
+      .accessibilityText('清空错题')
+      .onClick(() => {
+        this.confirmClear()
+      })
+
+      Button() {
+        Row({ space: 12 }) {
+          Text('深')
+            .width(36)
+            .height(36)
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().brand)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.colors().pageBackground)
+            .borderRadius(18)
+          Text('深色模式')
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.colors().textPrimary)
+          Blank()
+          Text(this.modeLabel())
+            .fontSize(13)
+            .fontColor(this.colors().textCaption)
+            .margin({ right: 6 })
+          Text('›')
+            .fontSize(24)
+            .fontColor(this.colors().textCaption)
+        }
+        .width('100%')
+        .height(60)
+      }
+      .type(ButtonType.Normal)
+      .width('100%')
+      .height(60)
+      .padding(0)
+      .backgroundColor(this.colors().cardBackground)
+      .enabled(!this.dialogPending)
+      .accessibilityText('深色模式')
+      .onClick(() => {
+        this.selectThemeMode()
+      })
+
+      Button() {
+        Row({ space: 12 }) {
+          Text('关')
+            .width(36)
+            .height(36)
+            .fontSize(14)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().successText)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.colors().pageBackground)
+            .borderRadius(18)
+          Text('关于应用')
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.colors().textPrimary)
+          Blank()
+          Text('›')
+            .fontSize(24)
+            .fontColor(this.colors().textCaption)
+        }
+        .width('100%')
+        .height(60)
+      }
+      .type(ButtonType.Normal)
+      .width('100%')
+      .height(60)
+      .padding(0)
+      .backgroundColor(this.colors().cardBackground)
+      .enabled(!this.clearing && !this.dialogPending)
+      .accessibilityText('关于应用')
+      .onClick(() => {
+        this.showAbout()
+      })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16 })
+    .backgroundColor(this.colors().cardBackground)
+    .borderRadius(CARD_RADIUS)
+  }
+
   build() {
     Column() {
       if (this.loading) {
@@ -487,246 +790,39 @@ export struct MinePage {
       } else {
         Scroll() {
           Column({ space: CARD_GAP }) {
-            Column({ space: 10 }) {
-              Text('人')
-                .width(72)
-                .height(72)
-                .fontSize(30)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(this.colors().brand)
-                .textAlign(TextAlign.Center)
-                .backgroundColor(this.colors().pageBackground)
-                .borderRadius(36)
+            this.HeaderCard()
 
-              Text('学习中心')
-                .fontSize(SUBTITLE_FONT_SIZE)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(this.colors().textPrimary)
+            if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+              this.StatsSection()
 
-              Text('整理错题，让每次复习更有方向')
-                .fontSize(BODY_FONT_SIZE)
-                .fontColor(this.colors().textCaption)
-            }
-            .width('100%')
-            .padding({ top: 22, bottom: 22 })
-            .backgroundColor(this.colors().cardBackground)
-            .borderRadius(CARD_RADIUS)
+              Row({ space: CARD_GAP }) {
+                Column({ space: CARD_GAP }) {
+                  this.AccountSection()
 
-            SectionTitle({ title: '账号' })
-
-            HuaweiAccountCard({
-              signedIn: this.authState.signedIn,
-              userId: this.authState.userId,
-              deviceName: this.authState.deviceName,
-              signingIn: this.signingIn,
-              syncLabel: CloudSyncService.label(this.syncState),
-              syncing: this.syncState === SyncDisplayState.SYNCING,
-              onAuthorizationCode: (authorizationCode: string) => {
-                this.exchangeAuthorizationCode(authorizationCode)
-              },
-              onLoginError: (code: number) => {
-                this.handleLoginError(code)
-              },
-              onSignOut: () => {
-                this.signOut()
-              },
-              onSync: () => {
-                this.onSyncRequested()
-              }
-            })
-
-            if (this.showMigrationCard()) {
-              SectionTitle({ title: '旧数据迁移' })
-
-              LegacyMigrationCard({
-                state: this.migrationState,
-                signedIn: this.authState.signedIn,
-                busy: this.migrationBusy,
-                onStart: () => {
-                  this.confirmMigration()
-                },
-                onRetry: () => {
-                  this.retryMigration()
+                  if (this.showMigrationCard()) {
+                    this.MigrationSection()
+                  }
                 }
-              })
-            }
+                .layoutWeight(1)
 
-            SectionTitle({ title: '学习概览' })
-
-            Grid() {
-              GridItem() {
-                StatCard({
-                  label: '题库数量',
-                  value: this.statistics.bankCount,
-                  glyph: '书',
-                  accentColor: this.colors().brand
-                })
-              }
-
-              GridItem() {
-                StatCard({
-                  label: '错题数量',
-                  value: this.statistics.wrongCount,
-                  glyph: '错',
-                  accentColor: this.colors().error
-                })
-              }
-
-              GridItem() {
-                StatCard({
-                  label: '已掌握',
-                  value: this.statistics.masteredCount,
-                  glyph: '✓',
-                  accentColor: this.colors().successText
-                })
-              }
-
-              GridItem() {
-                StatCard({
-                  label: '待复习',
-                  value: this.statistics.pendingCount,
-                  glyph: '复',
-                  accentColor: this.colors().error
-                })
-              }
-            }
-            .columnsTemplate('1fr 1fr')
-            .rowsTemplate('112vp 112vp')
-            .columnsGap(CARD_GAP)
-            .rowsGap(CARD_GAP)
-            .height(236)
-
-            SectionTitle({ title: '设置' })
-
-            Column() {
-              Row({ space: 12 }) {
-                Text('数')
-                  .width(36)
-                  .height(36)
-                  .fontSize(14)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor(this.colors().brand)
-                  .textAlign(TextAlign.Center)
-                  .backgroundColor(this.colors().pageBackground)
-                  .borderRadius(18)
-                Text('数据管理')
-                  .fontSize(BODY_FONT_SIZE)
-                  .fontColor(this.colors().textPrimary)
-                Blank()
-                Text('›')
-                  .fontSize(24)
-                  .fontColor(this.colors().textCaption)
+                Column({ space: CARD_GAP }) {
+                  this.SettingsSection()
+                }
+                .layoutWeight(1)
               }
               .width('100%')
-              .height(60)
+              .alignItems(VerticalAlign.Top)
+            } else {
+              this.AccountSection()
 
-              Button() {
-                Row({ space: 12 }) {
-                  Text('清')
-                    .width(36)
-                    .height(36)
-                    .fontSize(14)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(this.colors().error)
-                    .textAlign(TextAlign.Center)
-                    .backgroundColor(this.colors().pageBackground)
-                    .borderRadius(18)
-                  Text(this.clearing ? '正在清空…' : '清空错题')
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                  Blank()
-                  Text('›')
-                    .fontSize(24)
-                    .fontColor(this.colors().textCaption)
-                }
-                .width('100%')
-                .height(60)
+              if (this.showMigrationCard()) {
+                this.MigrationSection()
               }
-              .type(ButtonType.Normal)
-              .width('100%')
-              .height(60)
-              .padding(0)
-              .backgroundColor(this.colors().cardBackground)
-              .enabled(!this.clearing && !this.dialogPending)
-              .accessibilityText('清空错题')
-              .onClick(() => {
-                this.confirmClear()
-              })
 
-              Button() {
-                Row({ space: 12 }) {
-                  Text('深')
-                    .width(36)
-                    .height(36)
-                    .fontSize(14)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(this.colors().brand)
-                    .textAlign(TextAlign.Center)
-                    .backgroundColor(this.colors().pageBackground)
-                    .borderRadius(18)
-                  Text('深色模式')
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                  Blank()
-                  Text(this.modeLabel())
-                    .fontSize(13)
-                    .fontColor(this.colors().textCaption)
-                    .margin({ right: 6 })
-                  Text('›')
-                    .fontSize(24)
-                    .fontColor(this.colors().textCaption)
-                }
-                .width('100%')
-                .height(60)
-              }
-              .type(ButtonType.Normal)
-              .width('100%')
-              .height(60)
-              .padding(0)
-              .backgroundColor(this.colors().cardBackground)
-              .enabled(!this.dialogPending)
-              .accessibilityText('深色模式')
-              .onClick(() => {
-                this.selectThemeMode()
-              })
+              this.StatsSection()
 
-              Button() {
-                Row({ space: 12 }) {
-                  Text('关')
-                    .width(36)
-                    .height(36)
-                    .fontSize(14)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(this.colors().successText)
-                    .textAlign(TextAlign.Center)
-                    .backgroundColor(this.colors().pageBackground)
-                    .borderRadius(18)
-                  Text('关于应用')
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                  Blank()
-                  Text('›')
-                    .fontSize(24)
-                    .fontColor(this.colors().textCaption)
-                }
-                .width('100%')
-                .height(60)
-              }
-              .type(ButtonType.Normal)
-              .width('100%')
-              .height(60)
-              .padding(0)
-              .backgroundColor(this.colors().cardBackground)
-              .enabled(!this.clearing && !this.dialogPending)
-              .accessibilityText('关于应用')
-              .onClick(() => {
-                this.showAbout()
-              })
+              this.SettingsSection()
             }
-            .width('100%')
-            .padding({ left: 16, right: 16 })
-            .backgroundColor(this.colors().cardBackground)
-            .borderRadius(CARD_RADIUS)
           }
           .width('100%')
           .padding({
@@ -738,7 +834,7 @@ export struct MinePage {
         }
         .width('100%')
         .height('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: this.contentMaxWidth() })
         .scrollBar(BarState.Off)
       }
     }
