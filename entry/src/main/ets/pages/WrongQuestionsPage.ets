@@ -1,6 +1,4 @@
 import { router } from '@kit.ArkUI'
-import uiMaterial from '@ohos.arkui.uiMaterial'
-import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { SectionTitle } from '../components/SectionTitle'
 import { StatCard } from '../components/StatCard'
@@ -10,9 +8,9 @@ import {
   CARD_GAP,
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
+  TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
-import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
 import { AccountSessionState } from '../models/AccountSession'
 import { Statistics } from '../models/Statistics'
 import { WrongQuestionSummary } from '../models/WrongQuestion'
@@ -22,15 +20,11 @@ import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
-import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct WrongQuestionsPage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
-  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
-    top: 0, left: 0, right: 0, bottom: 0
-  }
   @StorageProp('darkMode') darkMode: boolean = false
   @State statistics: Statistics = new Statistics(0, 0, 0, 0)
   @State subjects: Array<string> = new Array<string>()
@@ -223,49 +217,70 @@ export struct WrongQuestionsPage {
     })
   }
 
+  @Builder
+  private StatusBanner() {
+    Row() {
+      Text(this.bannerMessage())
+        .fontSize(13)
+        .fontColor(this.colors().warningText)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+    .backgroundColor(this.colors().warning)
+  }
+
   build() {
     Column() {
-      AppHeader({ title: '错题收集' })
-
-      if (this.bannerMessage().length > 0) {
-        Row() {
-          Text(this.bannerMessage())
-            .fontSize(13)
-            .fontColor(this.colors().warningText)
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor(this.colors().warning)
-      }
-
       if (this.loading) {
-        Column({ space: 14 }) {
-          LoadingProgress()
-            .width(40)
-            .height(40)
-            .color(this.colors().brand)
-
-          Text('正在整理错题')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textCaption)
-        }
-        .layoutWeight(1)
-        .width('100%')
-        .justifyContent(FlexAlign.Center)
-      } else if (this.errorMessage.length > 0) {
-        EmptyState({
-          glyph: '!',
-          title: '加载失败',
-          description: this.errorMessage,
-          actionLabel: '重新加载',
-          showAction: true,
-          onAction: () => {
-            this.retry()
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
           }
-        })
-        .layoutWeight(1)
+
+          Column({ space: 14 }) {
+            LoadingProgress()
+              .width(40)
+              .height(40)
+              .color(this.colors().brand)
+
+            Text('正在整理错题')
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().textCaption)
+          }
+          .layoutWeight(1)
+          .width('100%')
+          .justifyContent(FlexAlign.Center)
+        }
+        .width('100%')
+        .height('100%')
+      } else if (this.errorMessage.length > 0) {
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
+          }
+
+          EmptyState({
+            glyph: '!',
+            title: '加载失败',
+            description: this.errorMessage,
+            actionLabel: '重新加载',
+            showAction: true,
+            onAction: () => {
+              this.retry()
+            }
+          })
+          .layoutWeight(1)
+        }
+        .width('100%')
+        .height('100%')
       } else {
         List({ space: CARD_GAP }) {
+          if (this.bannerMessage().length > 0) {
+            ListItem() {
+              this.StatusBanner()
+            }
+          }
+
           ListItem() {
             Grid() {
               GridItem() {
@@ -303,44 +318,70 @@ export struct WrongQuestionsPage {
           ListItem() {
             Scroll() {
               Row({ space: 8 }) {
-                Button() {
-                  Text('全部')
-                    .fontSize(14)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor(this.selectedSubject.length === 0 ?
-                      this.colors().onBrand : this.colors().textCaption)
-                }
-                .type(ButtonType.Normal)
-                .height(40)
-                .padding({ left: 18, right: 18 })
-                .backgroundColor(this.selectedSubject.length === 0 ?
-                  Color.Transparent : this.colors().cardBackground)
-                .borderRadius(20)
-                .systemMaterial(this.selectedSubject.length === 0 ?
-                  ImmersiveMaterials.selectedControlFor(this.darkMode) : uiMaterial.Material.empty)
-                .onClick(() => {
-                  this.selectSubject('')
-                })
-
-                ForEach(this.subjects, (subject: string) => {
+                if (this.selectedSubject.length === 0) {
                   Button() {
-                    Text(subject)
+                    Text('全部')
                       .fontSize(14)
                       .fontWeight(FontWeight.Medium)
-                      .fontColor(this.selectedSubject === subject ?
-                        this.colors().onBrand : this.colors().textCaption)
+                      .fontColor(this.colors().onBrand)
                   }
                   .type(ButtonType.Normal)
                   .height(40)
                   .padding({ left: 18, right: 18 })
-                  .backgroundColor(this.selectedSubject === subject ?
-                    Color.Transparent : this.colors().cardBackground)
+                  .backgroundColor(this.colors().brand)
                   .borderRadius(20)
-                  .systemMaterial(this.selectedSubject === subject ?
-                    ImmersiveMaterials.selectedControlFor(this.darkMode) : uiMaterial.Material.empty)
                   .onClick(() => {
-                    this.selectSubject(subject)
+                    this.selectSubject('')
                   })
+                } else {
+                  Button() {
+                    Text('全部')
+                      .fontSize(14)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(this.colors().textCaption)
+                  }
+                  .type(ButtonType.Normal)
+                  .height(40)
+                  .padding({ left: 18, right: 18 })
+                  .backgroundColor(this.colors().cardBackground)
+                  .borderRadius(20)
+                  .onClick(() => {
+                    this.selectSubject('')
+                  })
+                }
+
+                ForEach(this.subjects, (subject: string) => {
+                  if (this.selectedSubject === subject) {
+                    Button() {
+                      Text(subject)
+                        .fontSize(14)
+                        .fontWeight(FontWeight.Medium)
+                        .fontColor(this.colors().onBrand)
+                    }
+                    .type(ButtonType.Normal)
+                    .height(40)
+                    .padding({ left: 18, right: 18 })
+                    .backgroundColor(this.colors().brand)
+                    .borderRadius(20)
+                    .onClick(() => {
+                      this.selectSubject(subject)
+                    })
+                  } else {
+                    Button() {
+                      Text(subject)
+                        .fontSize(14)
+                        .fontWeight(FontWeight.Medium)
+                        .fontColor(this.colors().textCaption)
+                    }
+                    .type(ButtonType.Normal)
+                    .height(40)
+                    .padding({ left: 18, right: 18 })
+                    .backgroundColor(this.colors().cardBackground)
+                    .borderRadius(20)
+                    .onClick(() => {
+                      this.selectSubject(subject)
+                    })
+                  }
                 }, (subject: string): string => subject)
               }
             }
@@ -386,13 +427,13 @@ export struct WrongQuestionsPage {
             }, (item: WrongQuestionSummary): string => item.id)
           }
         }
-        .layoutWeight(1)
         .width('100%')
+        .height('100%')
         .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
           left: PAGE_PADDING,
-          right: PAGE_PADDING,
-          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+          right: PAGE_PADDING
         })
         .scrollBar(BarState.Off)
       }

@@ -1,6 +1,5 @@
 import { router } from '@kit.ArkUI'
 import { hilog } from '@kit.PerformanceAnalysisKit'
-import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { QuestionCard } from '../components/QuestionCard'
 import {
@@ -104,13 +103,6 @@ struct QuestionListPage {
       }
     } catch {
     }
-  }
-
-  private goBack(): void {
-    if (this.navigationPending) {
-      return
-    }
-    this.getUIContext().getRouter().back()
   }
 
   private bannerMessage(): string {
@@ -413,30 +405,32 @@ struct QuestionListPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: this.bankName,
-        showBack: true,
-        onBack: () => {
-          this.goBack()
+    Navigation() {
+      Column() {
+        if (this.bannerMessage().length > 0) {
+          Row() {
+            Text(this.bannerMessage())
+              .fontSize(13)
+              .fontColor(this.colors().warningText)
+          }
+          .width('100%')
+          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+          .backgroundColor(this.colors().warning)
         }
-      })
 
-      if (this.bannerMessage().length > 0) {
-        Row() {
-          Text(this.bannerMessage())
-            .fontSize(13)
-            .fontColor(this.colors().warningText)
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor(this.colors().warning)
+        this.QuestionListPane()
       }
-
-      this.QuestionListPane()
+      .width('100%')
+      .height('100%')
+      .backgroundColor(this.colors().pageBackground)
     }
+    .title(this.bankName, {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
     .width('100%')
     .height('100%')
-    .backgroundColor(this.colors().pageBackground)
   }
 }

@@ -3,7 +3,6 @@ import { router } from '@kit.ArkUI'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { hash } from '@kit.CoreFileKit'
 import fs from '@ohos.file.fs'
-import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
@@ -720,16 +719,9 @@ struct PdfImportReviewPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: '云端识别审核',
-        showBack: true,
-        onBack: () => {
-          this.returnToImportPage()
-        }
-      })
-
-      if (this.artifactExpired) {
+    Navigation() {
+      Column() {
+        if (this.artifactExpired) {
         Text('原题图片已过期，文字仍可使用')
           .width('100%')
           .constraintSize({ minHeight: 48 })
@@ -1031,5 +1023,14 @@ struct PdfImportReviewPage {
     .width('100%')
     .height('100%')
     .backgroundColor(this.colors().pageBackground)
+    }
+    .title('云端识别审核', {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
+    .width('100%')
+    .height('100%')
   }
 }

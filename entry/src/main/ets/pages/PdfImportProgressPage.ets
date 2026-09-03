@@ -1,6 +1,5 @@
 import { Context } from '@kit.AbilityKit'
 import { router } from '@kit.ArkUI'
-import { AppHeader } from '../components/AppHeader'
 import { CloudImportStatusCard } from '../components/CloudImportStatusCard'
 import {
   BODY_FONT_SIZE,
@@ -583,16 +582,9 @@ struct PdfImportProgressPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: '云端 PDF 导入',
-        showBack: true,
-        onBack: () => {
-          this.goBack()
-        }
-      })
-
-      Scroll() {
+    Navigation() {
+      Column() {
+        Scroll() {
         Column({ space: 16 }) {
           CloudImportStatusCard({
             status: this.statusLabel,
@@ -692,14 +684,23 @@ struct PdfImportProgressPage {
           right: PAGE_PADDING,
           bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
         })
+        }
+        .layoutWeight(1)
+        .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .scrollBar(BarState.Off)
       }
-      .layoutWeight(1)
       .width('100%')
-      .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
-      .scrollBar(BarState.Off)
+      .height('100%')
+      .backgroundColor(this.colors().pageBackground)
     }
+    .title('云端 PDF 导入', {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
     .width('100%')
     .height('100%')
-    .backgroundColor(this.colors().pageBackground)
   }
 }

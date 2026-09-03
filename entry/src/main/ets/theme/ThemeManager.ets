@@ -1,8 +1,12 @@
 import { common, ConfigurationConstant } from '@kit.AbilityKit'
 import { preferences } from '@kit.ArkData'
+import { hilog } from '@kit.PerformanceAnalysisKit'
 import { AppColors } from './AppColors'
 import { DarkColors } from './DarkColors'
 import { LightColors } from './LightColors'
+
+const DOMAIN: number = 0x0000
+const TAG: string = 'WQC_THEME'
 
 export enum ThemeMode {
   SYSTEM = 0,
@@ -44,11 +48,13 @@ export class ThemeManager {
       .then((value: preferences.ValueType) => {
         AppStorage.setOrCreate(MODE_STORAGE_KEY, ThemeManager.normalize(value))
         ThemeManager.syncDark()
+        ThemeManager.applyColorMode(context, ThemeManager.currentMode())
         onApplied()
       })
       .catch(() => {
         AppStorage.setOrCreate(MODE_STORAGE_KEY, ThemeMode.SYSTEM)
         ThemeManager.syncDark()
+        ThemeManager.applyColorMode(context, ThemeMode.SYSTEM)
         onApplied()
       })
   }
@@ -56,6 +62,7 @@ export class ThemeManager {
   static setMode(context: common.Context, mode: ThemeMode): void {
     AppStorage.setOrCreate(MODE_STORAGE_KEY, mode)
     ThemeManager.syncDark()
+    ThemeManager.applyColorMode(context, mode)
     preferences.getPreferences(context, STORE_NAME)
       .then((store: preferences.Preferences) => {
         store.putSync(STORE_MODE_KEY, mode)
@@ -98,5 +105,19 @@ export class ThemeManager {
     const systemDark: boolean = AppStorage.get<boolean>(SYSTEM_DARK_STORAGE_KEY) === true
     const dark: boolean = mode === ThemeMode.DARK || (mode === ThemeMode.SYSTEM && systemDark)
     AppStorage.setOrCreate(DARK_STORAGE_KEY, dark)
+  }
+
+  private static applyColorMode(context: common.Context, mode: ThemeMode): void {
+    try {
+      if (mode === ThemeMode.DARK) {
+        context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK)
+      } else if (mode === ThemeMode.LIGHT) {
+        context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT)
+      } else {
+        context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET)
+      }
+    } catch (err) {
+      hilog.warn(DOMAIN, TAG, 'Failed to apply color mode. Cause: %{public}s', JSON.stringify(err))
+    }
   }
 }

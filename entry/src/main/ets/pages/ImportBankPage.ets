@@ -3,7 +3,6 @@ import { router } from '@kit.ArkUI'
 import { BusinessError } from '@kit.BasicServicesKit'
 import fs from '@ohos.file.fs'
 import picker from '@ohos.file.picker'
-import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
@@ -295,16 +294,9 @@ struct ImportBankPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: '导入题库',
-        showBack: true,
-        onBack: () => {
-          this.goBack()
-        }
-      })
-
-      Scroll() {
+    Navigation() {
+      Column() {
+        Scroll() {
         Column({ space: 18 }) {
           Column({ space: 14 }) {
             Row() {
@@ -409,14 +401,23 @@ struct ImportBankPage {
           right: PAGE_PADDING,
           bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
         })
+        }
+        .layoutWeight(1)
+        .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .scrollBar(BarState.Off)
       }
-      .layoutWeight(1)
       .width('100%')
-      .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
-      .scrollBar(BarState.Off)
+      .height('100%')
+      .backgroundColor(this.colors().pageBackground)
     }
+    .title('导入题库', {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
     .width('100%')
     .height('100%')
-    .backgroundColor(this.colors().pageBackground)
   }
 }

@@ -4,7 +4,6 @@ import {
   SUBTITLE_FONT_SIZE,
   themePalette
 } from '../constants/AppTheme'
-import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
 import { AppColors } from '../theme/AppColors'
 
 @Component
@@ -97,6 +96,6 @@ export struct HomeOverviewCard {
     .width('100%')
     .padding(22)
     .borderRadius(CARD_RADIUS + 6)
-    .systemMaterial(ImmersiveMaterials.overviewCardFor(this.darkMode))
+    .backgroundColor(this.colors().cardBackground)
   }
 }

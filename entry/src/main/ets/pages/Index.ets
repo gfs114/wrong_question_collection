@@ -1,9 +1,10 @@
+import { HdsTabs, hdsMaterial } from '@kit.UIDesignKit'
 import { router } from '@kit.ArkUI'
-import { MainBottomNavigation } from '../components/MainBottomNavigation'
 import {
   BODY_FONT_SIZE,
   themePalette
 } from '../constants/AppTheme'
+import { HdsMaterialPolicy, HdsMaterialSelection } from '../constants/HdsMaterialPolicy'
 import { MainTabIndex } from '../models/MainTab'
 import { CloudSyncResult, SyncDisplayState } from '../models/SyncModels'
 import { AppBootstrapService } from '../services/AppBootstrapService'
@@ -24,6 +25,8 @@ struct Index {
   @State navigationPending: boolean = false
   @State syncState: SyncDisplayState = SyncDisplayState.LOCAL
   @StorageProp('darkMode') darkMode: boolean = false
+  @State hdsMaterialType: hdsMaterial.MaterialType = hdsMaterial.MaterialType.ADAPTIVE
+  @State hdsMaterialLevel: hdsMaterial.MaterialLevel = hdsMaterial.MaterialLevel.ADAPTIVE
   private bootstrapToken: number = 0
   private pageShown: boolean = false
 
@@ -33,6 +36,9 @@ struct Index {
 
   aboutToAppear(): void {
     this.initialize()
+    const selection: HdsMaterialSelection = HdsMaterialPolicy.resolve()
+    this.hdsMaterialType = selection.materialType
+    this.hdsMaterialLevel = selection.materialLevel
   }
 
   onPageShow(): void {
@@ -116,63 +122,121 @@ struct Index {
     }
   }
 
-  build() {
-    Stack() {
-      if (this.ready) {
-        Stack({ alignContent: Alignment.Bottom }) {
-          Stack() {
-            HomePage({
-              active: this.selectedIndex === MainTabIndex.HOME,
-              refreshVersion: this.refreshVersion,
-              syncLabel: CloudSyncService.label(this.syncState),
-              onSelectTab: (index: number) => {
-                this.selectTab(index)
-              },
-              onStartImport: () => {
-                this.openImportPage()
-              },
-              onStartReview: () => {
-                this.selectTab(MainTabIndex.WRONG_QUESTIONS)
-              }
-            })
-            .visibility(this.selectedIndex === MainTabIndex.HOME ? Visibility.Visible : Visibility.Hidden)
+  private titleFor(index: number): string {
+    if (index === MainTabIndex.BOOKS) {
+      return '题库'
+    }
+    if (index === MainTabIndex.WRONG_QUESTIONS) {
+      return '错题'
+    }
+    if (index === MainTabIndex.MINE) {
+      return '我的'
+    }
+    return '首页'
+  }
 
-            BooksPage({
-              active: this.selectedIndex === MainTabIndex.BOOKS,
-              refreshVersion: this.refreshVersion
-            })
-            .visibility(this.selectedIndex === MainTabIndex.BOOKS ? Visibility.Visible : Visibility.Hidden)
+  private importToolbarItems(): Array<ToolbarItem> {
+    const items: Array<ToolbarItem> = new Array<ToolbarItem>()
+    if (this.selectedIndex !== MainTabIndex.BOOKS) {
+      return items
+    }
+    const item: ToolbarItem = {
+      value: '导入题库',
+      action: () => {
+        this.openImportPage()
+      }
+    }
+    items.push(item)
+    return items
+  }
 
-            WrongQuestionsPage({
-              active: this.selectedIndex === MainTabIndex.WRONG_QUESTIONS,
-              refreshVersion: this.refreshVersion
-            })
-            .visibility(this.selectedIndex === MainTabIndex.WRONG_QUESTIONS ?
-              Visibility.Visible : Visibility.Hidden)
+  @Builder
+  private TabBarItem(index: number, label: string, symbol: Resource) {
+    Column({ space: 4 }) {
+      SymbolGlyph(symbol)
+        .fontSize(24)
+        .fontWeight(this.selectedIndex === index ? FontWeight.Bold : FontWeight.Medium)
+        .fontColor([this.selectedIndex === index ? this.colors().brand : this.colors().navInactive])
 
-            MinePage({
-              active: this.selectedIndex === MainTabIndex.MINE,
-              refreshVersion: this.refreshVersion,
-              syncState: this.syncState,
-              onSyncRequested: () => {
-                this.synchronize()
-              },
-              onSessionChanged: () => {
-                this.synchronize()
-              }
-            })
-            .visibility(this.selectedIndex === MainTabIndex.MINE ? Visibility.Visible : Visibility.Hidden)
-          }
-          .width('100%')
-          .height('100%')
+      Text(label)
+        .fontSize(11)
+        .fontWeight(this.selectedIndex === index ? FontWeight.Bold : FontWeight.Medium)
+        .fontColor(this.selectedIndex === index ? this.colors().brand : this.colors().navInactive)
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+  }
 
-          MainBottomNavigation({
-            selectedIndex: this.selectedIndex,
-            onSelect: (index: number) => {
-              this.selectTab(index)
-            }
-          })
+  @Builder
+  private TabContents() {
+    TabContent() {
+      HomePage({
+        active: this.selectedIndex === MainTabIndex.HOME,
+        refreshVersion: this.refreshVersion,
+        syncLabel: CloudSyncService.label(this.syncState),
+        onSelectTab: (index: number) => {
+          this.selectTab(index)
+        },
+        onStartImport: () => {
+          this.openImportPage()
+        },
+        onStartReview: () => {
+          this.selectTab(MainTabIndex.WRONG_QUESTIONS)
         }
+      })
+    }
+    .tabBar(this.TabBarItem(MainTabIndex.HOME, '首页', $r('sys.symbol.house_fill')))
+
+    TabContent() {
+      BooksPage({
+        active: this.selectedIndex === MainTabIndex.BOOKS,
+        refreshVersion: this.refreshVersion
+      })
+    }
+    .tabBar(this.TabBarItem(MainTabIndex.BOOKS, '题库', $r('sys.symbol.book')))
+
+    TabContent() {
+      WrongQuestionsPage({
+        active: this.selectedIndex === MainTabIndex.WRONG_QUESTIONS,
+        refreshVersion: this.refreshVersion
+      })
+    }
+    .tabBar(this.TabBarItem(MainTabIndex.WRONG_QUESTIONS, '错题',
+      $r('sys.symbol.exclamationmark_circle_fill')))
+
+    TabContent() {
+      MinePage({
+        active: this.selectedIndex === MainTabIndex.MINE,
+        refreshVersion: this.refreshVersion,
+        syncState: this.syncState,
+        onSyncRequested: () => {
+          this.synchronize()
+        },
+        onSessionChanged: () => {
+          this.synchronize()
+        }
+      })
+    }
+    .tabBar(this.TabBarItem(MainTabIndex.MINE, '我的', $r('sys.symbol.person_fill')))
+  }
+
+  build() {
+    Navigation() {
+      if (this.ready) {
+        HdsTabs({ barPosition: BarPosition.End, index: this.selectedIndex }) {
+          this.TabContents()
+        }
+        .barOverlap(true)
+        .barFloatingStyle({
+          systemMaterialEffect: {
+            materialType: this.hdsMaterialType,
+            materialLevel: this.hdsMaterialLevel
+          }
+        })
+        .onChange((index: number) => {
+          this.selectTab(index)
+        })
         .width('100%')
         .height('100%')
       } else {
@@ -223,10 +287,16 @@ struct Index {
         .height('100%')
         .padding({ left: 32, right: 32 })
         .justifyContent(FlexAlign.Center)
+        .backgroundColor(this.colors().pageBackground)
       }
     }
+    .title(this.titleFor(this.selectedIndex), {
+      barStyle: BarStyle.STACK
+    })
+    .toolbarConfiguration(this.importToolbarItems(), { barStyle: BarStyle.STANDARD })
+    .hideToolBar(this.selectedIndex !== MainTabIndex.BOOKS)
+    .mode(NavigationMode.Stack)
     .width('100%')
     .height('100%')
-    .backgroundColor(this.colors().pageBackground)
   }
 }

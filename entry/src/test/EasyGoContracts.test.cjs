@@ -139,10 +139,11 @@ const detail = readEts('ets/pages/QuestionDetailPage.ets')
 expectAbsent(detail, 'WindowLayoutPolicy', 'detail page must not use the removed hand-written ratio policy')
 expectIncludes(detail, 'isEasySplit()', 'detail page must expose the guarded runtime split check')
 
-const navigation = readEts('ets/components/MainBottomNavigation.ets')
-expectIncludes(navigation, 'SafeAreaUtils.bottom(this.safeAreaInsets)',
-  'bottom navigation must keep the live safe-area inset')
-expectAbsent(navigation, '.height(60)', 'bottom navigation must not hard-code a fixed item height')
+const indexPage = readEts('ets/pages/Index.ets')
+expectIncludes(indexPage, 'HdsTabs({ barPosition: BarPosition.End, index: this.selectedIndex })',
+  'the HDS Tabs must own the bottom bar')
+expectAbsent(indexPage, 'SafeAreaUtils.bottom', 'the native TabBar must handle the bottom safe area itself')
+expectAbsent(indexPage, '.height(60)', 'the native TabBar must not hard-code a fixed item height')
 
 const pageFiles = fs.readdirSync(path.join(entryRoot, 'ets/pages')).filter((name) => name.endsWith('.ets'))
 for (const name of pageFiles) {

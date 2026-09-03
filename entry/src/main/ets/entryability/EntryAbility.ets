@@ -1,6 +1,7 @@
 import { AbilityConstant, common, Configuration, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { HdsMaterialPolicy } from '../constants/HdsMaterialPolicy';
 import { AppColors } from '../theme/AppColors';
 import { ThemeManager } from '../theme/ThemeManager';
 
@@ -42,6 +43,7 @@ export default class EntryAbility extends UIAbility {
       this.mainWindow.setWindowLayoutFullScreen(true);
       this.mainWindow.setWindowSystemBarEnable(['status', 'navigation']);
       this.applySystemBars();
+      HdsMaterialPolicy.logDeviceSupport();
       hilog.info(DOMAIN, 'testTag', '%{public}s', 'Immersive window layout enabled.');
     } catch (err) {
       hilog.error(DOMAIN, 'testTag', 'Failed to enable immersive layout. Cause: %{public}s', JSON.stringify(err));

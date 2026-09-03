@@ -1,5 +1,4 @@
 import { Context } from '@kit.AbilityKit'
-import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { HuaweiAccountCard } from '../components/HuaweiAccountCard'
 import { LegacyMigrationCard } from '../components/LegacyMigrationCard'
@@ -12,6 +11,7 @@ import {
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE,
+  TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
 import { Statistics } from '../models/Statistics'
@@ -29,15 +29,11 @@ import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { LegacyCloudMigrationService } from '../services/LegacyCloudMigrationService'
 import { AppColors } from '../theme/AppColors'
 import { ThemeManager, ThemeMode } from '../theme/ThemeManager'
-import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct MinePage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
-  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
-    top: 0, left: 0, right: 0, bottom: 0
-  }
   @StorageProp('darkMode') darkMode: boolean = false
   @StorageProp('themeMode') themeMode: ThemeMode = ThemeMode.SYSTEM
   @State statistics: Statistics = new Statistics(0, 0, 0, 0)
@@ -461,8 +457,6 @@ export struct MinePage {
 
   build() {
     Column() {
-      AppHeader({ title: '我的' })
-
       if (this.loading) {
         Column({ space: 14 }) {
           LoadingProgress()
@@ -474,8 +468,8 @@ export struct MinePage {
             .fontSize(BODY_FONT_SIZE)
             .fontColor(this.colors().textCaption)
         }
-        .layoutWeight(1)
         .width('100%')
+        .height('100%')
         .justifyContent(FlexAlign.Center)
       } else if (this.errorMessage.length > 0) {
         EmptyState({
@@ -488,7 +482,8 @@ export struct MinePage {
             this.retry()
           }
         })
-        .layoutWeight(1)
+        .width('100%')
+        .height('100%')
       } else {
         Scroll() {
           Column({ space: CARD_GAP }) {
@@ -737,11 +732,12 @@ export struct MinePage {
           .padding({
             left: PAGE_PADDING,
             right: PAGE_PADDING,
-            bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+            top: 16,
+            bottom: TAB_BAR_CLEARANCE
           })
         }
-        .layoutWeight(1)
         .width('100%')
+        .height('100%')
         .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .scrollBar(BarState.Off)
       }

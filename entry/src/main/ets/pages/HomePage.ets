@@ -1,4 +1,3 @@
-import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { HomeOverviewCard } from '../components/HomeOverviewCard'
 import { HomeRecentSection } from '../components/HomeRecentSection'
@@ -7,6 +6,7 @@ import {
   CARD_GAP,
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
+  TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
@@ -18,15 +18,11 @@ import { AccountSessionService } from '../services/AccountSessionService'
 import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
-import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct HomePage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
-  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
-    top: 0, left: 0, right: 0, bottom: 0
-  }
   @StorageProp('darkMode') darkMode: boolean = false
   @State dashboard: HomeDashboardSnapshot = new HomeDashboardSnapshot(
     new Statistics(0, 0, 0, 0), new Array<QuestionBankSummary>(), new Array<WrongQuestionSummary>())
@@ -178,49 +174,70 @@ export struct HomePage {
     return this.dashboard.statistics.bankCount > 0 || this.dashboard.statistics.wrongCount > 0
   }
 
+  @Builder
+  private StatusBanner() {
+    Row() {
+      Text(this.bannerMessage())
+        .fontSize(13)
+        .fontColor(this.colors().warningText)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+    .backgroundColor(this.colors().warning)
+  }
+
   build() {
     Column() {
-      AppHeader({ title: '首页' })
-
-      if (this.bannerMessage().length > 0) {
-        Row() {
-          Text(this.bannerMessage())
-            .fontSize(13)
-            .fontColor(this.colors().warningText)
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor(this.colors().warning)
-      }
-
       if (this.loading) {
-        Column({ space: 14 }) {
-          LoadingProgress()
-            .width(40)
-            .height(40)
-            .color(this.colors().brand)
-
-          Text('正在整理学习进度')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textCaption)
-        }
-        .layoutWeight(1)
-        .width('100%')
-        .justifyContent(FlexAlign.Center)
-      } else if (this.errorMessage.length > 0) {
-        EmptyState({
-          glyph: '!',
-          title: '加载失败',
-          description: this.errorMessage,
-          actionLabel: '重新加载',
-          showAction: true,
-          onAction: () => {
-            this.retry()
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
           }
-        })
-        .layoutWeight(1)
+
+          Column({ space: 14 }) {
+            LoadingProgress()
+              .width(40)
+              .height(40)
+              .color(this.colors().brand)
+
+            Text('正在整理学习进度')
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().textCaption)
+          }
+          .layoutWeight(1)
+          .width('100%')
+          .justifyContent(FlexAlign.Center)
+        }
+        .width('100%')
+        .height('100%')
+      } else if (this.errorMessage.length > 0) {
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
+          }
+
+          EmptyState({
+            glyph: '!',
+            title: '加载失败',
+            description: this.errorMessage,
+            actionLabel: '重新加载',
+            showAction: true,
+            onAction: () => {
+              this.retry()
+            }
+          })
+          .layoutWeight(1)
+        }
+        .width('100%')
+        .height('100%')
       } else {
         List({ space: CARD_GAP }) {
+          if (this.bannerMessage().length > 0) {
+            ListItem() {
+              this.StatusBanner()
+            }
+          }
+
           ListItem() {
             Column({ space: 4 }) {
               Text('今天也要稳稳进步')
@@ -317,13 +334,13 @@ export struct HomePage {
             }
           }
         }
-        .layoutWeight(1)
         .width('100%')
+        .height('100%')
         .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
           left: PAGE_PADDING,
-          right: PAGE_PADDING,
-          bottom: 112 + SafeAreaUtils.bottom(this.safeAreaInsets)
+          right: PAGE_PADDING
         })
         .scrollBar(BarState.Off)
       }

@@ -1,8 +1,8 @@
-import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE,
   themePalette
@@ -249,16 +249,9 @@ struct WrongQuestionDetailPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: '错题详情',
-        showBack: true,
-        onBack: () => {
-          this.goBack()
-        }
-      })
-
-      if (this.bannerMessage().length > 0) {
+    Navigation() {
+      Column() {
+        if (this.bannerMessage().length > 0) {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
@@ -414,6 +407,7 @@ struct WrongQuestionDetailPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .scrollBar(BarState.Off)
 
         Row({ space: 10 }) {
@@ -452,6 +446,7 @@ struct WrongQuestionDetailPage {
           })
         }
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .padding({
           left: PAGE_PADDING,
           right: PAGE_PADDING,
@@ -464,5 +459,14 @@ struct WrongQuestionDetailPage {
     .width('100%')
     .height('100%')
     .backgroundColor(this.colors().pageBackground)
+    }
+    .title('错题详情', {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
+    .width('100%')
+    .height('100%')
   }
 }

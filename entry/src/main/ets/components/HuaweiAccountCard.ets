@@ -5,7 +5,6 @@ import {
   CARD_RADIUS,
   themePalette
 } from '../constants/AppTheme'
-import { ImmersiveMaterials } from '../constants/ImmersiveMaterials'
 import { AppColors } from '../theme/AppColors'
 
 @Component
@@ -172,6 +171,6 @@ export struct HuaweiAccountCard {
     .width('100%')
     .padding(18)
     .borderRadius(CARD_RADIUS)
-    .systemMaterial(ImmersiveMaterials.accountCardFor(this.darkMode))
+    .backgroundColor(this.colors().cardBackground)
   }
 }

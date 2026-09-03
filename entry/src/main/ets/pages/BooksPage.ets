@@ -1,5 +1,4 @@
 import { router } from '@kit.ArkUI'
-import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { QuestionBankCard } from '../components/QuestionBankCard'
 import {
@@ -7,6 +6,7 @@ import {
   CARD_GAP,
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
+  TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
 import { AccountSessionState } from '../models/AccountSession'
@@ -17,7 +17,6 @@ import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
-import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Component
 export struct BooksPage {
@@ -33,9 +32,6 @@ export struct BooksPage {
   @State offline: boolean = false
   @State syncFailed: boolean = false
   @State accountId: string = ''
-  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
-    top: 0, left: 0, right: 0, bottom: 0
-  }
   @StorageProp('darkMode') darkMode: boolean = false
   private hasRequested: boolean = false
   private requestedVersion: number = -1
@@ -249,70 +245,92 @@ export struct BooksPage {
     }
   }
 
+  @Builder
+  private StatusBanner() {
+    Row() {
+      Text(this.bannerMessage())
+        .fontSize(13)
+        .fontColor(this.colors().warningText)
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+    .backgroundColor(this.colors().warning)
+  }
+
   build() {
     Column() {
-      AppHeader({
-        title: '我的题库',
-        actionLabel: '导入题库',
-        showAction: true,
-        onAction: () => {
-          this.openImportPage()
-        }
-      })
-
-      if (this.bannerMessage().length > 0) {
-        Row() {
-          Text(this.bannerMessage())
-            .fontSize(13)
-            .fontColor(this.colors().warningText)
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor(this.colors().warning)
-      }
-
       if (this.loading) {
-        Column({ space: 14 }) {
-          LoadingProgress()
-            .width(40)
-            .height(40)
-            .color(this.colors().brand)
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
+          }
 
-          Text('正在加载题库')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textCaption)
+          Column({ space: 14 }) {
+            LoadingProgress()
+              .width(40)
+              .height(40)
+              .color(this.colors().brand)
+
+            Text('正在加载题库')
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().textCaption)
+          }
+          .layoutWeight(1)
+          .width('100%')
+          .justifyContent(FlexAlign.Center)
         }
-        .layoutWeight(1)
         .width('100%')
-        .justifyContent(FlexAlign.Center)
+        .height('100%')
       } else if (this.errorMessage.length > 0) {
-        EmptyState({
-          glyph: '!',
-          title: '加载失败',
-          description: this.errorMessage,
-          actionLabel: '重新加载',
-          showAction: true,
-          onAction: () => {
-            this.retry()
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
           }
-        })
-        .layoutWeight(1)
-      } else if (this.banks.length === 0) {
-        EmptyState({
-          glyph: '书',
-          title: this.signedIn ? '还没有题库' : '未登录',
-          description: this.signedIn ? '点击右上角导入你的第一个题库' : '登录后即可查看云端题库与离线缓存',
-          actionLabel: this.signedIn ? '导入题库' : '去登录',
-          showAction: this.signedIn,
-          onAction: () => {
-            if (this.signedIn) {
-              this.openImportPage()
+
+          EmptyState({
+            glyph: '!',
+            title: '加载失败',
+            description: this.errorMessage,
+            actionLabel: '重新加载',
+            showAction: true,
+            onAction: () => {
+              this.retry()
             }
+          })
+          .layoutWeight(1)
+        }
+        .width('100%')
+        .height('100%')
+      } else if (this.banks.length === 0) {
+        Column() {
+          if (this.bannerMessage().length > 0) {
+            this.StatusBanner()
           }
-        })
-        .layoutWeight(1)
+
+          EmptyState({
+            glyph: '书',
+            title: this.signedIn ? '还没有题库' : '未登录',
+            description: this.signedIn ? '点击右上角导入你的第一个题库' : '登录后即可查看云端题库与离线缓存',
+            actionLabel: this.signedIn ? '导入题库' : '去登录',
+            showAction: this.signedIn,
+            onAction: () => {
+              if (this.signedIn) {
+                this.openImportPage()
+              }
+            }
+          })
+          .layoutWeight(1)
+        }
+        .width('100%')
+        .height('100%')
       } else {
         List({ space: CARD_GAP }) {
+          if (this.bannerMessage().length > 0) {
+            ListItem() {
+              this.StatusBanner()
+            }
+          }
+
           ForEach(this.banks, (bank: QuestionBankSummary) => {
             ListItem() {
               QuestionBankCard({
@@ -331,13 +349,13 @@ export struct BooksPage {
             }
           }, (bank: QuestionBankSummary): string => bank.id)
         }
-        .layoutWeight(1)
         .width('100%')
+        .height('100%')
         .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
           left: PAGE_PADDING,
-          right: PAGE_PADDING,
-          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+          right: PAGE_PADDING
         })
         .scrollBar(BarState.Off)
       }

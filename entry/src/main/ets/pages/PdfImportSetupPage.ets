@@ -3,7 +3,6 @@ import { router } from '@kit.ArkUI'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { connection } from '@kit.NetworkKit'
 import fs from '@ohos.file.fs'
-import { AppHeader } from '../components/AppHeader'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
@@ -250,16 +249,9 @@ struct PdfImportSetupPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: 'PDF 导入设置',
-        showBack: true,
-        onBack: () => {
-          this.leaveImport()
-        }
-      })
-
-      if (!this.selectionReady) {
+    Navigation() {
+      Column() {
+        if (!this.selectionReady) {
         Column({ space: 18 }) {
           Text(this.errorMessage)
             .fontSize(BODY_FONT_SIZE)
@@ -458,5 +450,14 @@ struct PdfImportSetupPage {
     .width('100%')
     .height('100%')
     .backgroundColor(this.colors().pageBackground)
+    }
+    .title('PDF 导入设置', {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
+    .width('100%')
+    .height('100%')
   }
 }

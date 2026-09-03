@@ -1,8 +1,8 @@
-import { AppHeader } from '../components/AppHeader'
 import { QuestionSourceImages } from '../components/QuestionSourceImages'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
+  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
   themePalette
 } from '../constants/AppTheme'
@@ -51,19 +51,6 @@ struct EditQuestionPage {
 
   onBackPress(): boolean {
     return this.pending || this.navigationPending
-  }
-
-  private goBack(): void {
-    if (this.pending || this.navigationPending) {
-      return
-    }
-    this.navigationPending = true
-    try {
-      this.getUIContext().getRouter().back()
-    } catch {
-      this.navigationPending = false
-      this.showToast('暂时无法返回题目详情')
-    }
   }
 
   private bannerMessage(): string {
@@ -245,16 +232,9 @@ struct EditQuestionPage {
   }
 
   build() {
-    Column() {
-      AppHeader({
-        title: '编辑题目',
-        showBack: true,
-        onBack: () => {
-          this.goBack()
-        }
-      })
-
-      if (this.bannerMessage().length > 0) {
+    Navigation() {
+      Column() {
+        if (this.bannerMessage().length > 0) {
         Row() {
           Text(this.bannerMessage())
             .fontSize(13)
@@ -425,11 +405,13 @@ struct EditQuestionPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
         .scrollBar(BarState.Off)
 
         Button('保存修改')
           .width('100%')
           .height(50)
+          .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
           .margin({
             left: PAGE_PADDING,
             right: PAGE_PADDING,
@@ -451,5 +433,14 @@ struct EditQuestionPage {
     .width('100%')
     .height('100%')
     .backgroundColor(this.colors().pageBackground)
+    }
+    .title('编辑题目', {
+      barStyle: BarStyle.STANDARD
+    })
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(false)
+    .mode(NavigationMode.Stack)
+    .width('100%')
+    .height('100%')
   }
 }

@@ -78,6 +78,9 @@ const themeManager = readEts('ets/theme/ThemeManager.ets')
 expectIncludes(themeManager, 'enum ThemeMode', 'ThemeMode must offer light/dark/system choices')
 expectIncludes(themeManager, 'setOrCreate', 'ThemeManager must publish the effective mode through AppStorage')
 expectIncludes(themeManager, "'darkMode'", 'ThemeManager must drive the shared darkMode key')
+expectIncludes(themeManager, 'setColorMode',
+  'ThemeManager must sync the app color mode so the status bar and system glass follow theme switches')
+expectIncludes(themeManager, 'COLOR_MODE_NOT_SET', 'follow-system mode must restore the system color mode')
 
 const hardcodedColor = /'#[0-9A-Fa-f]{6,8}'/
 const pageDir = path.join(etsRoot, 'pages')
@@ -96,39 +99,54 @@ for (const dir of [pageDir, componentDir]) {
   }
 }
 
-const materials = readEts('ets/constants/ImmersiveMaterials.ets')
-for (const name of ['navigationDark', 'headerDark', 'overviewCardDark', 'accountCardDark']) {
-  expectIncludes(materials, 'static readonly ' + name + ':', 'dark material ' + name + ' is required')
+const policyPath = path.join(etsRoot, 'constants', 'HdsMaterialPolicy.ets')
+if (!fs.existsSync(policyPath)) {
+  throw new Error('HdsMaterialPolicy.ets is required under entry/src/main/ets/constants')
 }
-for (const name of ['navigationFor', 'headerFor', 'overviewCardFor', 'accountCardFor']) {
-  expectIncludes(materials, 'static ' + name + '(dark: boolean)', 'material resolver ' + name + ' is required')
+const policy = fs.readFileSync(policyPath, 'utf8')
+expectIncludes(policy, 'hdsMaterial.MaterialType.ADAPTIVE', 'the official material policy must resolve ADAPTIVE')
+expectIncludes(policy, 'hdsMaterial.MaterialLevel.ADAPTIVE', 'the official material policy must resolve the ADAPTIVE level')
+expectAbsent(policy, 'Dark', 'the material policy must not keep manual dark variants')
+expectAbsent(policy, 'materialColor:', 'the material policy must let the system compute light/dark colors')
+const indexPage = readEts('ets/pages/Index.ets')
+expectIncludes(indexPage, 'systemMaterialEffect:',
+  'the HdsTabs bar must keep the official system material in every color mode')
+const hdsSurface = indexPage.slice(indexPage.indexOf('HdsTabs({'), indexPage.indexOf('.onChange('))
+expectAbsent(hdsSurface, "'#FFFFFF'", 'the HDS tab bar must not hardcode a light background')
+expectAbsent(hdsSurface, "'#000000'", 'the HDS tab bar must not hardcode a dark background')
+expectAbsent(hdsSurface, 'backgroundColor', 'the HDS tab bar must not stack a solid background')
+
+const appTheme = readEts('ets/constants/AppTheme.ets')
+expectIncludes(appTheme, 'TAB_BAR_CLEARANCE: number', 'the native tab bar clearance must be a shared layout constant')
+expectIncludes(appTheme, 'CONTENT_MAX_WIDTH: number = 760', 'wide screens must stay capped by CONTENT_MAX_WIDTH')
+
+for (const relative of ['ets/pages/HomePage.ets', 'ets/pages/BooksPage.ets', 'ets/pages/WrongQuestionsPage.ets',
+  'ets/pages/MinePage.ets']) {
+  const source = readEts(relative)
+  expectAbsent(source, 'AppHeader', relative + ' must not mount a simulated header')
+  expectAbsent(source, 'headerClearance', relative + ' must let the Navigation title bar own its layout')
+  expectAbsent(source, 'Stack({ alignContent: Alignment.Top })',
+    relative + ' must not layer a hand-made floating header')
 }
-expectIncludes(materials, 'materialColor: \'#D91A1F26\'',
-  'dark materials must use dark-gray translucent material colors')
-expectIncludes(materials, 'lightEffect:', 'dark materials must keep immersive light effects')
-expectAbsent(materials, 'colorInvert: true', 'materials must not rely on color inversion')
 
-const navigation = readEts('ets/components/MainBottomNavigation.ets')
-expectIncludes(navigation, '.systemMaterial(ImmersiveMaterials.navigationFor(this.darkMode))',
-  'bottom navigation must keep systemMaterial in dark mode')
-const header = readEts('ets/components/AppHeader.ets')
-expectIncludes(header, '.systemMaterial(ImmersiveMaterials.headerFor(this.darkMode))',
-  'header must keep systemMaterial in dark mode')
-const accountCard = readEts('ets/components/HuaweiAccountCard.ets')
-expectIncludes(accountCard, '.systemMaterial(ImmersiveMaterials.accountCardFor(this.darkMode))',
-  'account card must keep systemMaterial in dark mode')
-
-for (const relative of ['ets/pages/HomePage.ets', 'ets/pages/WrongQuestionsPage.ets', 'ets/pages/MinePage.ets',
-  'ets/pages/QuestionDetailPage.ets', 'ets/pages/Index.ets', 'ets/components/AppHeader.ets',
-  'ets/components/MainBottomNavigation.ets']) {
-  expectIncludes(readEts(relative), "@StorageProp('darkMode')",
-    relative + ' must bind the shared darkMode state')
+for (const relative of ['ets/pages/HomePage.ets', 'ets/pages/BooksPage.ets', 'ets/pages/WrongQuestionsPage.ets']) {
+  const source = readEts(relative)
+  expectIncludes(source, '.contentEndOffset(TAB_BAR_CLEARANCE)',
+    relative + ' must let the last item scroll above the native floating TabBar')
 }
 
 const minePage = readEts('ets/pages/MinePage.ets')
 expectIncludes(minePage, 'ThemeManager.setMode', 'mine page must expose the theme mode switch')
 expectIncludes(minePage, 'ThemeMode.SYSTEM', 'theme switch must offer follow-system mode')
 expectIncludes(minePage, "'深色模式'", 'theme switch row must be labeled')
+expectIncludes(minePage, 'bottom: TAB_BAR_CLEARANCE',
+  'mine scroll content must end above the native floating TabBar')
+
+for (const relative of ['ets/pages/HomePage.ets', 'ets/pages/WrongQuestionsPage.ets', 'ets/pages/MinePage.ets',
+  'ets/pages/QuestionDetailPage.ets', 'ets/pages/Index.ets']) {
+  expectIncludes(readEts(relative), "@StorageProp('darkMode')",
+    relative + ' must bind the shared darkMode state')
+}
 
 const entryAbility = readEts('ets/entryability/EntryAbility.ets')
 expectIncludes(entryAbility, 'setWindowLayoutFullScreen(true)',
@@ -136,6 +154,8 @@ expectIncludes(entryAbility, 'setWindowLayoutFullScreen(true)',
 expectIncludes(entryAbility, 'ThemeManager.initialize', 'ability must initialize the theme layer')
 expectIncludes(entryAbility, 'onConfigurationUpdate', 'ability must react to system color mode changes')
 expectIncludes(entryAbility, 'colors.statusBarIcon', 'status bar icons must follow the active theme')
+expectIncludes(entryAbility, 'setWindowSystemBarProperties',
+  'status and navigation bar icon colors must be set for the active theme')
 
 const baseColors = JSON.parse(readProject('entry/src/main/resources/base/element/color.json'))
 const darkResourceColors = JSON.parse(readProject('entry/src/main/resources/dark/element/color.json'))
@@ -181,7 +201,7 @@ listFiles(serverRoot, (name) => /\.(ts|js|json|json5|ets)$/.test(name), serverFi
 for (const file of serverFiles) {
   const source = fs.readFileSync(file, 'utf8')
   const relative = path.relative(projectRoot, file)
-  for (const token of ['ThemeManager', 'AppColors', 'darkMode', 'ImmersiveMaterials', 'themePalette']) {
+  for (const token of ['ThemeManager', 'AppColors', 'darkMode', 'HdsMaterialPolicy', 'themePalette']) {
     expectAbsent(source, token, relative + ' must stay untouched by the dark mode work')
   }
 }
