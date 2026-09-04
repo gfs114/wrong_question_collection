@@ -42,8 +42,10 @@ if (easyGo.common === undefined || easyGo.common.displayModeOptions === undefine
 }
 const display = easyGo.common.displayModeOptions
 
-if (display.wideWindowMode !== 'original') {
-  throw new Error('wideWindowMode must stay original so rectangle windows keep the responsive layout')
+if (display.wideWindowMode !== 'routerSplit') {
+  throw new Error(
+    'wideWindowMode must use API24 routerSplit for wide tablet windows'
+  )
 }
 if (display.squareWindowMode !== 'routerSplit') {
   throw new Error('squareWindowMode must enable system routerSplit for square windows')
@@ -56,9 +58,6 @@ if (split === undefined) {
 }
 if (split.homePage !== 'pages/Index') {
   throw new Error('homePage must be the Router url of the main page: pages/Index')
-}
-if (split.mode !== 1) {
-  throw new Error('mode must be 1 (navigation mode) for the bank -> list -> detail hierarchy')
 }
 if (split.enableReducedContainerSize !== true) {
   throw new Error('enableReducedContainerSize must be true so panes report their real container size')
@@ -90,8 +89,26 @@ if (fullScreen.includes('pages/QuestionListPage') || fullScreen.includes('pages/
 if (split.relatedPage !== undefined && typeof split.relatedPage !== 'string') {
   throw new Error('relatedPage must be a Router url string when configured')
 }
-if (split.squareSplit === undefined || split.squareSplit.isDraggable !== true) {
-  throw new Error('squareSplit.isDraggable must be true for a 1:1 default with an adjustable divider')
+const serializedSplit = JSON.stringify(split)
+
+const api26OnlyFields = [
+  '"mode"',
+  '"wideSplit"',
+  '"squareSplit"',
+  '"pagePairs"',
+  '"transPages"',
+  '"splitDividerColor"',
+  '"drawableRectHook"',
+  '"enableInSplitScreen"',
+  '"isDraggable"'
+]
+
+for (const field of api26OnlyFields) {
+  if (serializedSplit.includes(field)) {
+    throw new Error(
+      'API24 easy_go config must not contain API26-only field: ' + field
+    )
+  }
 }
 
 const moduleJson = readProject('entry/src/main/module.json5')

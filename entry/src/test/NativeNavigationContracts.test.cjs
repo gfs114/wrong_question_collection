@@ -148,26 +148,26 @@ for (const file of allEtsFiles()) {
 expectIncludes(index, 'systemMaterialEffect:',
   'the HdsTabs bar must keep the official HDS immersive material effect')
 
-// 6. easy_go.json 未改变
+// 6. easy_go.json 保持 API24 基础 routerSplit 配置（无 API26-only 字段）
 const easyGoPath = path.join(entryMain, 'resources/base/profile/easy_go.json')
 if (!fs.existsSync(easyGoPath)) {
   throw new Error('easy_go.json is required')
 }
 const easyGo = JSON.parse(fs.readFileSync(easyGoPath, 'utf8'))
 if (easyGo.common === undefined || easyGo.common.displayModeOptions === undefined) {
-  throw new Error('easy_go.json must keep displayModeOptions untouched')
+  throw new Error('easy_go.json must keep common.displayModeOptions')
 }
 const display = easyGo.common.displayModeOptions
-if (display.wideWindowMode !== 'original') {
-  throw new Error('easy_go.json wideWindowMode must stay original')
+if (display.wideWindowMode !== 'routerSplit') {
+  throw new Error('easy_go.json wideWindowMode must use the API24 routerSplit')
 }
 if (display.squareWindowMode !== 'routerSplit') {
   throw new Error('easy_go.json squareWindowMode must stay routerSplit')
 }
 const split = display.routerSplitOptions
-if (split === undefined || split.homePage !== 'pages/Index' || split.mode !== 1 ||
+if (split === undefined || split.homePage !== 'pages/Index' ||
   split.enableReducedContainerSize !== true) {
-  throw new Error('easy_go.json routerSplitOptions must stay untouched with pages/Index as homePage')
+  throw new Error('easy_go.json routerSplitOptions must keep the API24 base config with pages/Index as homePage')
 }
 const fullScreenPages = split.fullScreenPages || []
 for (const page of ['pages/ImportBankPage', 'pages/PdfImportSetupPage', 'pages/PdfImportProgressPage',
