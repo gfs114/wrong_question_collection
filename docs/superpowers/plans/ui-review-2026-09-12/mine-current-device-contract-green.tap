@@ -1,0 +1,65 @@
+TAP version 13
+# Editorial UI contracts passed
+# Subtest: entry\\src\\test\\EditorialUiContracts.test.cjs
+ok 1 - entry\\src\\test\\EditorialUiContracts.test.cjs
+  ---
+  duration_ms: 55.6674
+  type: 'test'
+  ...
+# Subtest: wrong-question subject filters provide a readable 48vp selected control
+ok 2 - wrong-question subject filters provide a readable 48vp selected control
+  ---
+  duration_ms: 1.1243
+  type: 'test'
+  ...
+# Subtest: shared empty state supports page and embedded layouts without a fixed wrong-page box
+ok 3 - shared empty state supports page and embedded layouts without a fixed wrong-page box
+  ---
+  duration_ms: 0.4363
+  type: 'test'
+  ...
+# Subtest: wrong-question and mine feeds include the live left and right safe-area insets
+ok 4 - wrong-question and mine feeds include the live left and right safe-area insets
+  ---
+  duration_ms: 0.9412
+  type: 'test'
+  ...
+# Subtest: mine separates ordinary settings from the confirmed destructive action
+ok 5 - mine separates ordinary settings from the confirmed destructive action
+  ---
+  duration_ms: 0.2971
+  type: 'test'
+  ...
+# Subtest: account and migration actions meet the 48vp touch-target floor
+ok 6 - account and migration actions meet the 48vp touch-target floor
+  ---
+  duration_ms: 0.3924
+  type: 'test'
+  ...
+# Subtest: wrong and mine own their top titles below the live status-bar inset
+ok 7 - wrong and mine own their top titles below the live status-bar inset
+  ---
+  duration_ms: 0.5861
+  type: 'test'
+  ...
+# Subtest: mine merges the learning-center identity into one account sheet
+ok 8 - mine merges the learning-center identity into one account sheet
+  ---
+  duration_ms: 0.3532
+  type: 'test'
+  ...
+# Subtest: mine displays the current hardware name without changing the login exchange boundary
+ok 9 - mine displays the current hardware name without changing the login exchange boundary
+  ---
+  duration_ms: 0.6157
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.941

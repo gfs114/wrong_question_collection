@@ -1,19 +1,29 @@
 import { Context } from '@kit.AbilityKit'
+import { router } from '@kit.ArkUI'
+import { pasteboard } from '@kit.BasicServicesKit'
+import deviceInfo from '@ohos.deviceInfo'
+import * as BuildProfile from 'BuildProfile'
 import { EmptyState } from '../components/EmptyState'
 import { HuaweiAccountCard } from '../components/HuaweiAccountCard'
 import { LegacyMigrationCard } from '../components/LegacyMigrationCard'
 import { SectionTitle } from '../components/SectionTitle'
-import { StatCard } from '../components/StatCard'
+import { StatRow, StatCell } from '../components/StatRow'
 import {
   BODY_FONT_SIZE,
-  CARD_GAP,
-  CARD_RADIUS,
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
-  SUBTITLE_FONT_SIZE,
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import {
+  BADGE_GLYPH_SIZE,
+  BADGE_RADIUS,
+  BADGE_SIZE,
+  EDITORIAL_SECTION_GAP,
+  HAIRLINE,
+  PAGE_TITLE_SIZE,
+  SHEET_RADIUS
+} from '../constants/EditorialStyle'
 import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { Statistics } from '../models/Statistics'
 import { AccountSessionState } from '../models/AccountSession'
@@ -30,6 +40,9 @@ import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { LegacyCloudMigrationService } from '../services/LegacyCloudMigrationService'
 import { AppColors } from '../theme/AppColors'
 import { ThemeManager, ThemeMode } from '../theme/ThemeManager'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+
+const MINE_FEED_TOP_GAP: number = 10
 
 @Component
 export struct MinePage {
@@ -37,12 +50,14 @@ export struct MinePage {
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
   @StorageProp('darkMode') darkMode: boolean = false
   @StorageProp('themeMode') themeMode: ThemeMode = ThemeMode.SYSTEM
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }
   @State statistics: Statistics = new Statistics(0, 0, 0, 0)
   @State loading: boolean = false
   @State errorMessage: string = ''
   @State clearing: boolean = false
   @State dialogPending: boolean = false
   @State signingIn: boolean = false
+  @State copyingTestToken: boolean = false
   @State authState: AccountSessionState = { signedIn: false, userId: '', deviceName: '' }
   @State migrationState: LegacyMigrationState = new LegacyMigrationState(
     '', LegacyMigrationStage.UNCLAIMED, new Array<string>(), '', new Array<string>(),
@@ -98,25 +113,18 @@ export struct MinePage {
     return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
   }
 
-  private statColumnsTemplate(): string {
-    if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
-      return '1fr 1fr 1fr 1fr'
-    }
-    return '1fr 1fr'
+  private pageTopGap(): number {
+    return SafeAreaUtils.top(this.safeAreaInsets) + MINE_FEED_TOP_GAP
   }
 
-  private statRowsTemplate(): string {
-    if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
-      return '112vp'
-    }
-    return '112vp 112vp'
-  }
-
-  private statGridHeight(): number {
-    if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
-      return 112
-    }
-    return 236
+  // 编辑风统计：一张纸张卡 + 竖细线分隔（与首页概览卡底部三统计同一套比例）。
+  private statCells(): Array<StatCell> {
+    const cells: Array<StatCell> = new Array<StatCell>()
+    cells.push(new StatCell('题库数量', this.statistics.bankCount.toString(), this.colors().textPrimary))
+    cells.push(new StatCell('错题数量', this.statistics.wrongCount.toString(), this.colors().textPrimary))
+    cells.push(new StatCell('已掌握', this.statistics.masteredCount.toString(), this.colors().successText))
+    cells.push(new StatCell('待复习', this.statistics.pendingCount.toString(), this.colors().error))
+    return cells
   }
 
   onActiveChanged(): void {
@@ -436,6 +444,49 @@ export struct MinePage {
     }
   }
 
+  private copyTestToken(): void {
+    if (this.copyingTestToken) {
+      return
+    }
+    const hostContext: Context | undefined = this.getUIContext().getHostContext()
+    if (hostContext === undefined) {
+      this.showToast('暂时无法获取测试 Token')
+      return
+    }
+    this.copyingTestToken = true
+    this.copyTestTokenSafely(hostContext).catch(() => {
+      this.copyingTestToken = false
+      this.showToast('暂时无法获取测试 Token')
+    })
+  }
+
+  private async copyTestTokenSafely(context: Context): Promise<void> {
+    try {
+      const session: AccountSessionState = await AccountSessionService.state(context)
+      if (!session.signedIn) {
+        this.showToast('请先登录华为账号')
+        return
+      }
+      const token: string = await AccountSessionService.accessToken(context)
+      if (token.length === 0) {
+        this.showToast('暂时无法获取测试 Token')
+        return
+      }
+      try {
+        const data: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, token)
+        await pasteboard.getSystemPasteboard().setData(data)
+      } catch {
+        this.showToast('复制失败，请重试')
+        return
+      }
+      this.showToast('测试 Token 已复制')
+    } catch {
+      this.showToast('暂时无法获取测试 Token')
+    } finally {
+      this.copyingTestToken = false
+    }
+  }
+
   private showAbout(): void {
     if (this.dialogPending || this.clearing) {
       return
@@ -504,42 +555,60 @@ export struct MinePage {
     }
   }
 
+  // 设置 / 开发辅助共用的一行：方形书签 + 文案 + 右侧值 / 箭头。
   @Builder
-  private HeaderCard() {
-    Column({ space: 10 }) {
-      Text('人')
-        .width(72)
-        .height(72)
-        .fontSize(30)
+  private SettingRow(glyph: string, label: string, accent: string, value: string, showChevron: boolean) {
+    Row({ space: 12 }) {
+      Text(glyph)
+        .width(BADGE_SIZE)
+        .height(BADGE_SIZE)
+        .fontSize(BADGE_GLYPH_SIZE)
         .fontWeight(FontWeight.Bold)
-        .fontColor(this.colors().brand)
+        .fontColor(accent)
         .textAlign(TextAlign.Center)
-        .backgroundColor(this.colors().pageBackground)
-        .borderRadius(36)
+        .backgroundColor(this.colors().brandSoft)
+        .borderRadius(BADGE_RADIUS)
 
-      Text('学习中心')
-        .fontSize(SUBTITLE_FONT_SIZE)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.colors().textPrimary)
-
-      Text('整理错题，让每次复习更有方向')
+      Text(label)
         .fontSize(BODY_FONT_SIZE)
-        .fontColor(this.colors().textCaption)
+        .fontColor(this.colors().textPrimary)
+        .layoutWeight(1)
+
+      if (value.length > 0) {
+        Text(value)
+          .fontSize(13)
+          .fontColor(this.colors().textCaption)
+          .margin({ right: 6 })
+      }
+
+      if (showChevron) {
+        Text('›')
+          .fontSize(22)
+          .fontColor(this.colors().textCaption)
+      }
     }
     .width('100%')
-    .padding({ top: 22, bottom: 22 })
-    .backgroundColor(this.colors().cardBackground)
-    .borderRadius(CARD_RADIUS)
+    .height(60)
+  }
+
+  private currentDeviceName(): string {
+    const marketName: string = deviceInfo.marketName.trim()
+    if (marketName.length > 0) {
+      return marketName
+    }
+    const productModel: string = deviceInfo.productModel.trim()
+    if (productModel.length > 0) {
+      return productModel
+    }
+    return 'HarmonyOS 设备'
   }
 
   @Builder
-  private AccountSection() {
-    SectionTitle({ title: '账号' })
-
+  private LearningAccountSection() {
     HuaweiAccountCard({
       signedIn: this.authState.signedIn,
       userId: this.authState.userId,
-      deviceName: this.authState.deviceName,
+      deviceName: this.currentDeviceName(),
       signingIn: this.signingIn,
       syncLabel: CloudSyncService.label(this.syncState),
       syncing: this.syncState === SyncDisplayState.SYNCING,
@@ -579,48 +648,7 @@ export struct MinePage {
   private StatsSection() {
     SectionTitle({ title: '学习概览' })
 
-    Grid() {
-      GridItem() {
-        StatCard({
-          label: '题库数量',
-          value: this.statistics.bankCount,
-          glyph: '书',
-          accentColor: this.colors().brand
-        })
-      }
-
-      GridItem() {
-        StatCard({
-          label: '错题数量',
-          value: this.statistics.wrongCount,
-          glyph: '错',
-          accentColor: this.colors().error
-        })
-      }
-
-      GridItem() {
-        StatCard({
-          label: '已掌握',
-          value: this.statistics.masteredCount,
-          glyph: '✓',
-          accentColor: this.colors().successText
-        })
-      }
-
-      GridItem() {
-        StatCard({
-          label: '待复习',
-          value: this.statistics.pendingCount,
-          glyph: '复',
-          accentColor: this.colors().error
-        })
-      }
-    }
-    .columnsTemplate(this.statColumnsTemplate())
-    .rowsTemplate(this.statRowsTemplate())
-    .columnsGap(CARD_GAP)
-    .rowsGap(CARD_GAP)
-    .height(this.statGridHeight())
+    StatRow({ cells: this.statCells() })
   }
 
   @Builder
@@ -628,85 +656,25 @@ export struct MinePage {
     SectionTitle({ title: '设置' })
 
     Column() {
-      Row({ space: 12 }) {
-        Text('数')
-          .width(36)
-          .height(36)
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.colors().brand)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(this.colors().pageBackground)
-          .borderRadius(18)
-        Text('数据管理')
-          .fontSize(BODY_FONT_SIZE)
-          .fontColor(this.colors().textPrimary)
-        Blank()
-        Text('›')
-          .fontSize(24)
-          .fontColor(this.colors().textCaption)
-      }
-      .width('100%')
-      .height(60)
-
       Button() {
-        Row({ space: 12 }) {
-          Text('清')
-            .width(36)
-            .height(36)
-            .fontSize(14)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().error)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(this.colors().pageBackground)
-            .borderRadius(18)
-          Text(this.clearing ? '正在清空…' : '清空错题')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textPrimary)
-          Blank()
-          Text('›')
-            .fontSize(24)
-            .fontColor(this.colors().textCaption)
-        }
-        .width('100%')
-        .height(60)
+        this.SettingRow('AI', 'AI 识别设置', this.colors().brand, '', true)
       }
       .type(ButtonType.Normal)
-      .width('100%')
-      .height(60)
-      .padding(0)
+      .width('100%').height(60).padding(0)
       .backgroundColor(this.colors().cardBackground)
       .enabled(!this.clearing && !this.dialogPending)
-      .accessibilityText('清空错题')
+      .accessibilityText('AI 识别设置')
       .onClick(() => {
-        this.confirmClear()
+        if (this.clearing || this.dialogPending) return
+        router.pushUrl({ url: 'pages/AiRecognitionSettingsPage' }).catch(() => {})
       })
 
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+
       Button() {
-        Row({ space: 12 }) {
-          Text('深')
-            .width(36)
-            .height(36)
-            .fontSize(14)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().brand)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(this.colors().pageBackground)
-            .borderRadius(18)
-          Text('深色模式')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textPrimary)
-          Blank()
-          Text(this.modeLabel())
-            .fontSize(13)
-            .fontColor(this.colors().textCaption)
-            .margin({ right: 6 })
-          Text('›')
-            .fontSize(24)
-            .fontColor(this.colors().textCaption)
-        }
-        .width('100%')
-        .height(60)
+        this.SettingRow('深', '深色模式', this.colors().brand, this.modeLabel(), true)
       }
       .type(ButtonType.Normal)
       .width('100%')
@@ -719,27 +687,12 @@ export struct MinePage {
         this.selectThemeMode()
       })
 
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+
       Button() {
-        Row({ space: 12 }) {
-          Text('关')
-            .width(36)
-            .height(36)
-            .fontSize(14)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().successText)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(this.colors().pageBackground)
-            .borderRadius(18)
-          Text('关于应用')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textPrimary)
-          Blank()
-          Text('›')
-            .fontSize(24)
-            .fontColor(this.colors().textCaption)
-        }
-        .width('100%')
-        .height(60)
+        this.SettingRow('关', '关于应用', this.colors().successText, '', true)
       }
       .type(ButtonType.Normal)
       .width('100%')
@@ -755,11 +708,150 @@ export struct MinePage {
     .width('100%')
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.colors().cardBackground)
-    .borderRadius(CARD_RADIUS)
+    .borderRadius(SHEET_RADIUS)
+    .border({ width: HAIRLINE, color: this.colors().divider })
+    .clip(true)
+  }
+
+  @Builder
+  private DataManagementSection() {
+    SectionTitle({ title: '数据与隐私' })
+
+    Column() {
+      Button() {
+        Row({ space: 12 }) {
+          Text('清')
+            .width(BADGE_SIZE)
+            .height(BADGE_SIZE)
+            .fontSize(BADGE_GLYPH_SIZE)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().error)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.colors().brandSoft)
+            .borderRadius(BADGE_RADIUS)
+
+          Column({ space: 3 }) {
+            Text(this.clearing ? '正在清空…' : '清空错题')
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().error)
+
+            Text('永久删除当前账号的全部错题记录')
+              .fontSize(13)
+              .fontColor(this.colors().textCaption)
+              .maxLines(2)
+          }
+          .layoutWeight(1)
+          .alignItems(HorizontalAlign.Start)
+
+          Text(this.clearing ? '处理中' : '清空')
+            .fontSize(13)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.colors().error)
+        }
+        .width('100%')
+        .constraintSize({ minHeight: 72 })
+        .padding({ top: 10, bottom: 10 })
+      }
+      .type(ButtonType.Normal)
+      .width('100%')
+      .padding(0)
+      .backgroundColor(this.colors().cardBackground)
+      .enabled(!this.clearing && !this.dialogPending)
+      .accessibilityText('清空错题，永久删除当前账号的全部错题记录')
+      .onClick(() => {
+        this.confirmClear()
+      })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16 })
+    .backgroundColor(this.colors().cardBackground)
+    .borderRadius(SHEET_RADIUS)
+    .border({ width: HAIRLINE, color: this.colors().divider })
+  }
+
+  @Builder
+  private DebugToolsSection() {
+    SectionTitle({ title: '开发辅助' })
+
+    Column() {
+      Button() {
+        Row({ space: 12 }) {
+          Text('测')
+            .width(BADGE_SIZE)
+            .height(BADGE_SIZE)
+            .fontSize(BADGE_GLYPH_SIZE)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().brand)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.colors().brandSoft)
+            .borderRadius(BADGE_RADIUS)
+
+          Column({ space: 2 }) {
+            Text(this.copyingTestToken ? '正在复制…' : '复制测试 Token')
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().textPrimary)
+            Text('仅用于服务器 E2E 测试')
+              .fontSize(13)
+              .fontColor(this.colors().textCaption)
+          }
+          .alignItems(HorizontalAlign.Start)
+          Blank()
+          Text('›')
+            .fontSize(22)
+            .fontColor(this.colors().textCaption)
+        }
+        .width('100%')
+        .height(68)
+      }
+      .type(ButtonType.Normal)
+      .width('100%')
+      .height(68)
+      .padding(0)
+      .backgroundColor(this.colors().cardBackground)
+      .enabled(!this.copyingTestToken && !this.dialogPending)
+      .accessibilityText('复制测试 Token，仅用于服务器 E2E 测试')
+      .onClick(() => {
+        this.copyTestToken()
+      })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16 })
+    .backgroundColor(this.colors().cardBackground)
+    .borderRadius(SHEET_RADIUS)
+    .border({ width: HAIRLINE, color: this.colors().divider })
+  }
+
+  @Builder
+  private PageTitle() {
+    Column({ space: 12 }) {
+      Text('我的')
+        .fontSize(PAGE_TITLE_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .letterSpacing(2)
+        .fontColor(this.colors().textPrimary)
+
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .margin({ bottom: 6 })
   }
 
   build() {
     Column() {
+      Column() {
+        this.PageTitle()
+      }
+      .width('100%')
+      .constraintSize({ maxWidth: this.contentMaxWidth() })
+      .padding({
+        top: this.pageTopGap(),
+        left: PAGE_PADDING + SafeAreaUtils.left(this.safeAreaInsets),
+        right: PAGE_PADDING + SafeAreaUtils.right(this.safeAreaInsets)
+      })
+
       if (this.loading) {
         Column({ space: 14 }) {
           LoadingProgress()
@@ -772,7 +864,7 @@ export struct MinePage {
             .fontColor(this.colors().textCaption)
         }
         .width('100%')
-        .height('100%')
+        .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
       } else if (this.errorMessage.length > 0) {
         EmptyState({
@@ -786,54 +878,60 @@ export struct MinePage {
           }
         })
         .width('100%')
-        .height('100%')
+        .layoutWeight(1)
       } else {
         Scroll() {
-          Column({ space: CARD_GAP }) {
-            this.HeaderCard()
+          Column({ space: EDITORIAL_SECTION_GAP }) {
+            this.LearningAccountSection()
+
+            this.StatsSection()
 
             if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
-              this.StatsSection()
-
-              Row({ space: CARD_GAP }) {
-                Column({ space: CARD_GAP }) {
-                  this.AccountSection()
-
+              Row({ space: EDITORIAL_SECTION_GAP }) {
+                Column({ space: EDITORIAL_SECTION_GAP }) {
                   if (this.showMigrationCard()) {
                     this.MigrationSection()
                   }
+
+                  this.DataManagementSection()
                 }
                 .layoutWeight(1)
 
-                Column({ space: CARD_GAP }) {
+                Column({ space: EDITORIAL_SECTION_GAP }) {
                   this.SettingsSection()
+
+                  if (BuildProfile.DEBUG) {
+                    this.DebugToolsSection()
+                  }
                 }
                 .layoutWeight(1)
               }
               .width('100%')
               .alignItems(VerticalAlign.Top)
             } else {
-              this.AccountSection()
-
               if (this.showMigrationCard()) {
                 this.MigrationSection()
               }
 
-              this.StatsSection()
-
               this.SettingsSection()
+
+              this.DataManagementSection()
+
+              if (BuildProfile.DEBUG) {
+                this.DebugToolsSection()
+              }
             }
           }
           .width('100%')
           .padding({
-            left: PAGE_PADDING,
-            right: PAGE_PADDING,
+            left: PAGE_PADDING + SafeAreaUtils.left(this.safeAreaInsets),
+            right: PAGE_PADDING + SafeAreaUtils.right(this.safeAreaInsets),
             top: 16,
             bottom: TAB_BAR_CLEARANCE
           })
         }
         .width('100%')
-        .height('100%')
+        .layoutWeight(1)
         .constraintSize({ maxWidth: this.contentMaxWidth() })
         .scrollBar(BarState.Off)
       }

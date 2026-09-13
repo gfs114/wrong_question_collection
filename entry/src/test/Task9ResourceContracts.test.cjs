@@ -16,6 +16,10 @@ function expectIncludes(source, text, message) {
 const pages = JSON.parse(read('entry/src/main/resources/base/profile/main_pages.json')).src
 const expectedPages = [
   'pages/Index',
+  'pages/AiPlatformPickerPage',
+  'pages/AiRecognitionSettingsPage',
+  'pages/PdfAiImportSetupPage',
+  'pages/PdfAiImportProgressPage',
   'pages/ImportBankPage',
   'pages/PdfImportSetupPage',
   'pages/PdfImportProgressPage',

@@ -1,6 +1,8 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const fs = require('node:fs')
+const vm = require('node:vm')
+const { stripTypeScriptTypes } = require('node:module')
 
 function extractMethod(source, signature) {
   const start = source.indexOf(signature)
@@ -29,6 +31,85 @@ function assertOrdered(source, fragments) {
     assert.ok(index > previousIndex, 'out of order fragment ' + fragment)
     previousIndex = index
   }
+}
+
+function pdfAbsenceProofRuntime(entries) {
+  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportService.ets', 'utf8')
+    .replace(/^import\s[\s\S]*?\sfrom\s+['"][^'"]+['"]\s*$/gm, '')
+    .replace(/^export\s+/gm, '')
+  const calls = { lstat: [], unlink: [] }
+  const fileSystem = {
+    lstat(path, callback) {
+      calls.lstat.push(path)
+      const kind = entries.get(path)
+      if (kind === undefined || kind === 'absent') {
+        callback({ code: 13900002, message: 'not found' })
+        return
+      }
+      callback(null, {
+        isDirectory: () => kind === 'directory',
+        isFile: () => kind === 'file',
+        isSymbolicLink: () => kind === 'symlink'
+      })
+    },
+    async unlink(path) { calls.unlink.push(path) }
+  }
+  const PdfImportService = vm.runInNewContext(
+    stripTypeScriptTypes(source, { mode: 'transform' }) + '\nPdfImportService',
+    { fs: fileSystem })
+  return { PdfImportService, calls }
+}
+
+function importBankRuntime(options = {}) {
+  const source = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
+  const start = source.indexOf('struct ImportBankPage')
+  const end = source.indexOf('  build()', start)
+  const pageSource = (source.slice(start, end) + '}')
+    .replace('struct ImportBankPage', 'class ImportBankPage')
+    .replace(/@State\s+/g, '')
+    .replace(/@StorageProp\([^)]*\)\s+/g, '')
+  const previous = options.previous || null
+  const state = {
+    selection: previous,
+    resets: 0,
+    getSelection() { return this.selection },
+    reset() { this.resets++; this.selection = null },
+    setSelection(selection) { this.selection = selection },
+  }
+  const selections = (options.selections || []).slice()
+  const removeFailures = new Set(options.removeFailures || [])
+  const events = [], abandoned = []
+  const service = {
+    async selectPdf() { events.push('select'); return selections.shift() || null },
+    async removeTemporaryPdf(uri) {
+      events.push('remove:' + uri)
+      if (removeFailures.has(uri)) throw Error('unsafe remove details')
+    },
+    async removeOrAbandonTemporaryPdf(uri) {
+      events.push('remove:' + uri)
+      if (removeFailures.has(uri)) {
+        events.push('abandon:' + uri); abandoned.push(uri); return false
+      }
+      return true
+    },
+  }
+  let routeFailures = options.routeFailures || 0
+  const router = {
+    async pushUrl(route) {
+      events.push('route:' + route.url)
+      if (routeFailures > 0) { routeFailures--; throw Error('unsafe route details') }
+    },
+    back() {},
+  }
+  const runtime = vm.runInNewContext(stripTypeScriptTypes(pageSource, { mode: 'transform' }) +
+    '\nImportBankPage', {
+    PdfImportState: { shared: () => state }, PdfImportService: service,
+    ImportService: {}, AccountSessionService: {}, ImportErrorCode: {},
+    themePalette: () => ({}), getContext: () => 'context',
+  })
+  const page = new runtime()
+  page.getUIContext = () => ({ getRouter: () => router, getPromptAction: () => ({ showToast() {} }) })
+  return { page, state, events, abandoned, removeFailures }
 }
 
 test('current schema contains question image storage and durable cleanup debt', () => {
@@ -438,52 +519,116 @@ test('device OCR and PDF coordinator services are retired after the cloud cutove
   assert.doesNotMatch(pdfPages, /OnDeviceOcrService|PdfImportCoordinator|recognizeText|PdfImportService|\bpdfService\b/)
 })
 
-test('PDF import routes and cloud setup copy are registered', () => {
+test('PDF import routes keep rollback pages and register the formal AI flow', () => {
   const routes = JSON.parse(fs.readFileSync(
     'entry/src/main/resources/base/profile/main_pages.json', 'utf8')).src
   assert.ok(routes.includes('pages/PdfImportSetupPage'))
   assert.ok(routes.includes('pages/PdfImportProgressPage'))
+  assert.ok(routes.includes('pages/PdfAiImportSetupPage'))
+  assert.ok(routes.includes('pages/PdfAiImportProgressPage'))
   assert.ok(routes.includes('pages/PdfImportReviewPage'))
   assert.ok(routes.includes('pages/EditQuestionPage'))
 
   const source = [
     'entry/src/main/ets/pages/ImportBankPage.ets',
-    'entry/src/main/ets/pages/PdfImportSetupPage.ets',
-    'entry/src/main/ets/pages/PdfImportProgressPage.ets'
+    'entry/src/main/ets/pages/PdfAiImportSetupPage.ets',
+    'entry/src/main/ets/pages/PdfAiImportProgressPage.ets'
   ].map((path) => fs.readFileSync(path, 'utf8')).join('\n')
-  for (const copy of ['导入 PDF', '选择科目', '起始页', '结束页', '单次最多识别 20 页']) {
+  for (const copy of ['导入 PDF', '已选择 PDF', '识别服务', '选择科目', '起始页', '结束页',
+    '单次最多 20 页', '取消识别']) {
     assert.match(source, new RegExp(copy))
   }
-  assert.doesNotMatch(source, /正在识别第|取消识别/)
 })
 
-test('import page preserves JSON import and stages a guarded cloud PDF selection before setup routing', () => {
+test('formal PDF selection enters only the client AI setup', () => {
   const source = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
   const jsonImport = extractMethod(source, 'private startImport')
   const selectPdf = extractMethod(source, 'private async selectPdf')
   assert.match(jsonImport, /ImportService\.selectAndImport|this\.importBank\(\)/)
   assert.match(source, /选择 JSON 文件/)
   assert.match(source, /\.enabled\(!this\.importing && !this\.pdfSelecting\)/)
-  assert.match(source, /CloudPdfSelection/)
+  assert.match(selectPdf, /PdfImportService\.selectPdf/)
+  assert.match(selectPdf, /pages\/PdfAiImportSetupPage/)
   assert.match(source, /PdfImportState/)
   assert.doesNotMatch(selectPdf,
-    /PdfImportService|QuestionImageService|OnDeviceOcrService|PdfImportCoordinator|\bpdfService\b/)
+    /CloudPdfSelection|CloudImportService|PdfImportSetupPage|cloud_import_pdf_|PaddleOCR|OcrService|fallback/)
   assertOrdered(selectPdf, [
     'if (this.importing || this.pdfSelecting)',
     'this.pdfSelecting = true',
     "this.errorMessage = ''",
-    'const sourceFile: fs.File = await fs.open',
-    'await this.copyPdf(sourceFile.fd, stagedPath, sourceSize)',
-    'const stagedInfo: fs.Stat = await fs.lstat(stagedPath)',
+    'PdfImportService.selectPdf(context)',
+    'PdfImportService.removeTemporaryPdf(previous.uri)',
     'state.reset()',
-    'state.setCloudSelection(new CloudPdfSelection',
-    "url: 'pages/PdfImportSetupPage'"
+    'state.setSelection(selection)',
+    "url: 'pages/PdfAiImportSetupPage'"
   ])
+  assert.match(source, /PdfImportService\.removeOrAbandonTemporaryPdf\(selection\.uri\)/)
   assert.match(selectPdf, /finally\s*{[\s\S]*this\.pdfSelecting = false/)
-  assert.match(selectPdf, /let selectionStored:\s*boolean\s*=\s*false/)
-  assert.match(selectPdf,
-    /catch \(err\)[\s\S]*removeStagedPdf\(getContext\(this\)\.cacheDir, stagedPath\)[\s\S]*if \(selectionStored\)[\s\S]*PdfImportState\.shared\(\)\.reset\(\)/)
   assert.match(source, /PDF 文件不能超过 200 MB|PDF 暂存失败/)
+})
+
+test('formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path', () => {
+  const importPage = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
+  const scopedSources = [
+    ['selectPdf', extractMethod(importPage, 'private async selectPdf')],
+    ['setup', fs.readFileSync('entry/src/main/ets/pages/PdfAiImportSetupPage.ets', 'utf8')],
+    ['progress', fs.readFileSync('entry/src/main/ets/pages/PdfAiImportProgressPage.ets', 'utf8')],
+    ['coordinator', fs.readFileSync(
+      'entry/src/main/ets/services/ai/PdfAiImportCoordinator.ets', 'utf8')],
+    ['AI adapter', fs.readFileSync(
+      'entry/src/main/ets/services/review/AiPdfReviewAdapter.ets', 'utf8')]
+  ]
+  const forbidden = /fallback|PaddleOCR|OcrService|CloudImportService|\/v1\/imports\/pdf/
+  for (const [name, source] of scopedSources) {
+    assert.doesNotMatch(source, forbidden, `${name} must remain client-AI-only`)
+  }
+})
+
+test('formal PDF selection preserves exactly one reachable owner across replacement and route failures', async () => {
+  const oldSelection = { uri: 'old.pdf' }
+  const candidate = { uri: 'candidate.pdf' }
+  const priorFailure = importBankRuntime({
+    previous: oldSelection,
+    selections: [candidate],
+    removeFailures: ['old.pdf'],
+  })
+  await priorFailure.page.selectPdf()
+  assert.equal(priorFailure.state.selection, oldSelection)
+  assert.deepEqual(priorFailure.events, ['select', 'remove:old.pdf', 'remove:candidate.pdf'])
+
+  const cleanupFailure = importBankRuntime({
+    previous: oldSelection,
+    selections: [candidate],
+    removeFailures: ['old.pdf', 'candidate.pdf'],
+  })
+  await cleanupFailure.page.selectPdf()
+  assert.equal(cleanupFailure.state.selection, oldSelection)
+  assert.deepEqual(cleanupFailure.abandoned, ['candidate.pdf'])
+
+  const routeFailure = importBankRuntime({ selections: [candidate], routeFailures: 1 })
+  await routeFailure.page.selectPdf()
+  assert.equal(routeFailure.state.selection, null)
+  assert.deepEqual(routeFailure.events, [
+    'select', 'route:pages/PdfAiImportSetupPage', 'remove:candidate.pdf'
+  ])
+
+  const routeCleanupFailure = importBankRuntime({
+    selections: [candidate], routeFailures: 1, removeFailures: ['candidate.pdf'],
+  })
+  await routeCleanupFailure.page.selectPdf()
+  assert.equal(routeCleanupFailure.state.selection, null)
+  assert.deepEqual(routeCleanupFailure.abandoned, ['candidate.pdf'])
+
+  const repeated = importBankRuntime({
+    selections: [{ uri: 'first.pdf' }, { uri: 'second.pdf' }], routeFailures: 1,
+  })
+  await repeated.page.selectPdf()
+  await repeated.page.selectPdf()
+  assert.equal(repeated.state.selection.uri, 'second.pdf')
+  assert.deepEqual(repeated.events, [
+    'select', 'route:pages/PdfAiImportSetupPage', 'remove:first.pdf',
+    'select', 'route:pages/PdfAiImportSetupPage'
+  ])
 })
 
 test('PDF setup validates cloud metadata and page range before progress routing', () => {
@@ -528,24 +673,20 @@ test('PDF setup validates cloud metadata and page range before progress routing'
 
 // Task 11 cloud progress page behavior is covered by CloudImportPageContracts.test.cjs.
 
-test('resource route contract requires the exact unique nine route registry', () => {
-  const source = fs.readFileSync('entry/src/test/Task9ResourceContracts.test.cjs', 'utf8')
-  assert.match(source, /JSON\.stringify\(pages\) !== JSON\.stringify\(expectedPages\)/)
-  assert.doesNotMatch(source, /pages\.includes\(expectedPage\)/)
-  assertOrdered(source, [
-    "'pages/Index'",
-    "'pages/ImportBankPage'",
-    "'pages/PdfImportSetupPage'",
-    "'pages/PdfImportProgressPage'",
-    "'pages/PdfImportReviewPage'",
-    "'pages/EditQuestionPage'",
-    "'pages/QuestionListPage'",
-    "'pages/QuestionDetailPage'",
-    "'pages/WrongQuestionDetailPage'"
-  ])
+test('resource route registry contains each AI page exactly once', () => {
+  const routes = JSON.parse(fs.readFileSync(
+    'entry/src/main/resources/base/profile/main_pages.json', 'utf8')).src
+  const easyGo = JSON.parse(fs.readFileSync(
+    'entry/src/main/resources/base/profile/easy_go.json', 'utf8'))
+  const fullScreenPages = easyGo.common.displayModeOptions.routerSplitOptions.fullScreenPages
+  for (const route of ['pages/AiRecognitionSettingsPage', 'pages/PdfAiImportSetupPage',
+    'pages/PdfAiImportProgressPage']) {
+    assert.equal(routes.filter((value) => value === route).length, 1)
+    assert.equal(fullScreenPages.filter((value) => value === route).length, 1)
+  }
 })
 
-test('import entry serializes JSON and cloud PDF selection, blocks back, and grows errors', () => {
+test('import entry serializes JSON and AI PDF selection, blocks back, and grows errors', () => {
   const source = fs.readFileSync('entry/src/main/ets/pages/ImportBankPage.ets', 'utf8')
   const back = extractMethod(source, 'private goBack')
   const jsonImport = extractMethod(source, 'private startImport')
@@ -554,7 +695,8 @@ test('import entry serializes JSON and cloud PDF selection, blocks back, and gro
   assert.match(back, /if \(this\.importing \|\| this\.pdfSelecting\)/)
   assert.match(jsonImport, /if \(this\.importing \|\| this\.pdfSelecting\)/)
   assert.match(selectPdf, /if \(this\.importing \|\| this\.pdfSelecting\)/)
-  assert.doesNotMatch(selectPdf, /QuestionImageService|PdfImportService/)
+  assert.match(selectPdf, /PdfImportService\.selectPdf/)
+  assert.doesNotMatch(selectPdf, /QuestionImageService|CloudImportService|CloudPdfSelection/)
   assertOrdered(hardwareBack, ['this.goBack()', 'return true'])
   assert.match(source, /\.constraintSize\(\{ minHeight: 48 \}\)/)
   assert.doesNotMatch(source, /Text\(this\.errorMessage\)[\s\S]{0,180}\.height\(48\)/)
@@ -587,6 +729,20 @@ test('temporary PDF abandonment moves only exact active ownership to retryable o
     'PdfImportService.unregisterStagedPath(path)'
   ])
   assert.match(source, /cleanupStalePdfs[\s\S]*PdfImportService\.stagedPaths\.indexOf\(path\) >= 0[\s\S]*await fs\.unlink\(path\)/)
+})
+
+test('failed candidate deletion atomically transfers exact ownership to orphan cleanup', () => {
+  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportService.ets', 'utf8')
+  const release = extractMethod(source, 'static async removeOrAbandonTemporaryPdf')
+  assert.match(release, /const cacheDir:\s*string = PdfImportService\.registeredCacheDir\(path\)/)
+  assert.match(release, /!PdfImportService\.isDirectTemporaryPdfPath\(cacheDir, path\)/)
+  assertOrdered(release, [
+    'await PdfImportService.removeTemporaryPdf(path)',
+    '} catch',
+    'PdfImportService.registerOrphanPath(path, cacheDir)',
+    'PdfImportService.unregisterStagedPath(path)',
+    'return false'
+  ])
 })
 
 // Obsolete local-OCR page ownership is covered by the Task 11 cloud page contract suite.
@@ -754,14 +910,15 @@ test('saved question source images render only when present and use stable image
   assert.match(source, /\(image: QuestionImage\): string => image\.id/)
 })
 
-test('question detail reloads on page show, renders source before OCR, and opens editing for selected question', () => {
+test('question detail reloads on page show, renders source before question content, and opens editing for selected question', () => {
   const source = fs.readFileSync('entry/src/main/ets/pages/QuestionDetailPage.ets', 'utf8')
   const show = extractMethod(source, 'onPageShow')
   assert.match(show, /this\.loadCurrentQuestion\(\)/)
   assertOrdered(source, [
     'QuestionSourceImages({',
     'images: this.currentQuestion.images',
-    'Text(this.currentQuestion.question)'
+    'MathContentView({',
+    'content: this.currentQuestion.question'
   ])
   assert.match(source, /this\.currentQuestion\.answer\.length === 0 \? '未填写'/)
   assert.match(source, /this\.currentQuestion\.analysis\.length === 0 \? '暂无解析'/)
@@ -960,6 +1117,52 @@ test('temporary PDF deletion is an idempotent direct-child operation under its r
   assert.match(pathCheck, /PdfImportService\.isTemporaryPdfName\(name\)/)
 })
 
+test('read-only temporary PDF absence proof accepts only a missing strict direct child', async () => {
+  const absent = pdfAbsenceProofRuntime(new Map([['/cache', 'directory']]))
+  assert.equal(await absent.PdfImportService.proveTemporaryPdfAbsent(
+    '/cache', '/cache/staged_pdf_123.pdf'), true)
+  assert.deepEqual(absent.calls.lstat, ['/cache', '/cache/staged_pdf_123.pdf'])
+  assert.deepEqual(absent.calls.unlink, [])
+
+  for (const kind of ['file', 'symlink', 'directory']) {
+    const present = pdfAbsenceProofRuntime(new Map([
+      ['/cache', 'directory'], ['/cache/staged_pdf_123.pdf', kind]
+    ]))
+    await assert.rejects(present.PdfImportService.proveTemporaryPdfAbsent(
+      '/cache', '/cache/staged_pdf_123.pdf'), /PDF 临时文件仍然存在/)
+    assert.deepEqual(present.calls.unlink, [])
+  }
+})
+
+test('temporary PDF absence proof rejects malformed and cross-root paths without deletion', async () => {
+  for (const path of [
+    '/cache/staged_pdf_name.pdf',
+    '/cache/staged_pdf_123.pdf/child',
+    '/cache/nested/staged_pdf_123.pdf',
+    '/other/staged_pdf_123.pdf'
+  ]) {
+    const runtime = pdfAbsenceProofRuntime(new Map([['/cache', 'directory']]))
+    await assert.rejects(runtime.PdfImportService.proveTemporaryPdfAbsent('/cache', path),
+      /PDF 临时文件路径无效/)
+    assert.deepEqual(runtime.calls.lstat, [])
+    assert.deepEqual(runtime.calls.unlink, [])
+  }
+})
+
+test('temporary PDF absence proof is read-only and validates path then cache then lstat absence', () => {
+  const source = fs.readFileSync('entry/src/main/ets/services/PdfImportService.ets', 'utf8')
+  const proof = extractMethod(source, 'static async proveTemporaryPdfAbsent')
+  assertOrdered(proof, [
+    'PdfImportService.isDirectTemporaryPdfPath(cacheDir, path)',
+    'PdfImportService.validateCacheDirectory(cacheDir)',
+    'PdfImportService.lstatIfPresent(path)',
+    'fileInfo === null',
+    'return true'
+  ])
+  assert.match(proof, /throw new Error\('PDF 临时文件仍然存在'\)/)
+  assert.doesNotMatch(proof, /unlink|register|unregister|removeTemporaryPdf/)
+})
+
 test('question image deletion accepts only exact service cache files or exact bank image hierarchy', () => {
   const source = fs.readFileSync('entry/src/main/ets/services/QuestionImageService.ets', 'utf8')
   const ownership = extractMethod(source, 'private static ownedDeletionRoot')
@@ -1081,5 +1284,5 @@ test('PDF page error cards use supported constraint sizing', () => {
   assert.doesNotMatch(progressSource, /\.minHeight\(/)
   assert.doesNotMatch(reviewSource, /\.minHeight\(/)
   assert.match(importSource, /\.constraintSize\(\{ minHeight: 48 \}\)/)
-  assert.match(reviewSource, /\.constraintSize\(\{ minHeight: 48 \}\)/)
+  assert.match(reviewSource, /\.constraintSize\(\{ minHeight: UiStyle\.TOUCH_TARGET \}\)/)
 })

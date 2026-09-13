@@ -309,29 +309,65 @@ export class CloudQuestionRepository {
    * returned authoritative operations applied to the account cache.
    */
   static async createBank(bank: QuestionBank, context: Context): Promise<string> {
-    if (bank.bankName.trim().length === 0) {
-      throw new Error('题库名不能为空')
+    const questions: Array<Question> = new Array<Question>()
+    for (let index: number = 0; index < bank.questions.length; index++) {
+      const source: Question = bank.questions[index]
+      questions.push(new Question(util.generateRandomUUID(), '', source.type, source.question,
+        source.options.slice(), source.answer, source.analysis, source.sourcePageStart,
+        source.sourcePageEnd, source.reviewState, source.images.slice()))
     }
-    const accountId: string = await CloudQuestionRepository.requireSignedIn(context)
-    const bankUuid: string = util.generateRandomUUID()
+    const identified: QuestionBank = new QuestionBank(util.generateRandomUUID(), bank.bankName,
+      bank.subject, questions.length, bank.createTime, bank.isSample, questions)
+    const expectedAccountId: string = await CloudQuestionRepository.requireSignedIn(context)
+    return CloudQuestionRepository.createBankWithIds(identified, context, expectedAccountId)
+  }
+
+  static async createBankWithIds(bank: QuestionBank, context: Context,
+    expectedAccountId: string): Promise<string> {
+    const snapshotBank: QuestionBank = CloudQuestionRepository.snapshotBank(bank)
+    await AccountSessionService.requireAccount(context, expectedAccountId)
     const operations: Array<SyncPushOperation> = new Array<SyncPushOperation>()
     operations.push(new SyncPushOperation(new SyncOutboxOperation(
-      util.generateRandomUUID(), SyncEntityType.QUESTION_BANK, bankUuid, SyncOperationType.UPSERT,
-      SyncPayloadFactory.bankPayload(bank.bankName, bank.subject), Date.now())))
-    for (let index: number = 0; index < bank.questions.length; index++) {
-      const question: Question = bank.questions[index]
-      const questionUuid: string = util.generateRandomUUID()
+      util.generateRandomUUID(), SyncEntityType.QUESTION_BANK, snapshotBank.id,
+      SyncOperationType.UPSERT,
+      SyncPayloadFactory.bankPayload(snapshotBank.bankName, snapshotBank.subject), Date.now())))
+    for (let index: number = 0; index < snapshotBank.questions.length; index++) {
+      const question: Question = snapshotBank.questions[index]
       operations.push(new SyncPushOperation(new SyncOutboxOperation(
-        util.generateRandomUUID(), SyncEntityType.QUESTION, questionUuid, SyncOperationType.UPSERT,
-        SyncPayloadFactory.questionPayload(question, bankUuid), Date.now())))
+        util.generateRandomUUID(), SyncEntityType.QUESTION, question.id, SyncOperationType.UPSERT,
+        SyncPayloadFactory.questionPayload(question, snapshotBank.id), Date.now())))
     }
     const applied: Array<RemoteSyncOperation> =
-      await CloudQuestionRepository.pushOperations(context, operations)
-    const snapshot: CloudCacheSnapshot = await CloudQuestionRepository.loadSnapshot(accountId)
-    CloudQuestionRepository.applyOrdered(accountId, snapshot, applied)
-    await CloudQuestionRepository.saveSnapshot(accountId, snapshot,
-      CloudQuestionRepository.maxSequence(applied))
-    return bankUuid
+      await CloudQuestionRepository.pushOperationsForAccount(context, expectedAccountId, operations)
+    await AccountSessionService.runExpectedAccountLocalExclusive(context, expectedAccountId,
+      async (): Promise<void> => {
+        const snapshot: CloudCacheSnapshot =
+          await CloudQuestionRepository.loadSnapshot(expectedAccountId)
+        CloudQuestionRepository.applyOrdered(expectedAccountId, snapshot, applied)
+        await CloudQuestionRepository.saveSnapshot(expectedAccountId, snapshot,
+          CloudQuestionRepository.maxSequence(applied))
+      })
+    return snapshotBank.id
+  }
+
+  private static snapshotBank(bank: QuestionBank): QuestionBank {
+    if (bank.bankName.trim().length === 0 || !CloudQuestionRepository.isUuid(bank.id)) {
+      throw new Error('题库标识或名称无效')
+    }
+    const questions: Array<Question> = new Array<Question>()
+    const seen: Set<string> = new Set<string>()
+    for (let index: number = 0; index < bank.questions.length; index++) {
+      const question: Question = bank.questions[index]
+      if (!CloudQuestionRepository.isUuid(question.id) || seen.has(question.id)) {
+        throw new Error('题目标识无效或重复')
+      }
+      seen.add(question.id)
+      questions.push(new Question(question.id, bank.id, question.type, question.question,
+        question.options.slice(), question.answer, question.analysis, question.sourcePageStart,
+        question.sourcePageEnd, question.reviewState, question.images.slice()))
+    }
+    return new QuestionBank(bank.id, bank.bankName, bank.subject, questions.length,
+      bank.createTime, bank.isSample, questions)
   }
 
   /**
@@ -378,6 +414,52 @@ export class CloudQuestionRepository {
       offset += size
     }
     return applied
+  }
+
+  private static async pushOperationsForAccount(context: Context, expectedAccountId: string,
+    operations: Array<SyncPushOperation>): Promise<Array<RemoteSyncOperation>> {
+    const applied: Array<RemoteSyncOperation> = new Array<RemoteSyncOperation>()
+    let offset: number = 0
+    while (offset < operations.length) {
+      const remaining: number = operations.length - offset
+      const size: number = remaining < PUSH_BATCH_LIMIT ? remaining : PUSH_BATCH_LIMIT
+      const batch: Array<SyncPushOperation> = operations.slice(offset, offset + size)
+      const response: SyncPushResponse = await CloudQuestionRepository.authorizedPushForAccount(
+        new SyncPushBody(batch), context, expectedAccountId)
+      if (response.operations.length !== batch.length) {
+        throw new Error('服务器未确认全部同步操作')
+      }
+      for (let index: number = 0; index < response.operations.length; index++) {
+        applied.push(response.operations[index])
+      }
+      offset += size
+    }
+    return applied
+  }
+
+  private static async authorizedPushForAccount(body: SyncPushBody, context: Context,
+    expectedAccountId: string, retried: boolean = false): Promise<SyncPushResponse> {
+    const accessToken: string =
+      await AccountSessionService.accessTokenForAccount(context, expectedAccountId)
+    try {
+      const response: SyncPushResponse =
+        await ApiHttpClient.authorizedPost<SyncPushResponse>('/v1/sync/push', body, accessToken)
+      await AccountSessionService.requireAccount(context, expectedAccountId)
+      return response
+    } catch (err) {
+      if (!retried && err instanceof ApiHttpError && err.statusCode === 401) {
+        const refreshed: string =
+          await AccountSessionService.refreshForAccount(context, expectedAccountId)
+        const response: SyncPushResponse =
+          await ApiHttpClient.authorizedPost<SyncPushResponse>('/v1/sync/push', body, refreshed)
+        await AccountSessionService.requireAccount(context, expectedAccountId)
+        return response
+      }
+      if (err instanceof Error) {
+        throw err
+      }
+      throw new Error('同步操作提交失败')
+    }
   }
 
   private static async authorizedPush(body: SyncPushBody, context: Context,
@@ -655,6 +737,10 @@ export class CloudQuestionRepository {
     } catch {
       return new Array<string>()
     }
+  }
+
+  private static isUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
   }
 
   private static async toQuestion(accountId: string, cached: CloudQuestionCache): Promise<Question> {

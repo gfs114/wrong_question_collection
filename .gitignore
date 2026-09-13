@@ -19,3 +19,8 @@
 /.clang-tidy
 **/.test
 /.appanalyzer
+.pytest-*/
+**/.pytest-*/
+.pytest-tmp/
+.pytest-ai-import-audit/.codegenie/
+.codegenie/

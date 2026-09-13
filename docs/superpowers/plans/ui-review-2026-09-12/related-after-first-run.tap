@@ -1,0 +1,3407 @@
+TAP version 13
+# (node:48204) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: explicit failure discard deletes unreferenced evidence once before removing the failure
+ok 1 - explicit failure discard deletes unreferenced evidence once before removing the failure
+  ---
+  duration_ms: 99.5645
+  type: 'test'
+  ...
+# Subtest: failure discard cleanup failure retains the published failure and evidence for retry
+ok 2 - failure discard cleanup failure retains the published failure and evidence for retry
+  ---
+  duration_ms: 14.3579
+  type: 'test'
+  ...
+# Subtest: manual question transfer publishes one coherent session without deleting transferred evidence
+ok 3 - manual question transfer publishes one coherent session without deleting transferred evidence
+  ---
+  duration_ms: 40.4607
+  type: 'test'
+  ...
+# Subtest: manual transfer publication failure leaves the original failure and evidence intact
+ok 4 - manual transfer publication failure leaves the original failure and evidence intact
+  ---
+  duration_ms: 23.9378
+  type: 'test'
+  ...
+# Subtest: discard deduplicates obsolete paths and retains shared question or other failure evidence
+ok 5 - discard deduplicates obsolete paths and retains shared question or other failure evidence
+  ---
+  duration_ms: 28.5077
+  type: 'test'
+  ...
+# Subtest: all-crop success deletes the unused whole-page JPEG before publishing the page
+ok 6 - all-crop success deletes the unused whole-page JPEG before publishing the page
+  ---
+  duration_ms: 10.7991
+  type: 'test'
+  ...
+# Subtest: mixed crop and full-page questions retain the referenced whole-page JPEG
+ok 7 - mixed crop and full-page questions retain the referenced whole-page JPEG
+  ---
+  duration_ms: 8.3105
+  type: 'test'
+  ...
+# Subtest: successful retries replace every old image only after new questions are stored
+ok 8 - successful retries replace every old image only after new questions are stored
+  ---
+  duration_ms: 33.5925
+  type: 'test'
+  ...
+# Subtest: duplicate old question and failure evidence is deleted once, excluding paths still referenced
+ok 9 - duplicate old question and failure evidence is deleted once, excluding paths still referenced
+  ---
+  duration_ms: 9.3535
+  type: 'test'
+  ...
+# Subtest: an old image shared with an unchanged page survives a successful retry
+ok 10 - an old image shared with an unchanged page survives a successful retry
+  ---
+  duration_ms: 7.8926
+  type: 'test'
+  ...
+# Subtest: failed retry cleans only the new attempt and keeps old questions and evidence
+ok 11 - failed retry cleans only the new attempt and keeps old questions and evidence
+  ---
+  duration_ms: 19.3067
+  type: 'test'
+  ...
+# Subtest: unused whole-page cleanup failure fails and cleans the page attempt
+ok 12 - unused whole-page cleanup failure fails and cleans the page attempt
+  ---
+  duration_ms: 8.0922
+  type: 'test'
+  ...
+# Subtest: post-commit old-image cleanup failure preserves new state and surfaces a diagnostic
+ok 13 - post-commit old-image cleanup failure preserves new state and surfaces a diagnostic
+  ---
+  duration_ms: 8.5817
+  type: 'test'
+  ...
+# (node:53700) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: AI recognition settings expose explicit credential controls and both routes
+not ok 14 - AI recognition settings expose explicit credential controls and both routes
+  ---
+  duration_ms: 5.193
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\AiImportContracts.test.cjs:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Text\(this\.platformNote\)\.fontSize\(13\)\.fontColor\(this\.colors\(\)\.textCaption\)/. Input:
+    
+    "import { router } from '@kit.ArkUI'\n" +
+      "import { BODY_FONT_SIZE, PAGE_PADDING, themePalette } from '../constants/AppTheme'\n" +
+      "import { SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+      "import { UiStyle } from '../constants/UiStyle'\n" +
+      "import { AiPlatform, AiPlatformAccess, AiPlatformCatalog, AiPlatformModel } from '../models/ai/AiPlatformCatalog'\n" +
+      'import {\n' +
+      '  AiImportError, AiImportErrorCode, AiImportErrorMessages,\n' +
+      '  AiProviderConfig, AiProviderConfigValidator, AiProviderId\n' +
+      "} from '../models/ai/AiProviderConfig'\n" +
+      "import { AiConnectionTestService } from '../services/ai/AiConnectionTestService'\n" +
+      "import { AiCredentialStore } from '../services/ai/AiCredentialStore'\n" +
+      "import { AiProviderConfigStore } from '../services/ai/AiProviderConfigStore'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'\n" +
+      "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+      '\n' +
+      '@Entry\n' +
+      '@Component\n' +
+      'struct AiRecognitionSettingsPage {\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }\n" +
+      '  @State providerId: string = AiProviderId.OPENAI\n' +
+      "  @State model: string = ''\n" +
+      "  @State baseUrl: string = 'https://api.openai.com/v1'\n" +
+      "  @State platformLabel: string = '自定义'\n" +
+      '  // 最近一次已应用的目录平台 id（供「重选同平台 = no-op」守卫读取；比较目录 id 而非持久化字符串）。\n' +
+      "  @State appliedPlatformId: string = ''\n" +
+      "  @State platformNote: string = ''\n" +
+      '  @State platformModels: Array<AiPlatformModel> = new Array<AiPlatformModel>()\n' +
+      '  @State urlEditable: boolean = false\n' +
+      "  @State apiKey: string = ''\n" +
+      '  @State showKey: boolean = false\n' +
+      '  @State configured: boolean = false\n' +
+      '  @State credentialUpdatePending: boolean = false\n' +
+      '  @State pending: boolean = false\n' +
+      "  @State statusMessage: string = ''\n" +
+      '  @State failed: boolean = false\n' +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToAppear(): void {\n' +
+      '    this.loadSettings()\n' +
+      '    this.syncPlatformFromConfig()\n' +
+      '  }\n' +
+      '\n' +
+      '  // 选择页只写回平台 id：必须先 peek 判空/判忙，通过后才 take，反序会把用户的选择静默吞掉。\n' +
+      '  onPageShow(): void {\n' +
+      '    const selectedId: string = AiPlatformSelectionState.shared().peek()\n' +
+      '    if (selectedId.length === 0 || this.pending) return\n' +
+      '    AiPlatformSelectionState.shared().take()\n' +
+      '    this.applyPlatform(selectedId)\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToDisappear(): void {\n' +
+      "    this.apiKey = ''\n" +
+      '    this.showKey = false\n' +
+      '  }\n' +
+      '\n' +
+      '  onBackPress(): boolean {\n' +
+      '    if (this.pending) return true\n' +
+      '    this.leavePage()\n' +
+      '    return true\n' +
+      '  }\n' +
+      '\n' +
+      '  private leavePage(): void {\n' +
+      '    if (this.pending) return\n' +
+      "    this.apiKey = ''\n" +
+      '    this.showKey = false\n' +
+      '    router.back()\n' +
+      '  }\n' +
+      '\n' +
+      '  private formConfig(): AiProviderConfig {\n' +
+      '    return AiProviderConfigValidator.normalize(new AiProviderConfig(this.providerId, this.model, this.baseUrl))\n' +
+      '  }\n' +
+      '\n' +
+      '  private applyConfig(config: AiProviderConfig): void {\n' +
+      '    this.providerId = config.providerId\n' +
+      '    this.model = config.model\n' +
+      '    this.baseUrl = config.baseUrl\n' +
+      '    this.syncPlatformFromConfig()\n' +
+      '  }\n' +
+      '\n' +
+      '  // 应用选择页回传的目录 id：地址与模型芯片都来自目录；gateway 不自建直连地址，留空并提示用户手填。\n' +
+      '  private applyPlatform(id: string): void {\n' +
+      '    const platform: AiPlatform | null = AiPlatformCatalog.find(id)\n' +
+      '    if (platform === null) return\n' +
+      '    // 重选「当前已应用」的平台是 no-op：避免把用户尚未保存的 Model / 手填地址静默清空。\n' +
+      '    // 用目录 id 比较（目录 id 恒小写），不比较持久化字符串，避免大小写变体让守卫失效。\n' +
+      '    if (this.appliedPlatformId === platform.id) return\n' +
+      '    this.appliedPlatformId = platform.id\n' +
+      '    this.platformLabel = platform.nameZh\n' +
+      '    this.platformNote = platform.note\n' +
+      '    // 必须 slice：@State 可变，直接引用会反向污染目录单例数组。\n' +
+      '    this.platformModels = platform.models.slice()\n' +
+      "    this.model = ''\n" +
+      '    if (platform.access === AiPlatformAccess.GATEWAY) {\n' +
+      '      this.providerId = AiProviderId.CUSTOM\n' +
+      "      this.baseUrl = ''\n" +
+      '      this.urlEditable = true\n' +
+      "      this.statusMessage = platform.note.length > 0 ? platform.note : '该平台需自建兼容网关，请填写你自己的地址'\n" +
+      '      this.failed = this.statusMessage.length > 0\n' +
+      '    } else {\n' +
+      '      this.providerId = platform.id\n' +
+      '      this.baseUrl = platform.baseUrl\n' +
+      '      this.urlEditable = platform.access === AiPlatformAccess.LOCAL_HTTP\n' +
+      '      // 非 gateway 平台的风险/限制说明统一显示在地址下方（platformNote），不占用底部状态区。\n' +
+      "      this.statusMessage = ''\n" +
+      '      this.failed = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  // 明文风险按「实际地址」判定，而不是按所选平台的目录 access：\n' +
+      '  // 用户完全可能在 DIRECT 平台上手动填入 http://192.168.x 地址（校验器白名单放行），\n' +
+      '  // 反之 LOCAL_HTTP 平台的 note 只是信息性文字，不应被涂成错误色。\n' +
+      '  private isCleartextAddress(): boolean {\n' +
+      "    return this.baseUrl.trim().toLowerCase().startsWith('http://')\n" +
+      '  }\n' +
+      '\n' +
+      '  // 展示层只认目录：未知/已移除的持久化 id 一律兜底「自定义」，绝不把 store 里的原始字符串渲染到 UI。\n' +
+      '  private syncPlatformFromConfig(): void {\n' +
+      '    const platform: AiPlatform | null = AiPlatformCatalog.find(this.providerId)\n' +
+      '    if (platform === null) {\n' +
+      "      this.appliedPlatformId = ''\n" +
+      "      this.platformLabel = '自定义'\n" +
+      "      this.platformNote = ''\n" +
+      '      this.platformModels = new Array<AiPlatformModel>()\n' +
+      '      this.urlEditable = true\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.appliedPlatformId = platform.id\n' +
+      '    this.platformLabel = platform.nameZh\n' +
+      '    this.platformNote = platform.note\n' +
+      '    this.platformModels = platform.models.slice()\n' +
+      '    this.urlEditable = platform.access !== AiPlatformAccess.DIRECT\n' +
+      '  }\n' +
+      '\n' +
+      '  private showError(error: Error): void {\n' +
+      '    this.failed = true\n' +
+      '    const code: AiImportErrorCode = error instanceof AiImportError ? error.code : AiImportErrorCode.PROVIDER_UNAVAILABLE\n' +
+      '    this.statusMessage = AiImportErrorMessages.forCode(code)\n' +
+      '  }\n' +
+      '\n' +
+      '  private async loadSettings(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    this.pending = true\n' +
+      '    try {\n' +
+      '      this.credentialUpdatePending = await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))\n' +
+      '      const config: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n' +
+      '      if (config !== null) this.applyConfig(config)\n' +
+      '      if (this.credentialUpdatePending) throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n' +
+      '      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+      '    } catch (err) {\n' +
+      '      this.showError(err)\n' +
+      '    } finally {\n' +
+      "      this.apiKey = ''\n" +
+      '      this.showKey = false\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async saveSettings(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    this.pending = true\n' +
+      "    this.statusMessage = ''\n" +
+      '    this.failed = false\n' +
+      '    try {\n' +
+      '      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n' +
+      '        const config: AiProviderConfig = this.formConfig()\n' +
+      '        if (this.apiKey.trim().length > 0) {\n' +
+      '          this.credentialUpdatePending = true\n' +
+      '          await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n' +
+      '          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n' +
+      '          await AiCredentialStore.save(getContext(this), this.apiKey)\n' +
+      '          await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n' +
+      '          this.credentialUpdatePending = false\n' +
+      '        } else {\n' +
+      '          if (await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))) {\n' +
+      '            throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n' +
+      '          }\n' +
+      '          const saved: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n' +
+      '          if (await AiCredentialStore.hasCredential(getContext(this)) && !AiProviderConfigStore.sameConfig(saved, config)) {\n' +
+      '            throw new AiImportError(AiImportErrorCode.REPLACEMENT_KEY_REQUIRED)\n' +
+      '          }\n' +
+      '          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n' +
+      '        }\n' +
+      '        this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+      "        this.statusMessage = '设置已保存'\n" +
+      '      })\n' +
+      '    } catch (err) {\n' +
+      '      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n' +
+      '    } finally {\n' +
+      "      this.apiKey = ''\n" +
+      '      this.showKey = false\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async clearApiKey(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    this.pending = true\n' +
+      '    this.failed = false\n' +
+      '    try {\n' +
+      '      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n' +
+      '        this.credentialUpdatePending = true\n' +
+      '        await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n' +
+      '        await AiCredentialStore.clear(getContext(this))\n' +
+      '        this.configured = false\n' +
+      '        await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n' +
+      '        this.credentialUpdatePending = false\n' +
+      "        this.statusMessage = 'API Key 已清除'\n" +
+      '      })\n' +
+      '    } catch (err) {\n' +
+      '      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n' +
+      '    } finally {\n' +
+      "      this.apiKey = ''\n" +
+      '      this.showKey = false\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async testConnection(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    if (this.apiKey.length > 0) {\n' +
+      '      this.failed = true\n' +
+      "      this.statusMessage = '请先保存新 API Key，再测试连接'\n" +
+      '      return\n' +
+      '    }\n' +
+      '    this.pending = true\n' +
+      "    this.statusMessage = '正在测试连接…'\n" +
+      '    this.failed = false\n' +
+      '    try {\n' +
+      '      const config: AiProviderConfig = this.formConfig()\n' +
+      '      await AiProviderConfigStore.requireUsable(getContext(this), config)\n' +
+      '      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+      '      if (!this.configured) throw new AiImportError(AiImportErrorCode.MISSING_API_KEY)\n' +
+      '      await new AiConnectionTestService().test(getContext(this), config)\n' +
+      "      this.statusMessage = '连接成功'\n" +
+      '    } catch (err) {\n' +
+      '      this.showError(err)\n' +
+      '    } finally {\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private openPlatformPicker(): void {\n' +
+      '    if (this.pending) return\n' +
+      "    this.getUIContext().getRouter().pushUrl({ url: 'pages/AiPlatformPickerPage' }).catch(() => {\n" +
+      '      this.failed = true\n' +
+      "      this.statusMessage = '平台选择页面暂不可用，请稍后重试'\n" +
+      '    })\n' +
+      '  }\n' +
+      '\n' +
+      '  @Builder\n' +
+      '  private FieldLabel(label: string) {\n' +
+      '    Text(label)\n' +
+      '      .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '      .fontColor(this.colors().textPrimary)\n' +
+      '      .fontWeight(FontWeight.Medium)\n' +
+      '  }\n' +
+      '\n' +
+      '  @Builder\n' +
+      '  private HeaderBar() {\n' +
+      '    Row({ space: 12 }) {\n' +
+      "      Button('返回')\n" +
+      '        .type(ButtonType.Normal)\n' +
+      '        .constraintSize({ minWidt'... 11704 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { router } from '@kit.ArkUI'
+    import { BODY_FONT_SIZE, PAGE_PADDING, themePalette } from '../constants/AppTheme'
+    import { SHEET_RADIUS } from '../constants/EditorialStyle'
+    import { UiStyle } from '../constants/UiStyle'
+    import { AiPlatform, AiPlatformAccess, AiPlatformCatalog, AiPlatformModel } from '../models/ai/AiPlatformCatalog'
+    import {
+      AiImportError, AiImportErrorCode, AiImportErrorMessages,
+      AiProviderConfig, AiProviderConfigValidator, AiProviderId
+    } from '../models/ai/AiProviderConfig'
+    import { AiConnectionTestService } from '../services/ai/AiConnectionTestService'
+    import { AiCredentialStore } from '../services/ai/AiCredentialStore'
+    import { AiProviderConfigStore } from '../services/ai/AiProviderConfigStore'
+    import { AppColors } from '../theme/AppColors'
+    import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'
+    import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+    
+    @Entry
+    @Component
+    struct AiRecognitionSettingsPage {
+      @StorageProp('darkMode') darkMode: boolean = false
+      @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }
+      @State providerId: string = AiProviderId.OPENAI
+      @State model: string = ''
+      @State baseUrl: string = 'https://api.openai.com/v1'
+      @State platformLabel: string = '自定义'
+      // 最近一次已应用的目录平台 id（供「重选同平台 = no-op」守卫读取；比较目录 id 而非持久化字符串）。
+      @State appliedPlatformId: string = ''
+      @State platformNote: string = ''
+      @State platformModels: Array<AiPlatformModel> = new Array<AiPlatformModel>()
+      @State urlEditable: boolean = false
+      @State apiKey: string = ''
+      @State showKey: boolean = false
+      @State configured: boolean = false
+      @State credentialUpdatePending: boolean = false
+      @State pending: boolean = false
+      @State statusMessage: string = ''
+      @State failed: boolean = false
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      aboutToAppear(): void {
+        this.loadSettings()
+        this.syncPlatformFromConfig()
+      }
+    
+      // 选择页只写回平台 id：必须先 peek 判空/判忙，通过后才 take，反序会把用户的选择静默吞掉。
+      onPageShow(): void {
+        const selectedId: string = AiPlatformSelectionState.shared().peek()
+        if (selectedId.length === 0 || this.pending) return
+        AiPlatformSelectionState.shared().take()
+        this.applyPlatform(selectedId)
+      }
+    
+      aboutToDisappear(): void {
+        this.apiKey = ''
+        this.showKey = false
+      }
+    
+      onBackPress(): boolean {
+        if (this.pending) return true
+        this.leavePage()
+        return true
+      }
+    
+      private leavePage(): void {
+        if (this.pending) return
+        this.apiKey = ''
+        this.showKey = false
+        router.back()
+      }
+    
+      private formConfig(): AiProviderConfig {
+        return AiProviderConfigValidator.normalize(new AiProviderConfig(this.providerId, this.model, this.baseUrl))
+      }
+    
+      private applyConfig(config: AiProviderConfig): void {
+        this.providerId = config.providerId
+        this.model = config.model
+        this.baseUrl = config.baseUrl
+        this.syncPlatformFromConfig()
+      }
+    
+      // 应用选择页回传的目录 id：地址与模型芯片都来自目录；gateway 不自建直连地址，留空并提示用户手填。
+      private applyPlatform(id: string): void {
+        const platform: AiPlatform | null = AiPlatformCatalog.find(id)
+        if (platform === null) return
+        // 重选「当前已应用」的平台是 no-op：避免把用户尚未保存的 Model / 手填地址静默清空。
+        // 用目录 id 比较（目录 id 恒小写），不比较持久化字符串，避免大小写变体让守卫失效。
+        if (this.appliedPlatformId === platform.id) return
+        this.appliedPlatformId = platform.id
+        this.platformLabel = platform.nameZh
+        this.platformNote = platform.note
+        // 必须 slice：@State 可变，直接引用会反向污染目录单例数组。
+        this.platformModels = platform.models.slice()
+        this.model = ''
+        if (platform.access === AiPlatformAccess.GATEWAY) {
+          this.providerId = AiProviderId.CUSTOM
+          this.baseUrl = ''
+          this.urlEditable = true
+          this.statusMessage = platform.note.length > 0 ? platform.note : '该平台需自建兼容网关，请填写你自己的地址'
+          this.failed = this.statusMessage.length > 0
+        } else {
+          this.providerId = platform.id
+          this.baseUrl = platform.baseUrl
+          this.urlEditable = platform.access === AiPlatformAccess.LOCAL_HTTP
+          // 非 gateway 平台的风险/限制说明统一显示在地址下方（platformNote），不占用底部状态区。
+          this.statusMessage = ''
+          this.failed = false
+        }
+      }
+    
+      // 明文风险按「实际地址」判定，而不是按所选平台的目录 access：
+      // 用户完全可能在 DIRECT 平台上手动填入 http://192.168.x 地址（校验器白名单放行），
+      // 反之 LOCAL_HTTP 平台的 note 只是信息性文字，不应被涂成错误色。
+      private isCleartextAddress(): boolean {
+        return this.baseUrl.trim().toLowerCase().startsWith('http://')
+      }
+    
+      // 展示层只认目录：未知/已移除的持久化 id 一律兜底「自定义」，绝不把 store 里的原始字符串渲染到 UI。
+      private syncPlatformFromConfig(): void {
+        const platform: AiPlatform | null = AiPlatformCatalog.find(this.providerId)
+        if (platform === null) {
+          this.appliedPlatformId = ''
+          this.platformLabel = '自定义'
+          this.platformNote = ''
+          this.platformModels = new Array<AiPlatformModel>()
+          this.urlEditable = true
+          return
+        }
+        this.appliedPlatformId = platform.id
+        this.platformLabel = platform.nameZh
+        this.platformNote = platform.note
+        this.platformModels = platform.models.slice()
+        this.urlEditable = platform.access !== AiPlatformAccess.DIRECT
+      }
+    
+      private showError(error: Error): void {
+        this.failed = true
+        const code: AiImportErrorCode = error instanceof AiImportError ? error.code : AiImportErrorCode.PROVIDER_UNAVAILABLE
+        this.statusMessage = AiImportErrorMessages.forCode(code)
+      }
+    
+      private async loadSettings(): Promise<void> {
+        if (this.pending) return
+        this.pending = true
+        try {
+          this.credentialUpdatePending = await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))
+          const config: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))
+          if (config !== null) this.applyConfig(config)
+          if (this.credentialUpdatePending) throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)
+          this.configured = await AiCredentialStore.hasCredential(getContext(this))
+        } catch (err) {
+          this.showError(err)
+        } finally {
+          this.apiKey = ''
+          this.showKey = false
+          this.pending = false
+        }
+      }
+    
+      private async saveSettings(): Promise<void> {
+        if (this.pending) return
+        this.pending = true
+        this.statusMessage = ''
+        this.failed = false
+        try {
+          await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {
+            const config: AiProviderConfig = this.formConfig()
+            if (this.apiKey.trim().length > 0) {
+              this.credentialUpdatePending = true
+              await AiProviderConfigStore.beginCredentialUpdate(getContext(this))
+              this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))
+              await AiCredentialStore.save(getContext(this), this.apiKey)
+              await AiProviderConfigStore.completeCredentialUpdate(getContext(this))
+              this.credentialUpdatePending = false
+            } else {
+              if (await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))) {
+                throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)
+              }
+              const saved: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))
+              if (await AiCredentialStore.hasCredential(getContext(this)) && !AiProviderConfigStore.sameConfig(saved, config)) {
+                throw new AiImportError(AiImportErrorCode.REPLACEMENT_KEY_REQUIRED)
+              }
+              this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))
+            }
+            this.configured = await AiCredentialStore.hasCredential(getContext(this))
+            this.statusMessage = '设置已保存'
+          })
+        } catch (err) {
+          this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)
+        } finally {
+          this.apiKey = ''
+          this.showKey = false
+          this.pending = false
+        }
+      }
+    
+      private async clearApiKey(): Promise<void> {
+        if (this.pending) return
+        this.pending = true
+        this.failed = false
+        try {
+          await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {
+            this.credentialUpdatePending = true
+            await AiProviderConfigStore.beginCredentialUpdate(getContext(this))
+            await AiCredentialStore.clear(getContext(this))
+            this.configured = false
+            await AiProviderConfigStore.completeCredentialUpdate(getContext(this))
+            this.credentialUpdatePending = false
+            this.statusMessage = 'API Key 已清除'
+          })
+        } catch (err) {
+          this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)
+        } finally {
+          this.apiKey = ''
+          this.showKey = false
+          this.pending = false
+        }
+      }
+    
+      private async testConnection(): Promise<void> {
+        if (this.pending) return
+        if (this.apiKey.length > 0) {
+          this.failed = true
+          this.statusMessage = '请先保存新 API Key，再测试连接'
+          return
+        }
+        this.pending = true
+        this.statusMessage = '正在测试连接…'
+        this.failed = false
+        try {
+          const config: AiProviderConfig = this.formConfig()
+          await AiProviderConfigStore.requireUsable(getContext(this), config)
+          this.configured = await AiCredentialStore.hasCredential(getContext(this))
+          if (!this.configured) throw new AiImportError(AiImportErrorCode.MISSING_API_KEY)
+          await new AiConnectionTestService().test(getContext(this), config)
+          this.statusMessage = '连接成功'
+        } catch (err) {
+          this.showError(err)
+        } finally {
+          this.pending = false
+        }
+      }
+    
+      private openPlatformPicker(): void {
+        if (this.pending) return
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/AiPlatformPickerPage' }).catch(() => {
+          this.failed = true
+          this.statusMessage = '平台选择页面暂不可用，请稍后重试'
+        })
+      }
+    
+      @Builder
+      private FieldLabel(label: string) {
+        Text(label)
+          .fontSize(UiStyle.DETAIL_SIZE)
+          .fontColor(this.colors().textPrimary)
+          .fontWeight(FontWeight.Medium)
+      }
+    
+      @Builder
+      private HeaderBar() {
+        Row({ space: 12 }) {
+          Button('返回')
+            .type(ButtonType.Normal)
+            .constraintSize({ minWidth: UiStyle.TOUCH_TARGET, minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(UiStyle.action(this.darkMode))
+            .backgroundColor(this.colors().pageBackground)
+            .enabled(!this.pending)
+            .accessibilityText('返回')
+            .onClick(() => this.leavePage())
+    
+          Text('AI 识别设置')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+        }
+        .width('100%')
+        .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH, minHeight: UiStyle.TOUCH_TARGET })
+        .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
+      }
+    
+      @Builder
+      private StatusNotice() {
+        if (this.statusMessage.length > 0) {
+          Text(this.statusMessage)
+            .width('100%')
+            .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH, minHeight: UiStyle.TOUCH_TARGET })
+            .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.failed ? UiStyle.errorText(this.darkMode) : this.colors().successText)
+            .backgroundColor(this.failed ? this.colors().errorSoft : this.colors().brandSoft)
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .accessibilityText((this.failed ? '操作失败：' : '操作状态：') + this.statusMessage)
+        }
+      }
+    
+      @Builder
+      private ServiceAndModelSection() {
+        Column({ space: UiStyle.FIELD_GAP }) {
+          Text('服务与模型')
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('识别平台')
+            Row({ space: 12 }) {
+              Column({ space: 3 }) {
+                Text(this.platformLabel)
+                  .fontSize(UiStyle.BODY_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(this.colors().textPrimary)
+                  .maxLines(2)
+                Text('选择平台后会自动填写可用地址和推荐模型')
+                  .fontSize(12)
+                  .fontColor(this.colors().textCaption)
+                  .maxLines(2)
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
+    
+              Button('切换平台')
+                .type(ButtonType.Normal)
+                .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                .fontSize(UiStyle.DETAIL_SIZE)
+                .fontColor(UiStyle.action(this.darkMode))
+                .backgroundColor(this.colors().brandSoft)
+                .borderRadius(UiStyle.CONTROL_RADIUS)
+                .enabled(!this.pending)
+                .onClick(() => {
+                  this.openPlatformPicker()
+                })
+            }
+            .width('100%')
+            .alignItems(VerticalAlign.Center)
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('API 地址')
+            TextInput({ text: this.baseUrl, placeholder: this.urlEditable ? 'https://服务地址/v1' : '' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending && this.urlEditable)
+              .onChange((value: string) => { this.baseUrl = value })
+    
+            Button(this.urlEditable ? '完成自定义地址' : '自定义地址')
+              .type(ButtonType.Normal)
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.action(this.darkMode))
+              .backgroundColor(this.colors().cardBackground)
+              .enabled(!this.pending)
+              .onClick(() => {
+                this.urlEditable = !this.urlEditable
+              })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Text('密钥会发送至此地址，请仅填写你信任的 AI 服务。更改配置后需重新输入 API Key 并保存，才能测试。')
+            .width('100%')
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(this.colors().textCaption)
+            .lineHeight(22)
+    
+          if (this.platformNote.length > 0 && this.platformNote !== this.statusMessage) {
+            Text(this.platformNote)
+              .width('100%')
+              .fontSize(13)
+              .fontColor(this.colors().textCaption)
+              .lineHeight(21)
+          }
+    
+          if (this.isCleartextAddress()) {
+            Text('⚠ 明文 HTTP 仅适用于本机或私网服务，API Key 会以明文在局域网内传输。')
+              .width('100%')
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.errorText(this.darkMode))
+              .lineHeight(22)
+          }
+    
+          if (this.platformModels.length > 0) {
+            Column({ space: 8 }) {
+              this.FieldLabel('推荐视觉模型')
+              Flex({ wrap: FlexWrap.Wrap }) {
+                ForEach(this.platformModels, (item: AiPlatformModel) => {
+                  Button(item.label)
+                    .type(ButtonType.Normal)
+                    .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                    .fontSize(13)
+                    .margin({ right: 8, bottom: 8 })
+                    .backgroundColor(this.model === item.id ?
+                      UiStyle.action(this.darkMode) : this.colors().chipBackground)
+                    .fontColor(this.model === item.id ?
+                      UiStyle.onAction(this.darkMode) : this.colors().textPrimary)
+                    .borderRadius(UiStyle.CONTROL_RADIUS)
+                    .enabled(!this.pending)
+                    .accessibilitySelected(this.model === item.id)
+                    .onClick(() => { this.model = item.id })
+                }, (item: AiPlatformModel) => item.id)
+              }
+              .width('100%')
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
+          }
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('模型名称（Model）')
+            TextInput({ text: this.model, placeholder: '填写支持图片输入的模型名称' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending)
+              .onChange((value: string) => { this.model = value })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+    
+      @Builder
+      private CredentialSection() {
+        Column({ space: UiStyle.FIELD_GAP }) {
+          Row() {
+            Text('密钥管理')
+              .fontSize(16)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.colors().textPrimary)
+            Blank()
+            Text(this.configured ? '已配置' : '未配置')
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(this.configured ? this.colors().successText : this.colors().textCaption)
+          }
+          .width('100%')
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('API Key')
+            TextInput({ text: this.apiKey, placeholder: '输入新 API Key；留空保留已保存密钥' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .type(this.showKey ? InputType.Normal : InputType.Password).showPasswordIcon(false)
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending)
+              .onChange((value: string) => { this.apiKey = value })
+    
+            Button(this.showKey ? '隐藏本次输入' : '显示本次输入')
+              .type(ButtonType.Normal)
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(this.apiKey.length > 0 ? UiStyle.action(this.darkMode) : this.colors().disabled)
+              .backgroundColor(this.colors().cardBackground)
+              .enabled(!this.pending && this.apiKey.length > 0)
+              .onClick(() => { this.showKey = !this.showKey })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Button('保存设置')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.BODY_SIZE)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(UiStyle.onAction(this.darkMode))
+            .backgroundColor(UiStyle.action(this.darkMode))
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .enabled(!this.pending)
+            .onClick(() => { this.saveSettings() })
+    
+          Divider().color(this.colors().divider)
+    
+          Button('清除 API Key')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(UiStyle.errorText(this.darkMode))
+            .backgroundColor(this.colors().cardBackground)
+            .enabled(!this.pending && this.configured)
+            .onClick(() => { this.clearApiKey() })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+    
+      @Builder
+      private ConnectionSection() {
+        Column({ space: 12 }) {
+          Text('连接验证')
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+    
+          Text('测试连接会发送一张极小测试图片，可能产生极少量模型费用')
+            .width('100%')
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(this.colors().textCaption)
+            .lineHeight(22)
+    
+          Button(this.pending ? '正在处理…' : '测试连接')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.BODY_SIZE)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(UiStyle.action(this.darkMode))
+            .backgroundColor(this.colors().cardBackground)
+            .border({ width: 1, color: UiStyle.action(this.darkMode) })
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .enabled(!this.pending)
+            .onClick(() => { this.testConnection() })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+    
+      build() {
+        Column() {
+          this.HeaderBar()
+          this.StatusNotice()
+          Scroll() {
+            Column({ space: UiStyle.GROUP_GAP }) {
+              Column({ space: 6 }) {
+                Text('AI 视觉识别（推荐）')
+                  .width('100%')
+                  .fontSize(24)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.colors().textPrimary)
+                Text('配置图片识别服务，保存后可在 PDF 导入中使用')
+                  .width('100%')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontColor(this.colors().textCaption)
+              }
+              .width('100%')
+              .alignItems(HorizontalAlign.Start)
+    
+              this.ServiceAndModelSection()
+              this.CredentialSection()
+              this.ConnectionSection()
+            }
+            .width('100%')
+            .padding({ top: 16, bottom: PAGE_PADDING })
+          }
+          .layoutWeight(1)
+          .width('100%')
+          .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+          .scrollBar(BarState.Off)
+          .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
+        }
+        .width('100%')
+        .height('100%')
+        .backgroundColor(this.colors().pageBackground)
+        .padding({
+          top: SafeAreaUtils.top(this.safeAreaInsets),
+          bottom: SafeAreaUtils.bottom(this.safeAreaInsets),
+          left: SafeAreaUtils.left(this.safeAreaInsets),
+          right: SafeAreaUtils.right(this.safeAreaInsets)
+        })
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiImportContracts.test.cjs:27:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: AI PDF setup validates durable provider state, account and key before progress
+ok 15 - AI PDF setup validates durable provider state, account and key before progress
+  ---
+  duration_ms: 1.1542
+  type: 'test'
+  ...
+# Subtest: AI PDF progress starts once and owns one cancellation cleanup path
+ok 16 - AI PDF progress starts once and owns one cancellation cleanup path
+  ---
+  duration_ms: 1.0408
+  type: 'test'
+  ...
+# Subtest: connection test sends one 1x1 JPEG with normalized form config and releases its request
+ok 17 - connection test sends one 1x1 JPEG with normalized form config and releases its request
+  ---
+  duration_ms: 79.2158
+  type: 'test'
+  ...
+# Subtest: connection response validation releases exactly once after extraction and accepts content without questions
+ok 18 - connection response validation releases exactly once after extraction and accepts content without questions
+  ---
+  duration_ms: 12.4256
+  type: 'test'
+  ...
+# Subtest: connection failure preserves stable codes, releases body, and never retries
+ok 19 - connection failure preserves stable codes, releases body, and never retries
+  ---
+  duration_ms: 8.7907
+  type: 'test'
+  ...
+# Subtest: connection invalid config and missing saved credential do not reach adapter or transport
+ok 20 - connection invalid config and missing saved credential do not reach adapter or transport
+  ---
+  duration_ms: 5.6868
+  type: 'test'
+  ...
+# Subtest: connection service keeps the entire transport await inside saved credential scope
+ok 21 - connection service keeps the entire transport await inside saved credential scope
+  ---
+  duration_ms: 5.9236
+  type: 'test'
+  ...
+# Subtest: settings load never fetches a key and save/clear erase typed key on success and failure
+ok 22 - settings load never fetches a key and save/clear erase typed key on success and failure
+  ---
+  duration_ms: 46.5162
+  type: 'test'
+  ...
+# Subtest: settings requires saving a new key and blocks mutations/back while a saved-config test runs
+ok 23 - settings requires saving a new key and blocks mutations/back while a saved-config test runs
+  ---
+  duration_ms: 31.4593
+  type: 'test'
+  ...
+# Subtest: settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally
+ok 24 - settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally
+  ---
+  duration_ms: 37.3623
+  type: 'test'
+  ...
+# Subtest: settings platform row applies catalog data without aliasing catalog arrays
+ok 25 - settings platform row applies catalog data without aliasing catalog arrays
+  ---
+  duration_ms: 15.4244
+  type: 'test'
+  ...
+# Subtest: settings onPageShow consumes a picker selection once only after the guard
+ok 26 - settings onPageShow consumes a picker selection once only after the guard
+  ---
+  duration_ms: 16.531
+  type: 'test'
+  ...
+# Subtest: preflight cancellation cleans the selected PDF at every await boundary
+ok 27 - preflight cancellation cleans the selected PDF at every await boundary
+  ---
+  duration_ms: 63.1334
+  type: 'test'
+  ...
+# Subtest: preflight cancellation retains identity and exposes retry after direct PDF cleanup failure
+ok 28 - preflight cancellation retains identity and exposes retry after direct PDF cleanup failure
+  ---
+  duration_ms: 5.3797
+  type: 'test'
+  ...
+# Subtest: typed non-cancelled run cleanup debt blocks exit and converges through central retry
+ok 29 - typed non-cancelled run cleanup debt blocks exit and converges through central retry
+  ---
+  duration_ms: 6.9315
+  type: 'test'
+  ...
+# Subtest: completed import disables cancellation, rechecks account and retries review navigation without rerun
+ok 30 - completed import disables cancellation, rechecks account and retries review navigation without rerun
+  ---
+  duration_ms: 7.7241
+  type: 'test'
+  ...
+# Subtest: post-run account mismatch discards before clearing state and returning to import
+ok 31 - post-run account mismatch discards before clearing state and returning to import
+  ---
+  duration_ms: 5.9058
+  type: 'test'
+  ...
+# Subtest: completed-session abandon retains request and review id until discard retry succeeds
+ok 32 - completed-session abandon retains request and review id until discard retry succeeds
+  ---
+  duration_ms: 4.4277
+  type: 'test'
+  ...
+# Subtest: credential update barrier persists across restart and ambiguous completion failure
+ok 33 - credential update barrier persists across restart and ambiguous completion failure
+  ---
+  duration_ms: 27.6776
+  type: 'test'
+  ...
+# Subtest: HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker
+ok 34 - HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker
+  ---
+  duration_ms: 9.9227
+  type: 'test'
+  ...
+# Subtest: config-only changes and unsaved test forms never reuse an existing key
+ok 35 - config-only changes and unsaved test forms never reuse an existing key
+  ---
+  duration_ms: 15.6264
+  type: 'test'
+  ...
+# Subtest: failed marker begin and key clear leave dispatch blocked without updating public configuration
+ok 36 - failed marker begin and key clear leave dispatch blocked without updating public configuration
+  ---
+  duration_ms: 6.2326
+  type: 'test'
+  ...
+# Subtest: default coordinator checks persisted config and holds update barrier through credential dispatch
+ok 37 - default coordinator checks persisted config and holds update barrier through credential dispatch
+  ---
+  duration_ms: 21.6266
+  type: 'test'
+  ...
+# Subtest: source-neutral review isolates providers and renders editable local evidence
+ok 38 - source-neutral review isolates providers and renders editable local evidence
+  ---
+  duration_ms: 1.236
+  type: 'test'
+  ...
+# Subtest: review retains committed retry state and exposes image retry without draft questions
+ok 39 - review retains committed retry state and exposes image retry without draft questions
+  ---
+  duration_ms: 0.382
+  type: 'test'
+  ...
+# Subtest: AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy
+ok 40 - AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy
+  ---
+  duration_ms: 9.8359
+  type: 'test'
+  ...
+# Subtest: AI adapter propagates durable account/corruption failures instead of falling back to memory
+ok 41 - AI adapter propagates durable account/corruption failures instead of falling back to memory
+  ---
+  duration_ms: 23.1591
+  type: 'test'
+  ...
+# Subtest: review edits and manual failure conversion persist deep copies with stable evidence UUIDs
+ok 42 - review edits and manual failure conversion persist deep copies with stable evidence UUIDs
+  ---
+  duration_ms: 4.3381
+  type: 'test'
+  ...
+# Subtest: review serializes save and back and abandons only after explicit draft choice
+ok 43 - review serializes save and back and abandons only after explicit draft choice
+  ---
+  duration_ms: 5.3025
+  type: 'test'
+  ...
+# Subtest: review failed retry publishes committed session while hiding arbitrary provider errors
+ok 44 - review failed retry publishes committed session while hiding arbitrary provider errors
+  ---
+  duration_ms: 4.2365
+  type: 'test'
+  ...
+# Subtest: failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles
+ok 45 - failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles
+  ---
+  duration_ms: 4.5153
+  type: 'test'
+  ...
+# Subtest: review exposes an explicit authoritative-state reload action and gates mutation while uncertain
+ok 46 - review exposes an explicit authoritative-state reload action and gates mutation while uncertain
+  ---
+  duration_ms: 0.428
+  type: 'test'
+  ...
+# Subtest: checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment
+ok 47 - checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment
+  ---
+  duration_ms: 4.0652
+  type: 'test'
+  ...
+# Subtest: initial review load failure keeps page ownership until authoritative reload succeeds
+ok 48 - initial review load failure keeps page ownership until authoritative reload succeeds
+  ---
+  duration_ms: 4.4804
+  type: 'test'
+  ...
+# Subtest: repeated authoritative reload failure remains locked until owner checkpoint reload succeeds
+ok 49 - repeated authoritative reload failure remains locked until owner checkpoint reload succeeds
+  ---
+  duration_ms: 4.8741
+  type: 'test'
+  ...
+# Subtest: committed retry plus authoritative reload failure stays locked until explicit reload
+ok 50 - committed retry plus authoritative reload failure stays locked until explicit reload
+  ---
+  duration_ms: 3.8741
+  type: 'test'
+  ...
+# Subtest: committed discard or manual transfer plus reload failure locks until authoritative reload
+ok 51 - committed discard or manual transfer plus reload failure locks until authoritative reload
+  ---
+  duration_ms: 9.4914
+  type: 'test'
+  ...
+# Subtest: AI provider config storage persists only normalized public configuration
+ok 52 - AI provider config storage persists only normalized public configuration
+  ---
+  duration_ms: 0.5884
+  type: 'test'
+  ...
+# Subtest: provider validator accepts local http only for private hosts
+ok 53 - provider validator accepts local http only for private hosts
+  ---
+  duration_ms: 2.2552
+  type: 'test'
+  ...
+# Subtest: endpoint guard allows https and private http but never public http
+ok 54 - endpoint guard allows https and private http but never public http
+  ---
+  duration_ms: 2.0553
+  type: 'test'
+  ...
+# Subtest: OpenAI-compatible adapter sends one page image through chat completions
+ok 55 - OpenAI-compatible adapter sends one page image through chat completions
+  ---
+  duration_ms: 0.2815
+  type: 'test'
+  ...
+# Subtest: AI transport is bounded, non-redirecting, cancellable and independent
+ok 56 - AI transport is bounded, non-redirecting, cancellable and independent
+  ---
+  duration_ms: 0.4081
+  type: 'test'
+  ...
+# Subtest: PDF encoder releases page pixels before returning network-ready text
+ok 57 - PDF encoder releases page pixels before returning network-ready text
+  ---
+  duration_ms: 0.634
+  type: 'test'
+  ...
+# Subtest: PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership
+ok 58 - PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership
+  ---
+  duration_ms: 0.7763
+  type: 'test'
+  ...
+# Subtest: PDF encoder defers close through active operation leases and preserves late failures
+ok 59 - PDF encoder defers close through active operation leases and preserves late failures
+  ---
+  duration_ms: 0.4099
+  type: 'test'
+  ...
+# Subtest: PDF encoder isolates retry artifacts by exact logical session and attempt ownership
+ok 60 - PDF encoder isolates retry artifacts by exact logical session and attempt ownership
+  ---
+  duration_ms: 0.3175
+  type: 'test'
+  ...
+# Subtest: PDF encoder deletes only an explicit cache-root session-owned evidence file
+ok 61 - PDF encoder deletes only an explicit cache-root session-owned evidence file
+  ---
+  duration_ms: 0.2324
+  type: 'test'
+  ...
+# Subtest: AI coordinator owns one sequential local-only page pipeline
+ok 62 - AI coordinator owns one sequential local-only page pipeline
+  ---
+  duration_ms: 0.3434
+  type: 'test'
+  ...
+# Subtest: AI coordinator keeps cancellation and request cleanup generation safe
+ok 63 - AI coordinator keeps cancellation and request cleanup generation safe
+  ---
+  duration_ms: 0.3195
+  type: 'test'
+  ...
+# Subtest: AI coordinator retry is page-bounded, atomic and shares processPage
+ok 64 - AI coordinator retry is page-bounded, atomic and shares processPage
+  ---
+  duration_ms: 0.2763
+  type: 'test'
+  ...
+# Subtest: AI coordinator cleans only failed attempt artifacts and retains successful namespaces
+ok 65 - AI coordinator cleans only failed attempt artifacts and retains successful namespaces
+  ---
+  duration_ms: 0.3908
+  type: 'test'
+  ...
+# Subtest: AI coordinator retains initial page evidence but fully cleans failed retries
+ok 66 - AI coordinator retains initial page evidence but fully cleans failed retries
+  ---
+  duration_ms: 0.3309
+  type: 'test'
+  ...
+# Subtest: AI coordinator surfaces cleanup failure while retaining the primary error code
+ok 67 - AI coordinator surfaces cleanup failure while retaining the primary error code
+  ---
+  duration_ms: 0.3272
+  type: 'test'
+  ...
+# Subtest: coordinator exposes cleanup debt only while the final exact cleanup still fails
+ok 68 - coordinator exposes cleanup debt only while the final exact cleanup still fails
+  ---
+  duration_ms: 2.6715
+  type: 'test'
+  ...
+# Subtest: AI coordinator guards credential-delayed transport dispatch by identity and generation
+ok 69 - AI coordinator guards credential-delayed transport dispatch by identity and generation
+  ---
+  duration_ms: 0.3831
+  type: 'test'
+  ...
+# Subtest: AI coordinator commits retry before narrowly deleting superseded failure evidence
+ok 70 - AI coordinator commits retry before narrowly deleting superseded failure evidence
+  ---
+  duration_ms: 0.2974
+  type: 'test'
+  ...
+# Subtest: AI coordinator discard always attempts both cleanups and retains first failure
+ok 71 - AI coordinator discard always attempts both cleanups and retains first failure
+  ---
+  duration_ms: 0.2545
+  type: 'test'
+  ...
+# Subtest: default PDF cleanup remembers successful exact paths across discard retries
+ok 72 - default PDF cleanup remembers successful exact paths across discard retries
+  ---
+  duration_ms: 0.9718
+  type: 'test'
+  ...
+# Subtest: discard retry converges after image, PDF, or combined partial failure
+ok 73 - discard retry converges after image, PDF, or combined partial failure
+  ---
+  duration_ms: 2.7974
+  type: 'test'
+  ...
+# Subtest: AI review keeps an image even when bbox is unusable
+ok 74 - AI review keeps an image even when bbox is unusable
+  ---
+  duration_ms: 0.4876
+  type: 'test'
+  ...
+# Subtest: unusable bbox skips cropping and keeps whole-page evidence as the question image
+ok 75 - unusable bbox skips cropping and keeps whole-page evidence as the question image
+  ---
+  duration_ms: 4.5556
+  type: 'test'
+  ...
+# Subtest: usable bbox crops per question and discards the unused whole-page evidence
+ok 76 - usable bbox crops per question and discards the unused whole-page evidence
+  ---
+  duration_ms: 4.2815
+  type: 'test'
+  ...
+# Subtest: automated tests use fakes and cannot call an external provider
+ok 77 - automated tests use fakes and cannot call an external provider
+  ---
+  duration_ms: 1.6658
+  type: 'test'
+  ...
+# Subtest: test-only network helpers reject real provider URLs and production network APIs
+ok 78 - test-only network helpers reject real provider URLs and production network APIs
+  ---
+  duration_ms: 1.0155
+  type: 'test'
+  ...
+# Subtest: provider config store keeps catalog platform ids and tolerates unknown ids
+ok 79 - provider config store keeps catalog platform ids and tolerates unknown ids
+  ---
+  duration_ms: 0.2803
+  type: 'test'
+  ...
+# Subtest: provider config store preserves catalog and unknown provider ids at runtime
+ok 80 - provider config store preserves catalog and unknown provider ids at runtime
+  ---
+  duration_ms: 8.5566
+  type: 'test'
+  ...
+# Subtest: platform picker page is registered once and reachable from the settings page
+ok 81 - platform picker page is registered once and reachable from the settings page
+  ---
+  duration_ms: 0.7229
+  type: 'test'
+  ...
+# (node:52584) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public save can repeat with the same supplied session after cleanup without IO replay
+ok 82 - public save can repeat with the same supplied session after cleanup without IO replay
+  ---
+  duration_ms: 136.5383
+  type: 'test'
+  ...
+# Subtest: two queued stale DRAFT public saves execute exactly one complete lifecycle
+ok 83 - two queued stale DRAFT public saves execute exactly one complete lifecycle
+  ---
+  duration_ms: 17.8166
+  type: 'test'
+  ...
+# Subtest: COMPLETE without durable or memory state is sanitized without another cleanup
+ok 84 - COMPLETE without durable or memory state is sanitized without another cleanup
+  ---
+  duration_ms: 17.7947
+  type: 'test'
+  ...
+# Subtest: draft abandon prefix-cleans unreferenced failed-attempt debt before releasing ownership
+ok 85 - draft abandon prefix-cleans unreferenced failed-attempt debt before releasing ownership
+  ---
+  duration_ms: 39.3355
+  type: 'test'
+  ...
+# Subtest: COMPLETE save prefix-cleans post-commit superseded debt before checkpoint release
+ok 86 - COMPLETE save prefix-cleans post-commit superseded debt before checkpoint release
+  ---
+  duration_ms: 14.2009
+  type: 'test'
+  ...
+# Subtest: save prefix cleanup failure preserves checkpoint memory and PDF for terminal retry
+ok 87 - save prefix cleanup failure preserves checkpoint memory and PDF for terminal retry
+  ---
+  duration_ms: 20.2374
+  type: 'test'
+  ...
+# Subtest: abandon prefix cleanup failure preserves draft memory and PDF for terminal retry
+ok 88 - abandon prefix cleanup failure preserves draft memory and PDF for terminal retry
+  ---
+  duration_ms: 23.9566
+  type: 'test'
+  ...
+# Subtest: COMPLETE save retries after PDF deletion and a post-cleanup account failure
+ok 89 - COMPLETE save retries after PDF deletion and a post-cleanup account failure
+  ---
+  duration_ms: 36.2356
+  type: 'test'
+  ...
+# Subtest: abandon retries after PDF deletion and a post-cleanup checkpoint failure
+ok 90 - abandon retries after PDF deletion and a post-cleanup checkpoint failure
+  ---
+  duration_ms: 18.2328
+  type: 'test'
+  ...
+# Subtest: completed memory rejects another active account and incompatible caller ownership
+ok 91 - completed memory rejects another active account and incompatible caller ownership
+  ---
+  duration_ms: 18.0356
+  type: 'test'
+  ...
+# Subtest: an unrelated session progresses while the first public save is blocked
+ok 92 - an unrelated session progresses while the first public save is blocked
+  ---
+  duration_ms: 16.0463
+  type: 'test'
+  ...
+# Subtest: a mismatched durable session id is rejected before cleanup or publication
+ok 93 - a mismatched durable session id is rejected before cleanup or publication
+  ---
+  duration_ms: 10.3324
+  type: 'test'
+  ...
+# Subtest: a terminal caller without memory still requires its owning account
+ok 94 - a terminal caller without memory still requires its owning account
+  ---
+  duration_ms: 12.1711
+  type: 'test'
+  ...
+# Subtest: AI settings never decrypt or redisplay a saved key and clear typed state on every operation
+ok 95 - AI settings never decrypt or redisplay a saved key and clear typed state on every operation
+  ---
+  duration_ms: 6.5198
+  type: 'test'
+  ...
+# Subtest: connection test uses saved credential scope and releases temporary body and response
+ok 96 - connection test uses saved credential scope and releases temporary body and response
+  ---
+  duration_ms: 1.2281
+  type: 'test'
+  ...
+# Subtest: production AI retry and credential dispatch require persisted usable config
+ok 97 - production AI retry and credential dispatch require persisted usable config
+  ---
+  duration_ms: 1.6328
+  type: 'test'
+  ...
+# Subtest: credential storage uses HUKS AES-256-GCM and a versioned envelope
+ok 98 - credential storage uses HUKS AES-256-GCM and a versioned envelope
+  ---
+  duration_ms: 1.2799
+  type: 'test'
+  ...
+# Subtest: credential preferences are excluded from device backup
+ok 99 - credential preferences are excluded from device backup
+  ---
+  duration_ms: 1.4179
+  type: 'test'
+  ...
+# Subtest: credential operations use one atomic record and detect corruption before HUKS decrypt
+ok 100 - credential operations use one atomic record and detect corruption before HUKS decrypt
+  ---
+  duration_ms: 2.9843
+  type: 'test'
+  ...
+# Subtest: AI network errors expose only local stable messages
+ok 101 - AI network errors expose only local stable messages
+  ---
+  duration_ms: 0.5844
+  type: 'test'
+  ...
+# Subtest: AI credentials reject empty and header-control values before Authorization construction
+ok 102 - AI credentials reject empty and header-control values before Authorization construction
+  ---
+  duration_ms: 1.5422
+  type: 'test'
+  ...
+# Subtest: AI coordinator does not retain credentials, provider bodies or response text
+ok 103 - AI coordinator does not retain credentials, provider bodies or response text
+  ---
+  duration_ms: 0.8264
+  type: 'test'
+  ...
+# Subtest: AI save payload excludes provider and local-only data
+ok 104 - AI save payload excludes provider and local-only data
+  ---
+  duration_ms: 0.8261
+  type: 'test'
+  ...
+# Subtest: AI image preparation verifies ownership and cleans only newly copied finals on failure
+ok 105 - AI image preparation verifies ownership and cleans only newly copied finals on failure
+  ---
+  duration_ms: 0.5641
+  type: 'test'
+  ...
+# Subtest: AI session cache cleanup accepts exact legacy and attempt names using tilde ownership
+ok 106 - AI session cache cleanup accepts exact legacy and attempt names using tilde ownership
+  ---
+  duration_ms: 0.5309
+  type: 'test'
+  ...
+# Subtest: AI terminal cleanup performs the strict encoder session sweep before releasing ownership
+ok 107 - AI terminal cleanup performs the strict encoder session sweep before releasing ownership
+  ---
+  duration_ms: 0.7785
+  type: 'test'
+  ...
+# Subtest: AI image copy cleans partial and newly committed files after late failures
+ok 108 - AI image copy cleans partial and newly committed files after late failures
+  ---
+  duration_ms: 0.6586
+  type: 'test'
+  ...
+# Subtest: AI save freezes a durable checkpoint before any text write and checks the account first
+ok 109 - AI save freezes a durable checkpoint before any text write and checks the account first
+  ---
+  duration_ms: 1.1155
+  type: 'test'
+  ...
+# Subtest: AI image persistence is serialized and retains finals for an ambiguous DB outcome
+ok 110 - AI image persistence is serialized and retains finals for an ambiguous DB outcome
+  ---
+  duration_ms: 0.7574
+  type: 'test'
+  ...
+# Subtest: AI abandon rejects every durable or in-progress text stage
+ok 111 - AI abandon rejects every durable or in-progress text stage
+  ---
+  duration_ms: 0.7188
+  type: 'test'
+  ...
+# Subtest: raw durable loads stay unpublished until identifiers and account ownership pass
+ok 112 - raw durable loads stay unpublished until identifiers and account ownership pass
+  ---
+  duration_ms: 0.6105
+  type: 'test'
+  ...
+# Subtest: AI save lifecycle uses removable keyed session tails
+ok 113 - AI save lifecycle uses removable keyed session tails
+  ---
+  duration_ms: 0.7159
+  type: 'test'
+  ...
+# Subtest: durable checkpoint index drives foreground recovery and safe staged PDF deletion
+ok 114 - durable checkpoint index drives foreground recovery and safe staged PDF deletion
+  ---
+  duration_ms: 1.4089
+  type: 'test'
+  ...
+# Subtest: COMPLETE access cleanup removal and publication remain account owned
+ok 115 - COMPLETE access cleanup removal and publication remain account owned
+  ---
+  duration_ms: 0.6927
+  type: 'test'
+  ...
+# Subtest: image preflight is non-mutating and precedes durable and remote text writes
+ok 116 - image preflight is non-mutating and precedes durable and remote text writes
+  ---
+  duration_ms: 4.0487
+  type: 'test'
+  ...
+# Subtest: stale pending pruning repairs only durable index state
+ok 117 - stale pending pruning repairs only durable index state
+  ---
+  duration_ms: 2.3002
+  type: 'test'
+  ...
+# Subtest: durable IO cannot publish or delete memory before lifecycle account revalidation
+ok 118 - durable IO cannot publish or delete memory before lifecycle account revalidation
+  ---
+  duration_ms: 1.8305
+  type: 'test'
+  ...
+# Subtest: default checkpoint mutations and cache cleanup pin the owning account for all awaits
+ok 119 - default checkpoint mutations and cache cleanup pin the owning account for all awaits
+  ---
+  duration_ms: 1.2766
+  type: 'test'
+  ...
+# Subtest: AI modules have no logging, OCR fallback, or business import endpoint
+ok 120 - AI modules have no logging, OCR fallback, or business import endpoint
+  ---
+  duration_ms: 5.5799
+  type: 'test'
+  ...
+# Subtest: Authorization ownership scan catches lowercase leaks and normalizes Windows paths
+ok 121 - Authorization ownership scan catches lowercase leaks and normalizes Windows paths
+  ---
+  duration_ms: 1.7645
+  type: 'test'
+  ...
+# Subtest: sync writer cannot see provider configuration, credentials, PDF, or image bytes
+ok 122 - sync writer cannot see provider configuration, credentials, PDF, or image bytes
+  ---
+  duration_ms: 1.2157
+  type: 'test'
+  ...
+# Subtest: transport delegates its endpoint scheme guard to the shared private-host predicate
+ok 123 - transport delegates its endpoint scheme guard to the shared private-host predicate
+  ---
+  duration_ms: 0.6617
+  type: 'test'
+  ...
+# (node:32196) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: setup performs signed-in online PDF preflight and creates a cloud job
+ok 124 - setup performs signed-in online PDF preflight and creates a cloud job
+  ---
+  duration_ms: 1.899
+  type: 'test'
+  ...
+# Subtest: progress resumes upload and polls cloud jobs with bounded backoff
+ok 125 - progress resumes upload and polls cloud jobs with bounded backoff
+  ---
+  duration_ms: 2.0198
+  type: 'test'
+  ...
+# Subtest: inactive progress page stops polling without cancelling the server job
+ok 126 - inactive progress page stops polling without cancelling the server job
+  ---
+  duration_ms: 1.4105
+  type: 'test'
+  ...
+# Subtest: cloud import status card exposes unified progress error and retry state
+ok 127 - cloud import status card exposes unified progress error and retry state
+  ---
+  duration_ms: 0.4772
+  type: 'test'
+  ...
+# Subtest: review reads and edits the server draft before confirmation
+ok 128 - review reads and edits the server draft before confirmation
+  ---
+  duration_ms: 0.9919
+  type: 'test'
+  ...
+# Subtest: review downloads verified artifacts before acknowledging only stored IDs
+ok 129 - review downloads verified artifacts before acknowledging only stored IDs
+  ---
+  duration_ms: 4.4693
+  type: 'test'
+  ...
+# Subtest: review keeps confirmed text when an artifact has expired
+ok 130 - review keeps confirmed text when an artifact has expired
+  ---
+  duration_ms: 1.454
+  type: 'test'
+  ...
+# Subtest: explicit Cloud abandonment removes only its exact staged PDF before clearing state
+ok 131 - explicit Cloud abandonment removes only its exact staged PDF before clearing state
+  ---
+  duration_ms: 1.6635
+  type: 'test'
+  ...
+# Subtest: Cloud adapter preserves nullable protocol fields and makes independent round-trip copies
+ok 132 - Cloud adapter preserves nullable protocol fields and makes independent round-trip copies
+  ---
+  duration_ms: 219.6975
+  type: 'test'
+  ...
+# Subtest: Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering
+ok 133 - Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering
+  ---
+  duration_ms: 28.7275
+  type: 'test'
+  ...
+# Subtest: PDF import state retains cloud job metadata progress and review state
+ok 134 - PDF import state retains cloud job metadata progress and review state
+  ---
+  duration_ms: 1.7952
+  type: 'test'
+  ...
+# Subtest: import bank stages an AI PDF selection and opens only the AI setup page
+ok 135 - import bank stages an AI PDF selection and opens only the AI setup page
+  ---
+  duration_ms: 2.4712
+  type: 'test'
+  ...
+# Dark mode contracts passed
+# Subtest: entry\\src\\test\\DarkModeContracts.test.cjs
+ok 6 - entry\\src\\test\\DarkModeContracts.test.cjs
+  ---
+  duration_ms: 96.0735
+  type: 'test'
+  ...
+# Editorial UI contracts passed
+# Subtest: entry\\src\\test\\EditorialUiContracts.test.cjs
+ok 7 - entry\\src\\test\\EditorialUiContracts.test.cjs
+  ---
+  duration_ms: 83.2004
+  type: 'test'
+  ...
+# Native navigation contracts passed
+# Subtest: entry\\src\\test\\NativeNavigationContracts.test.cjs
+ok 8 - entry\\src\\test\\NativeNavigationContracts.test.cjs
+  ---
+  duration_ms: 235.7883
+  type: 'test'
+  ...
+# (node:3196) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: current schema contains question image storage and durable cleanup debt
+ok 139 - current schema contains question image storage and durable cleanup debt
+  ---
+  duration_ms: 3.1635
+  type: 'test'
+  ...
+# Subtest: version one migration probes columns and conditionally repairs partial migrations
+ok 140 - version one migration probes columns and conditionally repairs partial migrations
+  ---
+  duration_ms: 1.1896
+  type: 'test'
+  ...
+# Subtest: import persistence snapshots inputs before awaiting and separates commit from object mutation
+ok 141 - import persistence snapshots inputs before awaiting and separates commit from object mutation
+  ---
+  duration_ms: 2.3999
+  type: 'test'
+  ...
+# Subtest: question image reads are ordered, mapped, and closed in method scope
+ok 142 - question image reads are ordered, mapped, and closed in method scope
+  ---
+  duration_ms: 0.8731
+  type: 'test'
+  ...
+# Subtest: update and delete methods keep their exact storage boundaries
+ok 143 - update and delete methods keep their exact storage boundaries
+  ---
+  duration_ms: 3.8095
+  type: 'test'
+  ...
+# Subtest: pdf selection stages one validated file through bounded streaming io
+ok 144 - pdf selection stages one validated file through bounded streaming io
+  ---
+  duration_ms: 2.8785
+  type: 'test'
+  ...
+# Subtest: temporary pdf cleanup requires exact staged ownership and unregisters only after safe outcomes
+ok 145 - temporary pdf cleanup requires exact staged ownership and unregisters only after safe outcomes
+  ---
+  duration_ms: 1.4161
+  type: 'test'
+  ...
+# Subtest: pdf selection serializes picker work and removes only direct unregistered stale cache files
+ok 146 - pdf selection serializes picker work and removes only direct unregistered stale cache files
+  ---
+  duration_ms: 8.306
+  type: 'test'
+  ...
+# Subtest: question crop converts coordinates directly and owns every file and image resource
+ok 147 - question crop converts coordinates directly and owns every file and image resource
+  ---
+  duration_ms: 2.1317
+  type: 'test'
+  ...
+# Subtest: PDF import device pipeline stays offline even with app-level INTERNET permission
+ok 148 - PDF import device pipeline stays offline even with app-level INTERNET permission
+  ---
+  duration_ms: 1.1349
+  type: 'test'
+  ...
+# Subtest: device OCR and PDF coordinator services are retired after the cloud cutover
+ok 149 - device OCR and PDF coordinator services are retired after the cloud cutover
+  ---
+  duration_ms: 1.1288
+  type: 'test'
+  ...
+# Subtest: PDF import routes keep rollback pages and register the formal AI flow
+ok 150 - PDF import routes keep rollback pages and register the formal AI flow
+  ---
+  duration_ms: 0.7705
+  type: 'test'
+  ...
+# Subtest: formal PDF selection enters only the client AI setup
+ok 151 - formal PDF selection enters only the client AI setup
+  ---
+  duration_ms: 0.4807
+  type: 'test'
+  ...
+# Subtest: formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path
+ok 152 - formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path
+  ---
+  duration_ms: 1.6246
+  type: 'test'
+  ...
+# Subtest: formal PDF selection preserves exactly one reachable owner across replacement and route failures
+ok 153 - formal PDF selection preserves exactly one reachable owner across replacement and route failures
+  ---
+  duration_ms: 179.5548
+  type: 'test'
+  ...
+# Subtest: PDF setup validates cloud metadata and page range before progress routing
+ok 154 - PDF setup validates cloud metadata and page range before progress routing
+  ---
+  duration_ms: 1.0461
+  type: 'test'
+  ...
+# Subtest: resource route registry contains each AI page exactly once
+ok 155 - resource route registry contains each AI page exactly once
+  ---
+  duration_ms: 1.0912
+  type: 'test'
+  ...
+# Subtest: import entry serializes JSON and AI PDF selection, blocks back, and grows errors
+not ok 156 - import entry serializes JSON and AI PDF selection, blocks back, and grows errors
+  ---
+  duration_ms: 5.3356
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\PdfImportContracts.test.cjs:689:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /\.constraintSize\(\{ minHeight: 48 \}\)/. Input:
+    
+    "import { Context } from '@kit.AbilityKit'\n" +
+      'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  PAGE_PADDING,\n' +
+      '  SUBTITLE_FONT_SIZE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      "import { SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+      "import { UiStyle } from '../constants/UiStyle'\n" +
+      "import { ImportErrorCode, ImportResult } from '../models/ImportResult'\n" +
+      "import { AccountSessionState } from '../models/AccountSession'\n" +
+      "import { PdfFileSelection } from '../models/PdfImportModels'\n" +
+      "import { AccountSessionService } from '../services/AccountSessionService'\n" +
+      "import { ImportService } from '../services/ImportService'\n" +
+      "import { PdfImportService } from '../services/PdfImportService'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { PdfImportState } from '../utils/PdfImportState'\n" +
+      "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+      '\n' +
+      '@Entry\n' +
+      '@Component\n' +
+      'struct ImportBankPage {\n' +
+      '  @State importing: boolean = false\n' +
+      '  @State pdfSelecting: boolean = false\n' +
+      "  @State errorMessage: string = ''\n" +
+      "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {\n" +
+      '    top: 0, left: 0, right: 0, bottom: 0\n' +
+      '  }\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  private goBack(): void {\n' +
+      '    if (this.importing || this.pdfSelecting) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    try {\n' +
+      '      this.getUIContext().getRouter().back()\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  onBackPress(): boolean {\n' +
+      '    this.goBack()\n' +
+      '    return true\n' +
+      '  }\n' +
+      '\n' +
+      '  private startImport(): void {\n' +
+      '    if (this.importing || this.pdfSelecting) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    const hostContext: Context | undefined = this.getUIContext().getHostContext()\n' +
+      '    if (hostContext === undefined) {\n' +
+      "      this.showToast('暂时无法获取应用上下文')\n" +
+      '      return\n' +
+      '    }\n' +
+      '    AccountSessionService.state(hostContext)\n' +
+      '      .then((session: AccountSessionState) => {\n' +
+      '        if (!session.signedIn) {\n' +
+      "          this.showToast('请先登录华为账号')\n" +
+      '          return\n' +
+      '        }\n' +
+      '        this.importing = true\n' +
+      "        this.errorMessage = ''\n" +
+      '        this.importBank()\n' +
+      '      })\n' +
+      '      .catch(() => {\n' +
+      "        this.showToast('导入失败，请稍后重试')\n" +
+      '      })\n' +
+      '  }\n' +
+      '\n' +
+      '  private async importBank(): Promise<void> {\n' +
+      '    let result: ImportResult\n' +
+      '    try {\n' +
+      '      result = await ImportService.selectAndImport(getContext(this))\n' +
+      '    } catch {\n' +
+      "      this.errorMessage = '导入失败，请稍后重试'\n" +
+      '      this.importing = false\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.importing = false\n' +
+      '    if (result.cancelled) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    if (result.success) {\n' +
+      "      this.showToast('题库导入成功')\n" +
+      '      this.goBack()\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.errorMessage = this.messageFor(result.errorCode.code)\n' +
+      '  }\n' +
+      '\n' +
+      '  private messageFor(errorCode: string): string {\n' +
+      '    if (errorCode === ImportErrorCode.FORMAT_ERROR) {\n' +
+      "      return '题库格式错误，请检查 JSON 文件'\n" +
+      '    }\n' +
+      '    if (errorCode === ImportErrorCode.READ_ERROR) {\n' +
+      "      return '文件读取失败，请重新选择'\n" +
+      '    }\n' +
+      '    if (errorCode === ImportErrorCode.SAVE_ERROR) {\n' +
+      "      return '题库保存失败，请稍后重试'\n" +
+      '    }\n' +
+      "    return '导入失败，请稍后重试'\n" +
+      '  }\n' +
+      '\n' +
+      '  private showToast(message: string): void {\n' +
+      '    try {\n' +
+      '      this.getUIContext().getPromptAction().showToast({ message: message })\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async selectPdf(): Promise<void> {\n' +
+      '    if (this.importing || this.pdfSelecting) return\n' +
+      '    this.pdfSelecting = true\n' +
+      "    this.errorMessage = ''\n" +
+      '    try {\n' +
+      '      const context: Context = getContext(this)\n' +
+      '      const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)\n' +
+      '      if (selection === null) return\n' +
+      '      const state: PdfImportState = PdfImportState.shared()\n' +
+      '      const previous: PdfFileSelection | null = state.getSelection()\n' +
+      '      if (previous !== null && previous.uri !== selection.uri) {\n' +
+      '        try {\n' +
+      '          await PdfImportService.removeTemporaryPdf(previous.uri)\n' +
+      '        } catch {\n' +
+      '          const removed: boolean = await this.releaseUnpublishedSelection(selection)\n' +
+      "          this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :\n" +
+      "            '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'\n" +
+      '          return\n' +
+      '        }\n' +
+      '      }\n' +
+      '      state.reset()\n' +
+      '      state.setSelection(selection)\n' +
+      '      try {\n' +
+      "        await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })\n" +
+      '      } catch {\n' +
+      '        state.reset()\n' +
+      '        const removed: boolean = await this.releaseUnpublishedSelection(selection)\n' +
+      "        this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :\n" +
+      "          'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'\n" +
+      '      }\n' +
+      '    } catch (err) {\n' +
+      '      this.errorMessage = this.messageForPdfError(err)\n' +
+      '    } finally {\n' +
+      '      this.pdfSelecting = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {\n' +
+      '    return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)\n' +
+      '  }\n' +
+      '\n' +
+      '  private messageForPdfError(err: Error): string {\n' +
+      "    let message: string = ''\n" +
+      '    if (err instanceof Error) {\n' +
+      '      message = err.message\n' +
+      '    }\n' +
+      "    if (message.includes('已有 PDF 选择任务')) {\n" +
+      "      return '正在选择 PDF，请稍候'\n" +
+      '    }\n' +
+      "    if (message.includes('大小') || message.includes('超过限制')) {\n" +
+      "      return 'PDF 文件不能超过 200 MB'\n" +
+      '    }\n' +
+      "    if (message.includes('暂存') || message.includes('空间')) {\n" +
+      "      return 'PDF 暂存失败，请检查本地空间'\n" +
+      '    }\n' +
+      "    if (message.includes('选择') || message.includes('picker')) {\n" +
+      "      return 'PDF 导入失败，请重新选择文件'\n" +
+      '    }\n' +
+      "    return 'PDF 导入失败，请重新选择文件'\n" +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Navigation() {\n' +
+      '      Column() {\n' +
+      '        Scroll() {\n' +
+      '          Column({ space: UiStyle.GROUP_GAP }) {\n' +
+      '            Column({ space: 8 }) {\n' +
+      "              Text('选择资料来源')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(24)\n' +
+      '                .fontWeight(FontWeight.Bold)\n' +
+      '                .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      "              Text('PDF 和结构化 JSON 题库均可导入')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .alignItems(HorizontalAlign.Start)\n' +
+      '\n' +
+      '            Column({ space: 12 }) {\n' +
+      '              Row() {\n' +
+      "                Text('PDF 资料')\n" +
+      '                  .fontSize(SUBTITLE_FONT_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Bold)\n' +
+      '                  .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '                Blank()\n' +
+      '\n' +
+      "                Text('推荐')\n" +
+      '                  .fontSize(12)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '\n' +
+      "              Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '                .lineHeight(22)\n' +
+      '\n' +
+      '              Button() {\n' +
+      "                Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')\n" +
+      '                  .fontSize(UiStyle.BODY_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Medium)\n' +
+      '                  .fontColor(UiStyle.onAction(this.darkMode))\n' +
+      '              }\n' +
+      '              .type(ButtonType.Normal)\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .backgroundColor(UiStyle.action(this.darkMode))\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '              .enabled(!this.pdfSelecting && !this.importing)\n' +
+      "              .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')\n" +
+      '              .onClick(() => {\n' +
+      '                this.selectPdf()\n' +
+      '              })\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .padding(20)\n' +
+      '            .alignItems(HorizontalAlign.Start)\n' +
+      '            .backgroundColor(this.colors().cardBackground)\n' +
+      '            .border({ width: 1, color: this.colors().divider })\n' +
+      '            .borderRadius(SHEET_RADIUS)\n' +
+      '\n' +
+      '            if (this.importing) {\n' +
+      '              Row({ space: 12 }) {\n' +
+      '                LoadingProgress()\n' +
+      '                  .width(24)\n' +
+      '                  .height(24)\n' +
+      '                  .color(UiStyle.action(this.darkMode))\n' +
+      '\n' +
+      "                Text('正在读取并导入题库…')\n" +
+      '                  .fontSize(BODY_FONT_SIZE)\n' +
+      '                  .fontColor(this.colors().textCaption)\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .padding({ left: 16, right: 16 })\n' +
+      '              .justifyContent(FlexAlign.Center)\n' +
+      '              .backgroundColor(this.colors().cardBackground)\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '            }\n' +
+      '\n' +
+      '            if (this.errorMessage.length > 0) {\n' +
+      '              Text(this.errorMessage)\n' +
+      "                .width('100%')\n" +
+      '                .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '                .padding({ left: 16, right: 16, top: 13, bottom: 13 })\n' +
+      '                .fontSize(BODY_FONT_SIZE)\n' +
+      '                .fontColor(UiStyle.errorText(this.darkMode))\n' +
+      '                .backgroundColor(this.colors().errorSoft)\n' +
+      '                .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      "                .accessibilityText('导入失败：' + this.errorMessage)\n" +
+      '            }\n' +
+      '\n' +
+      '            Column({ space: 12 }) {\n' +
+      '              Row() {\n' +
+      "                Text('已有结构化题库')\n" +
+      '                  .fontSize(SUBTITLE_FONT_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Bold)\n' +
+      '                  .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '                Blank()\n' +
+      '\n' +
+      "                Text('仅支持单选题')\n" +
+      '                  .fontSize(12)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '\n' +
+      "              Text('选择 JSON 文件可直接导入已有题库。')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '\n' +
+      '              Button() {\n' +
+      "                Text(this.importing ? '正在导入…' : '选择 JSON 文件')\n" +
+      '                  .fontSize(UiStyle.BODY_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Medium)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      '              .type(ButtonType.Normal)\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .backgroundColor(this.colors().cardBackground)\n' +
+      '              .border({ width: 1, color: UiStyle.action(this.darkMode) })\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '              .enabled(!this.importing && !this.pdfSelecting)\n' +
+      '              .accessibilityText(thi'... 2102 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { Context } from '@kit.AbilityKit'
+    import {
+      BODY_FONT_SIZE,
+      PAGE_PADDING,
+      SUBTITLE_FONT_SIZE,
+      themePalette
+    } from '../constants/AppTheme'
+    import { SHEET_RADIUS } from '../constants/EditorialStyle'
+    import { UiStyle } from '../constants/UiStyle'
+    import { ImportErrorCode, ImportResult } from '../models/ImportResult'
+    import { AccountSessionState } from '../models/AccountSession'
+    import { PdfFileSelection } from '../models/PdfImportModels'
+    import { AccountSessionService } from '../services/AccountSessionService'
+    import { ImportService } from '../services/ImportService'
+    import { PdfImportService } from '../services/PdfImportService'
+    import { AppColors } from '../theme/AppColors'
+    import { PdfImportState } from '../utils/PdfImportState'
+    import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+    
+    @Entry
+    @Component
+    struct ImportBankPage {
+      @State importing: boolean = false
+      @State pdfSelecting: boolean = false
+      @State errorMessage: string = ''
+      @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+        top: 0, left: 0, right: 0, bottom: 0
+      }
+      @StorageProp('darkMode') darkMode: boolean = false
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      private goBack(): void {
+        if (this.importing || this.pdfSelecting) {
+          return
+        }
+        try {
+          this.getUIContext().getRouter().back()
+        } catch {
+        }
+      }
+    
+      onBackPress(): boolean {
+        this.goBack()
+        return true
+      }
+    
+      private startImport(): void {
+        if (this.importing || this.pdfSelecting) {
+          return
+        }
+        const hostContext: Context | undefined = this.getUIContext().getHostContext()
+        if (hostContext === undefined) {
+          this.showToast('暂时无法获取应用上下文')
+          return
+        }
+        AccountSessionService.state(hostContext)
+          .then((session: AccountSessionState) => {
+            if (!session.signedIn) {
+              this.showToast('请先登录华为账号')
+              return
+            }
+            this.importing = true
+            this.errorMessage = ''
+            this.importBank()
+          })
+          .catch(() => {
+            this.showToast('导入失败，请稍后重试')
+          })
+      }
+    
+      private async importBank(): Promise<void> {
+        let result: ImportResult
+        try {
+          result = await ImportService.selectAndImport(getContext(this))
+        } catch {
+          this.errorMessage = '导入失败，请稍后重试'
+          this.importing = false
+          return
+        }
+        this.importing = false
+        if (result.cancelled) {
+          return
+        }
+        if (result.success) {
+          this.showToast('题库导入成功')
+          this.goBack()
+          return
+        }
+        this.errorMessage = this.messageFor(result.errorCode.code)
+      }
+    
+      private messageFor(errorCode: string): string {
+        if (errorCode === ImportErrorCode.FORMAT_ERROR) {
+          return '题库格式错误，请检查 JSON 文件'
+        }
+        if (errorCode === ImportErrorCode.READ_ERROR) {
+          return '文件读取失败，请重新选择'
+        }
+        if (errorCode === ImportErrorCode.SAVE_ERROR) {
+          return '题库保存失败，请稍后重试'
+        }
+        return '导入失败，请稍后重试'
+      }
+    
+      private showToast(message: string): void {
+        try {
+          this.getUIContext().getPromptAction().showToast({ message: message })
+        } catch {
+        }
+      }
+    
+      private async selectPdf(): Promise<void> {
+        if (this.importing || this.pdfSelecting) return
+        this.pdfSelecting = true
+        this.errorMessage = ''
+        try {
+          const context: Context = getContext(this)
+          const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)
+          if (selection === null) return
+          const state: PdfImportState = PdfImportState.shared()
+          const previous: PdfFileSelection | null = state.getSelection()
+          if (previous !== null && previous.uri !== selection.uri) {
+            try {
+              await PdfImportService.removeTemporaryPdf(previous.uri)
+            } catch {
+              const removed: boolean = await this.releaseUnpublishedSelection(selection)
+              this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :
+                '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'
+              return
+            }
+          }
+          state.reset()
+          state.setSelection(selection)
+          try {
+            await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })
+          } catch {
+            state.reset()
+            const removed: boolean = await this.releaseUnpublishedSelection(selection)
+            this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :
+              'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'
+          }
+        } catch (err) {
+          this.errorMessage = this.messageForPdfError(err)
+        } finally {
+          this.pdfSelecting = false
+        }
+      }
+    
+      private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {
+        return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)
+      }
+    
+      private messageForPdfError(err: Error): string {
+        let message: string = ''
+        if (err instanceof Error) {
+          message = err.message
+        }
+        if (message.includes('已有 PDF 选择任务')) {
+          return '正在选择 PDF，请稍候'
+        }
+        if (message.includes('大小') || message.includes('超过限制')) {
+          return 'PDF 文件不能超过 200 MB'
+        }
+        if (message.includes('暂存') || message.includes('空间')) {
+          return 'PDF 暂存失败，请检查本地空间'
+        }
+        if (message.includes('选择') || message.includes('picker')) {
+          return 'PDF 导入失败，请重新选择文件'
+        }
+        return 'PDF 导入失败，请重新选择文件'
+      }
+    
+      build() {
+        Navigation() {
+          Column() {
+            Scroll() {
+              Column({ space: UiStyle.GROUP_GAP }) {
+                Column({ space: 8 }) {
+                  Text('选择资料来源')
+                    .width('100%')
+                    .fontSize(24)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('PDF 和结构化 JSON 题库均可导入')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                }
+                .width('100%')
+                .alignItems(HorizontalAlign.Start)
+    
+                Column({ space: 12 }) {
+                  Row() {
+                    Text('PDF 资料')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(this.colors().textPrimary)
+    
+                    Blank()
+    
+                    Text('推荐')
+                      .fontSize(12)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .width('100%')
+    
+                  Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Button() {
+                    Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')
+                      .fontSize(UiStyle.BODY_SIZE)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(UiStyle.onAction(this.darkMode))
+                  }
+                  .type(ButtonType.Normal)
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .backgroundColor(UiStyle.action(this.darkMode))
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .enabled(!this.pdfSelecting && !this.importing)
+                  .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')
+                  .onClick(() => {
+                    this.selectPdf()
+                  })
+                }
+                .width('100%')
+                .padding(20)
+                .alignItems(HorizontalAlign.Start)
+                .backgroundColor(this.colors().cardBackground)
+                .border({ width: 1, color: this.colors().divider })
+                .borderRadius(SHEET_RADIUS)
+    
+                if (this.importing) {
+                  Row({ space: 12 }) {
+                    LoadingProgress()
+                      .width(24)
+                      .height(24)
+                      .color(UiStyle.action(this.darkMode))
+    
+                    Text('正在读取并导入题库…')
+                      .fontSize(BODY_FONT_SIZE)
+                      .fontColor(this.colors().textCaption)
+                  }
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .padding({ left: 16, right: 16 })
+                  .justifyContent(FlexAlign.Center)
+                  .backgroundColor(this.colors().cardBackground)
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                }
+    
+                if (this.errorMessage.length > 0) {
+                  Text(this.errorMessage)
+                    .width('100%')
+                    .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                    .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(UiStyle.errorText(this.darkMode))
+                    .backgroundColor(this.colors().errorSoft)
+                    .borderRadius(UiStyle.CONTROL_RADIUS)
+                    .accessibilityText('导入失败：' + this.errorMessage)
+                }
+    
+                Column({ space: 12 }) {
+                  Row() {
+                    Text('已有结构化题库')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(this.colors().textPrimary)
+    
+                    Blank()
+    
+                    Text('仅支持单选题')
+                      .fontSize(12)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .width('100%')
+    
+                  Text('选择 JSON 文件可直接导入已有题库。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+    
+                  Button() {
+                    Text(this.importing ? '正在导入…' : '选择 JSON 文件')
+                      .fontSize(UiStyle.BODY_SIZE)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .type(ButtonType.Normal)
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .backgroundColor(this.colors().cardBackground)
+                  .border({ width: 1, color: UiStyle.action(this.darkMode) })
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .enabled(!this.importing && !this.pdfSelecting)
+                  .accessibilityText(this.importing ? '正在导入题库' : '选择 JSON 文件')
+                  .onClick(() => {
+                    this.startImport()
+                  })
+    
+                  Divider()
+                    .color(this.colors().divider)
+    
+                  Text('JSON 格式说明')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('文件需要包含题库名称 bankName、学科 subject 和题目数组 questions。每道题需包含 id、type、question、options、answer 与 analysis。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Text('type 请填写 single_choice，answer 使用与选项对应的字母。文件编码需为 UTF-8。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+                }
+                .width('100%')
+                .padding(20)
+                .alignItems(HorizontalAlign.Start)
+                .backgroundColor(this.colors().cardBackground)
+                .border({ width: 1, color: this.colors().divider })
+                .borderRadius(SHEET_RADIUS)
+              }
+              .width('100%')
+              .align(Alignment.Top)
+              .padding({
+                top: PAGE_PADDING,
+                left: PAGE_PADDING,
+                right: PAGE_PADDING,
+                bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+              })
+            }
+            .layoutWeight(1)
+            .width('100%')
+            .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+            .scrollBar(BarState.Off)
+          }
+          .width('100%')
+          .height('100%')
+          .backgroundColor(this.colors().pageBackground)
+        }
+        .title('导入题库', {
+          barStyle: BarStyle.STANDARD
+        })
+        .titleMode(NavigationTitleMode.Mini)
+        .hideBackButton(false)
+        .mode(NavigationMode.Stack)
+        .width('100%')
+        .height('100%')
+        .padding({
+          top: SafeAreaUtils.top(this.safeAreaInsets),
+          left: SafeAreaUtils.left(this.safeAreaInsets),
+          right: SafeAreaUtils.right(this.safeAreaInsets)
+        })
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\PdfImportContracts.test.cjs:701:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: question image cleanup debt is idempotent and retry retains only failed paths
+ok 157 - question image cleanup debt is idempotent and retry retains only failed paths
+  ---
+  duration_ms: 1.0107
+  type: 'test'
+  ...
+# Subtest: temporary PDF abandonment moves only exact active ownership to retryable orphan storage
+ok 158 - temporary PDF abandonment moves only exact active ownership to retryable orphan storage
+  ---
+  duration_ms: 3.8038
+  type: 'test'
+  ...
+# Subtest: failed candidate deletion atomically transfers exact ownership to orphan cleanup
+ok 159 - failed candidate deletion atomically transfers exact ownership to orphan cleanup
+  ---
+  duration_ms: 1.1335
+  type: 'test'
+  ...
+# Subtest: saveCrop registers only an owned temporary residue when immediate cleanup fails
+ok 160 - saveCrop registers only an owned temporary residue when immediate cleanup fails
+  ---
+  duration_ms: 2.3162
+  type: 'test'
+  ...
+# Subtest: question image debt retry shares one transition and recovers strict direct cache files after restart
+ok 161 - question image debt retry shares one transition and recovers strict direct cache files after restart
+  ---
+  duration_ms: 1.4813
+  type: 'test'
+  ...
+# Subtest: PDF stale cleanup isolates per-file failures so picker construction remains reachable
+ok 162 - PDF stale cleanup isolates per-file failures so picker construction remains reachable
+  ---
+  duration_ms: 0.7119
+  type: 'test'
+  ...
+# Subtest: savePdfBank keeps bank questions and images in one transaction without changing JSON import API
+ok 163 - savePdfBank keeps bank questions and images in one transaction without changing JSON import API
+  ---
+  duration_ms: 0.5056
+  type: 'test'
+  ...
+# Subtest: committed PDF image rollback is path-owned idempotent and reports recoverable cleanup state
+ok 164 - committed PDF image rollback is path-owned idempotent and reports recoverable cleanup state
+  ---
+  duration_ms: 0.6509
+  type: 'test'
+  ...
+# Subtest: partial image commit rollback failure preserves structured recoverable ownership
+ok 165 - partial image commit rollback failure preserves structured recoverable ownership
+  ---
+  duration_ms: 1.4736
+  type: 'test'
+  ...
+# Subtest: uncertain PDF bank save exports exact three-state verification
+ok 166 - uncertain PDF bank save exports exact three-state verification
+  ---
+  duration_ms: 0.7304
+  type: 'test'
+  ...
+# Subtest: saved question source images render only when present and use stable image identifiers
+ok 167 - saved question source images render only when present and use stable image identifiers
+  ---
+  duration_ms: 0.3515
+  type: 'test'
+  ...
+# Subtest: question detail reloads on page show, renders source before question content, and opens editing for selected question
+ok 168 - question detail reloads on page show, renders source before question content, and opens editing for selected question
+  ---
+  duration_ms: 0.4295
+  type: 'test'
+  ...
+# Subtest: question list cards show pending review only for questions that need review
+ok 169 - question list cards show pending review only for questions that need review
+  ---
+  duration_ms: 1.0062
+  type: 'test'
+  ...
+# Subtest: saved question editor clones all editable fields but preserves source image ownership
+ok 170 - saved question editor clones all editable fields but preserves source image ownership
+  ---
+  duration_ms: 0.5986
+  type: 'test'
+  ...
+# Subtest: bank deletion is server-first and refreshes the cache only after server success
+ok 171 - bank deletion is server-first and refreshes the cache only after server success
+  ---
+  duration_ms: 1.8778
+  type: 'test'
+  ...
+# Subtest: question list reloads the active query on page show and lazily renders a fully notified data source
+ok 172 - question list reloads the active query on page show and lazily renders a fully notified data source
+  ---
+  duration_ms: 0.8229
+  type: 'test'
+  ...
+# Subtest: list and search queries do not serially hydrate source images while detail still does
+ok 173 - list and search queries do not serially hydrate source images while detail still does
+  ---
+  duration_ms: 0.6198
+  type: 'test'
+  ...
+# Subtest: bank deletion durably records exact image debt inside the same transaction before deleting rows
+ok 174 - bank deletion durably records exact image debt inside the same transaction before deleting rows
+  ---
+  duration_ms: 0.4269
+  type: 'test'
+  ...
+# Subtest: cleanup retry merges exact durable debt, protects live references, and clears debt only after safe cleanup
+ok 175 - cleanup retry merges exact durable debt, protects live references, and clears debt only after safe cleanup
+  ---
+  duration_ms: 0.7603
+  type: 'test'
+  ...
+# Subtest: direct image deletion clears durable debt after safe absence or unlink and retries empty bank directory cleanup
+ok 176 - direct image deletion clears durable debt after safe absence or unlink and retries empty bank directory cleanup
+  ---
+  duration_ms: 0.9885
+  type: 'test'
+  ...
+# Subtest: PDF import manifest allows INTERNET but device pipeline contains no network client
+ok 177 - PDF import manifest allows INTERNET but device pipeline contains no network client
+  ---
+  duration_ms: 1.5117
+  type: 'test'
+  ...
+# Subtest: temporary PDF deletion is an idempotent direct-child operation under its registered cache root
+ok 178 - temporary PDF deletion is an idempotent direct-child operation under its registered cache root
+  ---
+  duration_ms: 0.691
+  type: 'test'
+  ...
+# Subtest: read-only temporary PDF absence proof accepts only a missing strict direct child
+ok 179 - read-only temporary PDF absence proof accepts only a missing strict direct child
+  ---
+  duration_ms: 25.781
+  type: 'test'
+  ...
+# Subtest: temporary PDF absence proof rejects malformed and cross-root paths without deletion
+ok 180 - temporary PDF absence proof rejects malformed and cross-root paths without deletion
+  ---
+  duration_ms: 13.3263
+  type: 'test'
+  ...
+# Subtest: temporary PDF absence proof is read-only and validates path then cache then lstat absence
+ok 181 - temporary PDF absence proof is read-only and validates path then cache then lstat absence
+  ---
+  duration_ms: 0.3875
+  type: 'test'
+  ...
+# Subtest: question image deletion accepts only exact service cache files or exact bank image hierarchy
+ok 182 - question image deletion accepts only exact service cache files or exact bank image hierarchy
+  ---
+  duration_ms: 0.6964
+  type: 'test'
+  ...
+# Subtest: unknown or malformed PDF ownership throws and only strict registered staged files can be abandoned
+ok 183 - unknown or malformed PDF ownership throws and only strict registered staged files can be abandoned
+  ---
+  duration_ms: 0.6355
+  type: 'test'
+  ...
+# Subtest: current schema durably records exact rollback mappings and retry restores mappings without committed scans
+ok 184 - current schema durably records exact rollback mappings and retry restores mappings without committed scans
+  ---
+  duration_ms: 0.8321
+  type: 'test'
+  ...
+# Subtest: structured PDF storage errors are preserved by retained local services
+ok 185 - structured PDF storage errors are preserved by retained local services
+  ---
+  duration_ms: 0.4595
+  type: 'test'
+  ...
+# Subtest: PDF page error cards use supported constraint sizing
+not ok 186 - PDF page error cards use supported constraint sizing
+  ---
+  duration_ms: 0.7883
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\PdfImportContracts.test.cjs:1279:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /\.constraintSize\(\{ minHeight: 48 \}\)/. Input:
+    
+    "import { Context } from '@kit.AbilityKit'\n" +
+      'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  PAGE_PADDING,\n' +
+      '  SUBTITLE_FONT_SIZE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      "import { SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+      "import { UiStyle } from '../constants/UiStyle'\n" +
+      "import { ImportErrorCode, ImportResult } from '../models/ImportResult'\n" +
+      "import { AccountSessionState } from '../models/AccountSession'\n" +
+      "import { PdfFileSelection } from '../models/PdfImportModels'\n" +
+      "import { AccountSessionService } from '../services/AccountSessionService'\n" +
+      "import { ImportService } from '../services/ImportService'\n" +
+      "import { PdfImportService } from '../services/PdfImportService'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { PdfImportState } from '../utils/PdfImportState'\n" +
+      "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+      '\n' +
+      '@Entry\n' +
+      '@Component\n' +
+      'struct ImportBankPage {\n' +
+      '  @State importing: boolean = false\n' +
+      '  @State pdfSelecting: boolean = false\n' +
+      "  @State errorMessage: string = ''\n" +
+      "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {\n" +
+      '    top: 0, left: 0, right: 0, bottom: 0\n' +
+      '  }\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  private goBack(): void {\n' +
+      '    if (this.importing || this.pdfSelecting) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    try {\n' +
+      '      this.getUIContext().getRouter().back()\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  onBackPress(): boolean {\n' +
+      '    this.goBack()\n' +
+      '    return true\n' +
+      '  }\n' +
+      '\n' +
+      '  private startImport(): void {\n' +
+      '    if (this.importing || this.pdfSelecting) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    const hostContext: Context | undefined = this.getUIContext().getHostContext()\n' +
+      '    if (hostContext === undefined) {\n' +
+      "      this.showToast('暂时无法获取应用上下文')\n" +
+      '      return\n' +
+      '    }\n' +
+      '    AccountSessionService.state(hostContext)\n' +
+      '      .then((session: AccountSessionState) => {\n' +
+      '        if (!session.signedIn) {\n' +
+      "          this.showToast('请先登录华为账号')\n" +
+      '          return\n' +
+      '        }\n' +
+      '        this.importing = true\n' +
+      "        this.errorMessage = ''\n" +
+      '        this.importBank()\n' +
+      '      })\n' +
+      '      .catch(() => {\n' +
+      "        this.showToast('导入失败，请稍后重试')\n" +
+      '      })\n' +
+      '  }\n' +
+      '\n' +
+      '  private async importBank(): Promise<void> {\n' +
+      '    let result: ImportResult\n' +
+      '    try {\n' +
+      '      result = await ImportService.selectAndImport(getContext(this))\n' +
+      '    } catch {\n' +
+      "      this.errorMessage = '导入失败，请稍后重试'\n" +
+      '      this.importing = false\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.importing = false\n' +
+      '    if (result.cancelled) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    if (result.success) {\n' +
+      "      this.showToast('题库导入成功')\n" +
+      '      this.goBack()\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.errorMessage = this.messageFor(result.errorCode.code)\n' +
+      '  }\n' +
+      '\n' +
+      '  private messageFor(errorCode: string): string {\n' +
+      '    if (errorCode === ImportErrorCode.FORMAT_ERROR) {\n' +
+      "      return '题库格式错误，请检查 JSON 文件'\n" +
+      '    }\n' +
+      '    if (errorCode === ImportErrorCode.READ_ERROR) {\n' +
+      "      return '文件读取失败，请重新选择'\n" +
+      '    }\n' +
+      '    if (errorCode === ImportErrorCode.SAVE_ERROR) {\n' +
+      "      return '题库保存失败，请稍后重试'\n" +
+      '    }\n' +
+      "    return '导入失败，请稍后重试'\n" +
+      '  }\n' +
+      '\n' +
+      '  private showToast(message: string): void {\n' +
+      '    try {\n' +
+      '      this.getUIContext().getPromptAction().showToast({ message: message })\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async selectPdf(): Promise<void> {\n' +
+      '    if (this.importing || this.pdfSelecting) return\n' +
+      '    this.pdfSelecting = true\n' +
+      "    this.errorMessage = ''\n" +
+      '    try {\n' +
+      '      const context: Context = getContext(this)\n' +
+      '      const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)\n' +
+      '      if (selection === null) return\n' +
+      '      const state: PdfImportState = PdfImportState.shared()\n' +
+      '      const previous: PdfFileSelection | null = state.getSelection()\n' +
+      '      if (previous !== null && previous.uri !== selection.uri) {\n' +
+      '        try {\n' +
+      '          await PdfImportService.removeTemporaryPdf(previous.uri)\n' +
+      '        } catch {\n' +
+      '          const removed: boolean = await this.releaseUnpublishedSelection(selection)\n' +
+      "          this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :\n" +
+      "            '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'\n" +
+      '          return\n' +
+      '        }\n' +
+      '      }\n' +
+      '      state.reset()\n' +
+      '      state.setSelection(selection)\n' +
+      '      try {\n' +
+      "        await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })\n" +
+      '      } catch {\n' +
+      '        state.reset()\n' +
+      '        const removed: boolean = await this.releaseUnpublishedSelection(selection)\n' +
+      "        this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :\n" +
+      "          'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'\n" +
+      '      }\n' +
+      '    } catch (err) {\n' +
+      '      this.errorMessage = this.messageForPdfError(err)\n' +
+      '    } finally {\n' +
+      '      this.pdfSelecting = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {\n' +
+      '    return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)\n' +
+      '  }\n' +
+      '\n' +
+      '  private messageForPdfError(err: Error): string {\n' +
+      "    let message: string = ''\n" +
+      '    if (err instanceof Error) {\n' +
+      '      message = err.message\n' +
+      '    }\n' +
+      "    if (message.includes('已有 PDF 选择任务')) {\n" +
+      "      return '正在选择 PDF，请稍候'\n" +
+      '    }\n' +
+      "    if (message.includes('大小') || message.includes('超过限制')) {\n" +
+      "      return 'PDF 文件不能超过 200 MB'\n" +
+      '    }\n' +
+      "    if (message.includes('暂存') || message.includes('空间')) {\n" +
+      "      return 'PDF 暂存失败，请检查本地空间'\n" +
+      '    }\n' +
+      "    if (message.includes('选择') || message.includes('picker')) {\n" +
+      "      return 'PDF 导入失败，请重新选择文件'\n" +
+      '    }\n' +
+      "    return 'PDF 导入失败，请重新选择文件'\n" +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Navigation() {\n' +
+      '      Column() {\n' +
+      '        Scroll() {\n' +
+      '          Column({ space: UiStyle.GROUP_GAP }) {\n' +
+      '            Column({ space: 8 }) {\n' +
+      "              Text('选择资料来源')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(24)\n' +
+      '                .fontWeight(FontWeight.Bold)\n' +
+      '                .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      "              Text('PDF 和结构化 JSON 题库均可导入')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .alignItems(HorizontalAlign.Start)\n' +
+      '\n' +
+      '            Column({ space: 12 }) {\n' +
+      '              Row() {\n' +
+      "                Text('PDF 资料')\n" +
+      '                  .fontSize(SUBTITLE_FONT_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Bold)\n' +
+      '                  .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '                Blank()\n' +
+      '\n' +
+      "                Text('推荐')\n" +
+      '                  .fontSize(12)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '\n' +
+      "              Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '                .lineHeight(22)\n' +
+      '\n' +
+      '              Button() {\n' +
+      "                Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')\n" +
+      '                  .fontSize(UiStyle.BODY_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Medium)\n' +
+      '                  .fontColor(UiStyle.onAction(this.darkMode))\n' +
+      '              }\n' +
+      '              .type(ButtonType.Normal)\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .backgroundColor(UiStyle.action(this.darkMode))\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '              .enabled(!this.pdfSelecting && !this.importing)\n' +
+      "              .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')\n" +
+      '              .onClick(() => {\n' +
+      '                this.selectPdf()\n' +
+      '              })\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .padding(20)\n' +
+      '            .alignItems(HorizontalAlign.Start)\n' +
+      '            .backgroundColor(this.colors().cardBackground)\n' +
+      '            .border({ width: 1, color: this.colors().divider })\n' +
+      '            .borderRadius(SHEET_RADIUS)\n' +
+      '\n' +
+      '            if (this.importing) {\n' +
+      '              Row({ space: 12 }) {\n' +
+      '                LoadingProgress()\n' +
+      '                  .width(24)\n' +
+      '                  .height(24)\n' +
+      '                  .color(UiStyle.action(this.darkMode))\n' +
+      '\n' +
+      "                Text('正在读取并导入题库…')\n" +
+      '                  .fontSize(BODY_FONT_SIZE)\n' +
+      '                  .fontColor(this.colors().textCaption)\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .padding({ left: 16, right: 16 })\n' +
+      '              .justifyContent(FlexAlign.Center)\n' +
+      '              .backgroundColor(this.colors().cardBackground)\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '            }\n' +
+      '\n' +
+      '            if (this.errorMessage.length > 0) {\n' +
+      '              Text(this.errorMessage)\n' +
+      "                .width('100%')\n" +
+      '                .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '                .padding({ left: 16, right: 16, top: 13, bottom: 13 })\n' +
+      '                .fontSize(BODY_FONT_SIZE)\n' +
+      '                .fontColor(UiStyle.errorText(this.darkMode))\n' +
+      '                .backgroundColor(this.colors().errorSoft)\n' +
+      '                .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      "                .accessibilityText('导入失败：' + this.errorMessage)\n" +
+      '            }\n' +
+      '\n' +
+      '            Column({ space: 12 }) {\n' +
+      '              Row() {\n' +
+      "                Text('已有结构化题库')\n" +
+      '                  .fontSize(SUBTITLE_FONT_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Bold)\n' +
+      '                  .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '                Blank()\n' +
+      '\n' +
+      "                Text('仅支持单选题')\n" +
+      '                  .fontSize(12)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '\n' +
+      "              Text('选择 JSON 文件可直接导入已有题库。')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '\n' +
+      '              Button() {\n' +
+      "                Text(this.importing ? '正在导入…' : '选择 JSON 文件')\n" +
+      '                  .fontSize(UiStyle.BODY_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Medium)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      '              .type(ButtonType.Normal)\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .backgroundColor(this.colors().cardBackground)\n' +
+      '              .border({ width: 1, color: UiStyle.action(this.darkMode) })\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '              .enabled(!this.importing && !this.pdfSelecting)\n' +
+      '              .accessibilityText(thi'... 2102 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { Context } from '@kit.AbilityKit'
+    import {
+      BODY_FONT_SIZE,
+      PAGE_PADDING,
+      SUBTITLE_FONT_SIZE,
+      themePalette
+    } from '../constants/AppTheme'
+    import { SHEET_RADIUS } from '../constants/EditorialStyle'
+    import { UiStyle } from '../constants/UiStyle'
+    import { ImportErrorCode, ImportResult } from '../models/ImportResult'
+    import { AccountSessionState } from '../models/AccountSession'
+    import { PdfFileSelection } from '../models/PdfImportModels'
+    import { AccountSessionService } from '../services/AccountSessionService'
+    import { ImportService } from '../services/ImportService'
+    import { PdfImportService } from '../services/PdfImportService'
+    import { AppColors } from '../theme/AppColors'
+    import { PdfImportState } from '../utils/PdfImportState'
+    import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+    
+    @Entry
+    @Component
+    struct ImportBankPage {
+      @State importing: boolean = false
+      @State pdfSelecting: boolean = false
+      @State errorMessage: string = ''
+      @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+        top: 0, left: 0, right: 0, bottom: 0
+      }
+      @StorageProp('darkMode') darkMode: boolean = false
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      private goBack(): void {
+        if (this.importing || this.pdfSelecting) {
+          return
+        }
+        try {
+          this.getUIContext().getRouter().back()
+        } catch {
+        }
+      }
+    
+      onBackPress(): boolean {
+        this.goBack()
+        return true
+      }
+    
+      private startImport(): void {
+        if (this.importing || this.pdfSelecting) {
+          return
+        }
+        const hostContext: Context | undefined = this.getUIContext().getHostContext()
+        if (hostContext === undefined) {
+          this.showToast('暂时无法获取应用上下文')
+          return
+        }
+        AccountSessionService.state(hostContext)
+          .then((session: AccountSessionState) => {
+            if (!session.signedIn) {
+              this.showToast('请先登录华为账号')
+              return
+            }
+            this.importing = true
+            this.errorMessage = ''
+            this.importBank()
+          })
+          .catch(() => {
+            this.showToast('导入失败，请稍后重试')
+          })
+      }
+    
+      private async importBank(): Promise<void> {
+        let result: ImportResult
+        try {
+          result = await ImportService.selectAndImport(getContext(this))
+        } catch {
+          this.errorMessage = '导入失败，请稍后重试'
+          this.importing = false
+          return
+        }
+        this.importing = false
+        if (result.cancelled) {
+          return
+        }
+        if (result.success) {
+          this.showToast('题库导入成功')
+          this.goBack()
+          return
+        }
+        this.errorMessage = this.messageFor(result.errorCode.code)
+      }
+    
+      private messageFor(errorCode: string): string {
+        if (errorCode === ImportErrorCode.FORMAT_ERROR) {
+          return '题库格式错误，请检查 JSON 文件'
+        }
+        if (errorCode === ImportErrorCode.READ_ERROR) {
+          return '文件读取失败，请重新选择'
+        }
+        if (errorCode === ImportErrorCode.SAVE_ERROR) {
+          return '题库保存失败，请稍后重试'
+        }
+        return '导入失败，请稍后重试'
+      }
+    
+      private showToast(message: string): void {
+        try {
+          this.getUIContext().getPromptAction().showToast({ message: message })
+        } catch {
+        }
+      }
+    
+      private async selectPdf(): Promise<void> {
+        if (this.importing || this.pdfSelecting) return
+        this.pdfSelecting = true
+        this.errorMessage = ''
+        try {
+          const context: Context = getContext(this)
+          const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)
+          if (selection === null) return
+          const state: PdfImportState = PdfImportState.shared()
+          const previous: PdfFileSelection | null = state.getSelection()
+          if (previous !== null && previous.uri !== selection.uri) {
+            try {
+              await PdfImportService.removeTemporaryPdf(previous.uri)
+            } catch {
+              const removed: boolean = await this.releaseUnpublishedSelection(selection)
+              this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :
+                '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'
+              return
+            }
+          }
+          state.reset()
+          state.setSelection(selection)
+          try {
+            await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })
+          } catch {
+            state.reset()
+            const removed: boolean = await this.releaseUnpublishedSelection(selection)
+            this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :
+              'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'
+          }
+        } catch (err) {
+          this.errorMessage = this.messageForPdfError(err)
+        } finally {
+          this.pdfSelecting = false
+        }
+      }
+    
+      private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {
+        return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)
+      }
+    
+      private messageForPdfError(err: Error): string {
+        let message: string = ''
+        if (err instanceof Error) {
+          message = err.message
+        }
+        if (message.includes('已有 PDF 选择任务')) {
+          return '正在选择 PDF，请稍候'
+        }
+        if (message.includes('大小') || message.includes('超过限制')) {
+          return 'PDF 文件不能超过 200 MB'
+        }
+        if (message.includes('暂存') || message.includes('空间')) {
+          return 'PDF 暂存失败，请检查本地空间'
+        }
+        if (message.includes('选择') || message.includes('picker')) {
+          return 'PDF 导入失败，请重新选择文件'
+        }
+        return 'PDF 导入失败，请重新选择文件'
+      }
+    
+      build() {
+        Navigation() {
+          Column() {
+            Scroll() {
+              Column({ space: UiStyle.GROUP_GAP }) {
+                Column({ space: 8 }) {
+                  Text('选择资料来源')
+                    .width('100%')
+                    .fontSize(24)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('PDF 和结构化 JSON 题库均可导入')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                }
+                .width('100%')
+                .alignItems(HorizontalAlign.Start)
+    
+                Column({ space: 12 }) {
+                  Row() {
+                    Text('PDF 资料')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(this.colors().textPrimary)
+    
+                    Blank()
+    
+                    Text('推荐')
+                      .fontSize(12)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .width('100%')
+    
+                  Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Button() {
+                    Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')
+                      .fontSize(UiStyle.BODY_SIZE)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(UiStyle.onAction(this.darkMode))
+                  }
+                  .type(ButtonType.Normal)
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .backgroundColor(UiStyle.action(this.darkMode))
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .enabled(!this.pdfSelecting && !this.importing)
+                  .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')
+                  .onClick(() => {
+                    this.selectPdf()
+                  })
+                }
+                .width('100%')
+                .padding(20)
+                .alignItems(HorizontalAlign.Start)
+                .backgroundColor(this.colors().cardBackground)
+                .border({ width: 1, color: this.colors().divider })
+                .borderRadius(SHEET_RADIUS)
+    
+                if (this.importing) {
+                  Row({ space: 12 }) {
+                    LoadingProgress()
+                      .width(24)
+                      .height(24)
+                      .color(UiStyle.action(this.darkMode))
+    
+                    Text('正在读取并导入题库…')
+                      .fontSize(BODY_FONT_SIZE)
+                      .fontColor(this.colors().textCaption)
+                  }
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .padding({ left: 16, right: 16 })
+                  .justifyContent(FlexAlign.Center)
+                  .backgroundColor(this.colors().cardBackground)
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                }
+    
+                if (this.errorMessage.length > 0) {
+                  Text(this.errorMessage)
+                    .width('100%')
+                    .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                    .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(UiStyle.errorText(this.darkMode))
+                    .backgroundColor(this.colors().errorSoft)
+                    .borderRadius(UiStyle.CONTROL_RADIUS)
+                    .accessibilityText('导入失败：' + this.errorMessage)
+                }
+    
+                Column({ space: 12 }) {
+                  Row() {
+                    Text('已有结构化题库')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(this.colors().textPrimary)
+    
+                    Blank()
+    
+                    Text('仅支持单选题')
+                      .fontSize(12)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .width('100%')
+    
+                  Text('选择 JSON 文件可直接导入已有题库。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+    
+                  Button() {
+                    Text(this.importing ? '正在导入…' : '选择 JSON 文件')
+                      .fontSize(UiStyle.BODY_SIZE)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .type(ButtonType.Normal)
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .backgroundColor(this.colors().cardBackground)
+                  .border({ width: 1, color: UiStyle.action(this.darkMode) })
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .enabled(!this.importing && !this.pdfSelecting)
+                  .accessibilityText(this.importing ? '正在导入题库' : '选择 JSON 文件')
+                  .onClick(() => {
+                    this.startImport()
+                  })
+    
+                  Divider()
+                    .color(this.colors().divider)
+    
+                  Text('JSON 格式说明')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('文件需要包含题库名称 bankName、学科 subject 和题目数组 questions。每道题需包含 id、type、question、options、answer 与 analysis。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Text('type 请填写 single_choice，answer 使用与选项对应的字母。文件编码需为 UTF-8。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+                }
+                .width('100%')
+                .padding(20)
+                .alignItems(HorizontalAlign.Start)
+                .backgroundColor(this.colors().cardBackground)
+                .border({ width: 1, color: this.colors().divider })
+                .borderRadius(SHEET_RADIUS)
+              }
+              .width('100%')
+              .align(Alignment.Top)
+              .padding({
+                top: PAGE_PADDING,
+                left: PAGE_PADDING,
+                right: PAGE_PADDING,
+                bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+              })
+            }
+            .layoutWeight(1)
+            .width('100%')
+            .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+            .scrollBar(BarState.Off)
+          }
+          .width('100%')
+          .height('100%')
+          .backgroundColor(this.colors().pageBackground)
+        }
+        .title('导入题库', {
+          barStyle: BarStyle.STANDARD
+        })
+        .titleMode(NavigationTitleMode.Mini)
+        .hideBackButton(false)
+        .mode(NavigationMode.Stack)
+        .width('100%')
+        .height('100%')
+        .padding({
+          top: SafeAreaUtils.top(this.safeAreaInsets),
+          left: SafeAreaUtils.left(this.safeAreaInsets),
+          right: SafeAreaUtils.right(this.safeAreaInsets)
+        })
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\PdfImportContracts.test.cjs:1286:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..186
+# tests 186
+# suites 0
+# pass 183
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 668.0137

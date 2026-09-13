@@ -2,9 +2,9 @@ import { LoginWithHuaweiIDButton, loginComponentManager } from '@kit.AccountKit'
 import { BusinessError } from '@kit.BasicServicesKit'
 import {
   BODY_FONT_SIZE,
-  CARD_RADIUS,
   themePalette
 } from '../constants/AppTheme'
+import { HAIRLINE, SHEET_RADIUS } from '../constants/EditorialStyle'
 import { AppColors } from '../theme/AppColors'
 
 @Component
@@ -69,18 +69,39 @@ export struct HuaweiAccountCard {
 
   build() {
     Column({ space: 14 }) {
-      if (this.signedIn) {
-        Row({ space: 12 }) {
-          Text('账')
-            .width(48)
-            .height(48)
+      Row({ space: 12 }) {
+        Text('人')
+          .width(48)
+          .height(48)
+          .fontSize(21)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.colors().brand)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(this.colors().brandSoft)
+          .borderRadius(14)
+
+        Column({ space: 4 }) {
+          Text('学习中心')
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().brand)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(this.colors().pageBackground)
-            .borderRadius(24)
+            .fontColor(this.colors().textPrimary)
 
+          Text('整理错题，让每次复习更有方向')
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.colors().textCaption)
+            .maxLines(2)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+      }
+      .width('100%')
+
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+
+      if (this.signedIn) {
+        Row({ space: 12 }) {
           Column({ space: 4 }) {
             Text('已登录华为账号')
               .fontSize(16)
@@ -96,19 +117,24 @@ export struct HuaweiAccountCard {
               .fontColor(this.colors().textCaption)
               .maxLines(2)
 
-            Text(this.syncLabel)
-              .fontSize(12)
-              .fontColor(this.colors().brand)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
+
+          Text(this.syncLabel)
+            .fontSize(12)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.colors().brand)
+            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+            .backgroundColor(this.colors().brandSoft)
+            .borderRadius(12)
         }
         .width('100%')
 
         Button(this.syncing ? '正在同步…' : '立即同步')
           .type(ButtonType.Normal)
           .width('100%')
-          .height(46)
+          .height(48)
           .fontSize(BODY_FONT_SIZE)
           .fontColor(this.colors().onBrand)
           .backgroundColor(this.colors().brand)
@@ -121,7 +147,7 @@ export struct HuaweiAccountCard {
         Button('退出登录')
           .type(ButtonType.Normal)
           .width('100%')
-          .height(46)
+          .height(48)
           .fontSize(BODY_FONT_SIZE)
           .fontColor(this.colors().error)
           .backgroundColor(this.colors().pageBackground)
@@ -170,7 +196,8 @@ export struct HuaweiAccountCard {
     }
     .width('100%')
     .padding(18)
-    .borderRadius(CARD_RADIUS)
+    .borderRadius(SHEET_RADIUS)
     .backgroundColor(this.colors().cardBackground)
+    .border({ width: HAIRLINE, color: this.colors().divider })
   }
 }

@@ -1,0 +1,37 @@
+(node:38916) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ primary and selected controls use readable light and dark color pairs (45.8035ms)
+✔ import leads with PDF and keeps JSON format and mutually exclusive handlers (1.3221ms)
+✔ JSON format guidance is collapsed by default behind one accessible disclosure (0.2994ms)
+✔ settings group Model with service and expose status outside the scrolling form (0.2501ms)
+✔ three page shells consume four insets and constrain readable content and touch targets (1.8943ms)
+✔ picker clears both filters, restores actual catalog and still selects only the platform id (12.1683ms)
+✖ AI PDF setup presents one responsive configuration flow with persistent feedback and actions (1.2085ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 140.1284
+
+✖ failing tests:
+
+test at entry\src\test\UiRemediationContracts.test.cjs:147:1
+✖ AI PDF setup presents one responsive configuration flow with persistent feedback and actions (1.2085ms)
+  AssertionError [ERR_ASSERTION]: 已选择 PDF
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:152:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

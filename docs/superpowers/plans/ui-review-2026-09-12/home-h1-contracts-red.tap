@@ -1,0 +1,415 @@
+TAP version 13
+# Subtest: home keeps one import entry and names every shortcut for its real destination
+not ok 1 - home keeps one import entry and names every shortcut for its real destination
+  ---
+  duration_ms: 1.24
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\HomeUiFollowupContracts.test.cjs:17:1'
+  failureType: 'testCodeFailure'
+  error: 'missing truthful shortcut label: AI 设置'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\HomeUiFollowupContracts.test.cjs:21:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: recent summaries expose one list-level action and rows no longer pretend to deep-link
+not ok 2 - recent summaries expose one list-level action and rows no longer pretend to deep-link
+  ---
+  duration_ms: 0.8393
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\HomeUiFollowupContracts.test.cjs:36:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /@Prop actionLabel: string = '查看列表'/. Input:
+    
+    'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      'import {\n' +
+      '  BADGE_RADIUS,\n' +
+      '  BADGE_SIZE,\n' +
+      '  HAIRLINE,\n' +
+      '  SECTION_TITLE_SIZE,\n' +
+      '  SHEET_RADIUS\n' +
+      "} from '../constants/EditorialStyle'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      '\n' +
+      '@Component\n' +
+      'export struct HomeRecentSection {\n' +
+      "  @Prop title: string = ''\n" +
+      "  @Prop emptyText: string = ''\n" +
+      '  @Prop items: Array<string> = new Array<string>()\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '  onOpen: (index: number) => void = () => {\n' +
+      '  }\n' +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  // 章节标题：小号间距字 + 右侧「查看全部」+ 一条细线（练习册章节感，不依赖共享 SectionTitle）。\n' +
+      '  @Builder\n' +
+      '  private SectionHead() {\n' +
+      '    Column({ space: 10 }) {\n' +
+      '      Row() {\n' +
+      '        Text(this.title)\n' +
+      '          .fontSize(13)\n' +
+      '          .fontWeight(FontWeight.Bold)\n' +
+      '          .letterSpacing(1)\n' +
+      '          .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '        Blank()\n' +
+      '\n' +
+      '        if (this.items.length > 0) {\n' +
+      "          Text('查看全部')\n" +
+      '            .fontSize(12)\n' +
+      '            .fontColor(this.colors().brand)\n' +
+      '        }\n' +
+      '      }\n' +
+      "      .width('100%')\n" +
+      '\n' +
+      '      Divider()\n' +
+      '        .strokeWidth(HAIRLINE)\n' +
+      '        .color(this.colors().divider)\n' +
+      '    }\n' +
+      "    .width('100%')\n" +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Column({ space: 10 }) {\n' +
+      '      this.SectionHead()\n' +
+      '\n' +
+      '      if (this.items.length === 0) {\n' +
+      '        Row({ space: 10 }) {\n' +
+      "          Text('·')\n" +
+      '            .width(28)\n' +
+      '            .height(28)\n' +
+      '            .fontSize(20)\n' +
+      '            .fontWeight(FontWeight.Bold)\n' +
+      '            .fontColor(this.colors().brand)\n' +
+      '            .textAlign(TextAlign.Center)\n' +
+      '            .backgroundColor(this.colors().brandSoft)\n' +
+      '            .borderRadius(BADGE_RADIUS)\n' +
+      '\n' +
+      '          Text(this.emptyText)\n' +
+      '            .fontSize(BODY_FONT_SIZE)\n' +
+      '            .fontColor(this.colors().textCaption)\n' +
+      '        }\n' +
+      "        .width('100%')\n" +
+      '        .height(60)\n' +
+      '        .padding({ left: 16, right: 16 })\n' +
+      '        .backgroundColor(this.colors().cardBackground)\n' +
+      '        .borderRadius(SHEET_RADIUS)\n' +
+      '        .border({ width: HAIRLINE, color: this.colors().divider })\n' +
+      '      } else {\n' +
+      '        Column() {\n' +
+      '          ForEach(this.items, (item: string, index: number) => {\n' +
+      '            Row({ space: 12 }) {\n' +
+      '              // 序号做成方形书签，而不是圆点，贴近练习册的编号观感。\n' +
+      '              Text((index + 1).toString())\n' +
+      '                .width(28)\n' +
+      '                .height(28)\n' +
+      '                .fontSize(13)\n' +
+      '                .fontWeight(FontWeight.Bold)\n' +
+      '                .fontColor(this.colors().brand)\n' +
+      '                .textAlign(TextAlign.Center)\n' +
+      '                .backgroundColor(this.colors().brandSoft)\n' +
+      '                .borderRadius(BADGE_RADIUS)\n' +
+      '\n' +
+      '              Text(item)\n' +
+      '                .layoutWeight(1)\n' +
+      '                .fontSize(BODY_FONT_SIZE)\n' +
+      '                .fontColor(this.colors().textPrimary)\n' +
+      '                .maxLines(2)\n' +
+      '                .textOverflow({ overflow: TextOverflow.Ellipsis })\n' +
+      '\n' +
+      "              Text('›')\n" +
+      '                .fontSize(22)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .padding({ left: 16, right: 14, top: 12, bottom: 12 })\n' +
+      '            .onClick(() => {\n' +
+      '              this.onOpen(index)\n' +
+      '            })\n' +
+      '            .accessibilityText(item)\n' +
+      '\n' +
+      '            if (index < this.items.length - 1) {\n' +
+      '              Divider()\n' +
+      '                .strokeWidth(HAIRLINE)\n' +
+      '                .margin({ left: 56 })\n' +
+      '                .color(this.colors().divider)\n' +
+      '            }\n' +
+      '          }, (item: string, index: number): string => index.toString() + item)\n' +
+      '        }\n' +
+      "        .width('100%')\n" +
+      '        .backgroundColor(this.colors().cardBackground)\n' +
+      '        .borderRadius(SHEET_RADIUS)\n' +
+      '        .border({ width: HAIRLINE, color: this.colors().divider })\n' +
+      '        .clip(true)\n' +
+      '      }\n' +
+      '    }\n' +
+      "    .width('100%')\n" +
+      '    .alignItems(HorizontalAlign.Start)\n' +
+      '  }\n' +
+      '}\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import {
+      BODY_FONT_SIZE,
+      themePalette
+    } from '../constants/AppTheme'
+    import {
+      BADGE_RADIUS,
+      BADGE_SIZE,
+      HAIRLINE,
+      SECTION_TITLE_SIZE,
+      SHEET_RADIUS
+    } from '../constants/EditorialStyle'
+    import { AppColors } from '../theme/AppColors'
+    
+    @Component
+    export struct HomeRecentSection {
+      @Prop title: string = ''
+      @Prop emptyText: string = ''
+      @Prop items: Array<string> = new Array<string>()
+      @StorageProp('darkMode') darkMode: boolean = false
+      onOpen: (index: number) => void = () => {
+      }
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      // 章节标题：小号间距字 + 右侧「查看全部」+ 一条细线（练习册章节感，不依赖共享 SectionTitle）。
+      @Builder
+      private SectionHead() {
+        Column({ space: 10 }) {
+          Row() {
+            Text(this.title)
+              .fontSize(13)
+              .fontWeight(FontWeight.Bold)
+              .letterSpacing(1)
+              .fontColor(this.colors().textPrimary)
+    
+            Blank()
+    
+            if (this.items.length > 0) {
+              Text('查看全部')
+                .fontSize(12)
+                .fontColor(this.colors().brand)
+            }
+          }
+          .width('100%')
+    
+          Divider()
+            .strokeWidth(HAIRLINE)
+            .color(this.colors().divider)
+        }
+        .width('100%')
+      }
+    
+      build() {
+        Column({ space: 10 }) {
+          this.SectionHead()
+    
+          if (this.items.length === 0) {
+            Row({ space: 10 }) {
+              Text('·')
+                .width(28)
+                .height(28)
+                .fontSize(20)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(this.colors().brand)
+                .textAlign(TextAlign.Center)
+                .backgroundColor(this.colors().brandSoft)
+                .borderRadius(BADGE_RADIUS)
+    
+              Text(this.emptyText)
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor(this.colors().textCaption)
+            }
+            .width('100%')
+            .height(60)
+            .padding({ left: 16, right: 16 })
+            .backgroundColor(this.colors().cardBackground)
+            .borderRadius(SHEET_RADIUS)
+            .border({ width: HAIRLINE, color: this.colors().divider })
+          } else {
+            Column() {
+              ForEach(this.items, (item: string, index: number) => {
+                Row({ space: 12 }) {
+                  // 序号做成方形书签，而不是圆点，贴近练习册的编号观感。
+                  Text((index + 1).toString())
+                    .width(28)
+                    .height(28)
+                    .fontSize(13)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(this.colors().brand)
+                    .textAlign(TextAlign.Center)
+                    .backgroundColor(this.colors().brandSoft)
+                    .borderRadius(BADGE_RADIUS)
+    
+                  Text(item)
+                    .layoutWeight(1)
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(this.colors().textPrimary)
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+    
+                  Text('›')
+                    .fontSize(22)
+                    .fontColor(this.colors().textCaption)
+                }
+                .width('100%')
+                .padding({ left: 16, right: 14, top: 12, bottom: 12 })
+                .onClick(() => {
+                  this.onOpen(index)
+                })
+                .accessibilityText(item)
+    
+                if (index < this.items.length - 1) {
+                  Divider()
+                    .strokeWidth(HAIRLINE)
+                    .margin({ left: 56 })
+                    .color(this.colors().divider)
+                }
+              }, (item: string, index: number): string => index.toString() + item)
+            }
+            .width('100%')
+            .backgroundColor(this.colors().cardBackground)
+            .borderRadius(SHEET_RADIUS)
+            .border({ width: HAIRLINE, color: this.colors().divider })
+            .clip(true)
+          }
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\HomeUiFollowupContracts.test.cjs:38:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: home shortcuts and primary review meet touch size and large-text layout contracts
+not ok 3 - home shortcuts and primary review meet touch size and large-text layout contracts
+  ---
+  duration_ms: 1.1097
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\HomeUiFollowupContracts.test.cjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /\.width\(48\)/. Input:
+    
+    'private QuickEntry(symbol: Resource, label: string, action: () => void) {\n' +
+      '    Column({ space: 6 }) {\n' +
+      '      Stack() {\n' +
+      '        Column()\n' +
+      '          .width(46)\n' +
+      '          .height(46)\n' +
+      '          .backgroundColor(this.colors().brandSoft)\n' +
+      '          .borderRadius(14)\n' +
+      '\n' +
+      '        SymbolGlyph(symbol)\n' +
+      '          .fontSize(22)\n' +
+      '          .fontColor([this.colors().brand])\n' +
+      '      }\n' +
+      '      .width(46)\n' +
+      '      .height(46)\n' +
+      '\n' +
+      '      Text(label)\n' +
+      '        .fontSize(11)\n' +
+      '        .maxLines(1)\n' +
+      '        .textOverflow({ overflow: TextOverflow.Ellipsis })\n' +
+      '        .fontColor(this.colors().textSecondary)\n' +
+      '    }\n' +
+      '    .layoutWeight(1)\n' +
+      '    .onClick(() => {\n' +
+      '      action()\n' +
+      '    })\n' +
+      '    .accessibilityText(label)\n' +
+      '  }\n' +
+      '\n' +
+      '  // 快捷入口（编辑风圆角方形）：图标 + 短标签，点击直达对应能力。\n' +
+      '  @Builder\n' +
+      '  '
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    private QuickEntry(symbol: Resource, label: string, action: () => void) {
+        Column({ space: 6 }) {
+          Stack() {
+            Column()
+              .width(46)
+              .height(46)
+              .backgroundColor(this.colors().brandSoft)
+              .borderRadius(14)
+    
+            SymbolGlyph(symbol)
+              .fontSize(22)
+              .fontColor([this.colors().brand])
+          }
+          .width(46)
+          .height(46)
+    
+          Text(label)
+            .fontSize(11)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .fontColor(this.colors().textSecondary)
+        }
+        .layoutWeight(1)
+        .onClick(() => {
+          action()
+        })
+        .accessibilityText(label)
+      }
+    
+      // 快捷入口（编辑风圆角方形）：图标 + 短标签，点击直达对应能力。
+      @Builder
+      
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\HomeUiFollowupContracts.test.cjs:56:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: HdsTabs action-slot mapping and guarded navigation remain intact
+ok 4 - HdsTabs action-slot mapping and guarded navigation remain intact
+  ---
+  duration_ms: 0.3299
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 1
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81.6135

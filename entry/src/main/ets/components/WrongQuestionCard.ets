@@ -1,10 +1,20 @@
 import {
+  BADGE_RADIUS,
+  HAIRLINE,
+  SHEET_RADIUS
+} from '../constants/EditorialStyle'
+import {
   BODY_FONT_SIZE,
-  CARD_RADIUS,
   themePalette
 } from '../constants/AppTheme'
 import { AppColors } from '../theme/AppColors'
+import { MathContentUtils } from '../utils/MathContentUtils'
 
+/**
+ * 错题列表的一条（编辑 / 练习册风纸张卡片）：
+ * 圆角 16 + 1px divider 描边，学科走 brandSoft，掌握状态做成行内小标签，
+ * 题干用原生轻量预览（不使用 Web / 详情渲染器）。
+ */
 @Component
 export struct WrongQuestionCard {
   @Prop subject: string = ''
@@ -22,15 +32,15 @@ export struct WrongQuestionCard {
 
   build() {
     Button() {
-      Column({ space: 12 }) {
+      Column({ space: 10 }) {
         Row({ space: 8 }) {
           Text(this.subject)
             .fontSize(12)
             .fontWeight(FontWeight.Medium)
-            .fontColor(this.colors().textPrimary)
+            .fontColor(this.colors().brand)
             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
-            .backgroundColor(this.colors().pageBackground)
-            .borderRadius(12)
+            .backgroundColor(this.colors().brandSoft)
+            .borderRadius(BADGE_RADIUS)
 
           Text(this.mastered ? '已掌握' : '待复习')
             .fontSize(12)
@@ -41,12 +51,16 @@ export struct WrongQuestionCard {
         }
         .width('100%')
 
-        Text(this.questionText)
+        Text(MathContentUtils.toPlainPreview(this.questionText))
           .width('100%')
           .fontSize(BODY_FONT_SIZE)
           .fontWeight(FontWeight.Medium)
           .fontColor(this.colors().textPrimary)
           .maxLines(3)
+
+        Divider()
+          .strokeWidth(HAIRLINE)
+          .color(this.colors().divider)
 
         Row() {
           Text(this.bankName)
@@ -71,7 +85,8 @@ export struct WrongQuestionCard {
     .width('100%')
     .padding(0)
     .backgroundColor(this.colors().cardBackground)
-    .borderRadius(CARD_RADIUS)
+    .borderRadius(SHEET_RADIUS)
+    .border({ width: HAIRLINE, color: this.colors().divider })
     .onClick(() => {
       this.onOpen()
     })

@@ -1,3 +1,4 @@
+import { MathContentView } from '../components/MathContentView'
 import { QuestionSourceImages } from '../components/QuestionSourceImages'
 import {
   BODY_FONT_SIZE,
@@ -14,6 +15,7 @@ import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
 import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { NavigationState } from '../utils/NavigationState'
+import { MathContentUtils } from '../utils/MathContentUtils'
 import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
 
 @Entry
@@ -231,6 +233,32 @@ struct EditQuestionPage {
     }
   }
 
+  @Builder
+  private MathPreview(label: string, content: string) {
+    if (MathContentUtils.containsMath(content)) {
+      Column({ space: 6 }) {
+        Text(label + '公式预览')
+          .width('100%')
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(this.colors().textCaption)
+
+        MathContentView({
+          content: content,
+          fontSize: BODY_FONT_SIZE,
+          fontWeight: 400,
+          textColor: this.colors().textPrimary,
+          lineHeight: 22
+        })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+      .padding(12)
+      .backgroundColor(this.colors().inputBackground)
+      .borderRadius(10)
+    }
+  }
+
   build() {
     Navigation() {
       Column() {
@@ -352,17 +380,24 @@ struct EditQuestionPage {
                   this.questionText = value
                 })
 
+              this.MathPreview('题干', this.questionText)
+
               ForEach(this.options, (option: string, index: number) => {
-                TextInput({ placeholder: '选项 ' + String.fromCharCode(65 + index), text: option })
-                  .width('100%')
-                  .height(46)
-                  .fontSize(BODY_FONT_SIZE)
-                  .fontColor(this.colors().textPrimary)
-                  .backgroundColor(this.colors().inputBackground)
-                  .enabled(!this.pending && !this.navigationPending)
-                  .onChange((value: string) => {
-                    this.updateOption(index, value)
-                  })
+                Column({ space: 8 }) {
+                  TextInput({ placeholder: '选项 ' + String.fromCharCode(65 + index), text: option })
+                    .width('100%')
+                    .height(46)
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(this.colors().textPrimary)
+                    .backgroundColor(this.colors().inputBackground)
+                    .enabled(!this.pending && !this.navigationPending)
+                    .onChange((value: string) => {
+                      this.updateOption(index, value)
+                    })
+
+                  this.MathPreview('选项 ' + String.fromCharCode(65 + index) + ' ', option)
+                }
+                .width('100%')
               }, (option: string, index: number): string =>
                 this.currentQuestion.id + '_option_' + index.toString())
 
@@ -377,6 +412,8 @@ struct EditQuestionPage {
                   this.answer = value
                 })
 
+              this.MathPreview('答案', this.answer)
+
               TextArea({ placeholder: '解析（选填）', text: this.analysis })
                 .width('100%')
                 .height(100)
@@ -387,6 +424,8 @@ struct EditQuestionPage {
                 .onChange((value: string) => {
                   this.analysis = value
                 })
+
+              this.MathPreview('解析', this.analysis)
             }
             .width('100%')
             .padding(18)

@@ -75,8 +75,11 @@ expectAbsent(index, 'BottomBarImplementation', 'index must not branch on the rem
 expectAbsent(index, 'BOTTOM_BAR_IMPLEMENTATION', 'index must not reference the removed A/B switch constant')
 expectAbsent(index, 'ImmersiveMaterials', 'index must not reference the removed API 26 material constants')
 expectAbsent(index, 'ImmersiveMaterialDiagnostics', 'index must not reference the removed API 26 diagnostics')
-expectIncludes(index, 'HdsTabs({ barPosition: BarPosition.End, index: this.selectedIndex })',
-  'index must host HdsTabs as the official bottom navigation with index binding')
+expectIncludes(index, 'HdsTabs({ barPosition: BarPosition.End, index: this.tabBarIndex,',
+  'index must host HdsTabs as the official bottom navigation with the slot index binding')
+if (!index.includes('controller: this.tabsController')) {
+  throw new Error('the HdsTabs host must keep its controller for the center import action')
+}
 const hdsStart = index.indexOf('HdsTabs({')
 const hdsEnd = index.indexOf('.onChange(', hdsStart)
 if (hdsEnd < 0) {
@@ -92,6 +95,14 @@ expectIncludes(hdsBranch, 'materialType: this.hdsMaterialType',
   'the material type must bind the resolved policy value')
 expectIncludes(hdsBranch, 'materialLevel: this.hdsMaterialLevel',
   'the material level must bind the resolved policy value')
+
+// 3b. 2026-09-10：关掉内容区左右滑动切页。
+//     官方文档：scrollable(value) 决定 "whether page switching can be performed by sliding left and right"，
+//     默认 true。底栏第 3 个槽位是「+ 导入」动作位（不是业务 Tab），所以在题库/首页左滑会选中该槽位，
+//     触发 onChange(position === IMPORT) 而推开「导入题库」页 —— 现场复现：题库页左滑 → 导入题库页。
+//     底栏只保留点击切换，滑动切页关闭。
+expectIncludes(hdsBranch, '.scrollable(false)',
+  'the tab pages must not switch or open the import action on a horizontal swipe')
 
 // 4. 正式策略：ADAPTIVE + ADAPTIVE（系统自适应，不默认强制 EXQUISITE）
 expectIncludes(index, 'hdsMaterial.MaterialType.ADAPTIVE', 'index must default the material type to ADAPTIVE')
@@ -142,6 +153,15 @@ expectIncludes(index, "this.TabBarItem(MainTabIndex.WRONG_QUESTIONS, '错题',",
   'wrong-questions tab must stay third')
 expectIncludes(index, "this.TabBarItem(MainTabIndex.MINE, '我的', $r('sys.symbol.person_fill'))",
   'mine tab must stay fourth')
+// 2026-09-10：底栏新增中间「+」动作位（打开题库导入页），位于题库与错题之间；它不是业务 Tab。
+expectIncludes(index, 'this.TabBarImportAction()', 'the bar must mount the center import action')
+expectIncludes(index, 'pages/ImportBankPage', 'the center action must open the bank import page')
+const hdsBooksBar = index.indexOf("this.TabBarItem(MainTabIndex.BOOKS, '题库'")
+const hdsImportBar = index.indexOf('this.TabBarImportAction()')
+const hdsWrongBar = index.indexOf("this.TabBarItem(MainTabIndex.WRONG_QUESTIONS, '错题',")
+if (!(hdsBooksBar >= 0 && hdsImportBar > hdsBooksBar && hdsWrongBar > hdsImportBar)) {
+  throw new Error('the center import action must sit between the books and wrong-question tabs')
+}
 for (const page of ['HomePage({', 'BooksPage({', 'WrongQuestionsPage({', 'MinePage({']) {
   expectIncludes(index, page, 'the business page ' + page + ' must remain mounted')
 }

@@ -1,8 +1,8 @@
 import {
   BODY_FONT_SIZE,
-  CARD_RADIUS,
   themePalette
 } from '../constants/AppTheme'
+import { HAIRLINE, SHEET_RADIUS } from '../constants/EditorialStyle'
 import { AppColors } from '../theme/AppColors'
 import {
   LegacyMigrationStage,
@@ -116,9 +116,9 @@ export struct LegacyMigrationCard {
         Button(this.busy ? '正在准备…' : '开始迁移')
           .type(ButtonType.Normal)
           .width('100%')
-          .height(44)
+          .height(48)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(this.colors().onBrand)
+          .fontColor(this.signedIn && !this.busy ? this.colors().onBrand : this.colors().textCaption)
           .backgroundColor(this.signedIn && !this.busy ? this.colors().brand : this.colors().disabled)
           .borderRadius(12)
           .enabled(this.signedIn && !this.busy)
@@ -152,9 +152,9 @@ export struct LegacyMigrationCard {
         Button(this.busy ? '正在重试…' : '重试')
           .type(ButtonType.Normal)
           .width('100%')
-          .height(44)
+          .height(48)
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(this.colors().onBrand)
+          .fontColor(this.signedIn && !this.busy ? this.colors().onBrand : this.colors().textCaption)
           .backgroundColor(this.signedIn && !this.busy ? this.colors().brand : this.colors().disabled)
           .borderRadius(12)
           .enabled(this.signedIn && !this.busy)
@@ -166,6 +166,7 @@ export struct LegacyMigrationCard {
     .width('100%')
     .padding(16)
     .backgroundColor(this.colors().cardBackground)
-    .borderRadius(CARD_RADIUS)
+    .borderRadius(SHEET_RADIUS)
+    .border({ width: HAIRLINE, color: this.colors().divider })
   }
 }

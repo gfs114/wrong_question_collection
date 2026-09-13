@@ -1,0 +1,2812 @@
+
+FILE entry/src/main/ets\utils\Utf8Utils.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\SafeAreaUtils.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\PdfSuccessfulPageParser.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\PdfQuestionParser.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\PdfImportValidator.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\PdfImportState.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\PdfCropMath.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\OcrLifecycleState.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\NavigationState.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\MathContentUtils.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\JsonParser.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\ImageWriteOwnership.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\IdUtils.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\DateUtils.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\utils\AiPlatformSelectionState.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\theme\ThemeManager.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\theme\LightColors.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\theme\DarkColors.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\theme\AppColors.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\WrongQuestionService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\SyncPayloadFactory.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\SyncOutboxService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\SyncIdentityService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\SyncBootstrapService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\StatisticsService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\SampleDataService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\review\PdfReviewSession.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\review\\PdfReviewSession.ets",
+      "line": 364,
+      "column": 54,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}
+FILE entry/src/main/ets\services\review\PdfReviewModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\review\CloudPdfReviewAdapter.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\review\AiPdfReviewAdapter.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\RemoteOperationApplier.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\QuestionImageService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\QuestionBankService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\PdfStorageError.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\PdfImportService.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 440,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 440,
+      "column": 48,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 448,
+      "column": 41,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 448,
+      "column": 72,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 4
+  }
+}
+FILE entry/src/main/ets\services\LegacyCloudMigrationService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ImportService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\HuaweiLoginService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\HomeDashboardService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\DeviceImageStore.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\DatabaseService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ConnectivityPolicy.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\CloudSyncService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\CloudQuestionRepository.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\CloudImportService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\CloudImportApi.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 59,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 59,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 144,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 144,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 191,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 191,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 6
+  }
+}
+FILE entry/src/main/ets\services\CloudCacheService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\AppBootstrapService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ApiHttpClient.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 59,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 59,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 144,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 144,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 191,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 191,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 6
+  }
+}
+FILE entry/src/main/ets\services\ApiClient.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 59,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 59,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 144,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 144,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 191,
+      "column": 57,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ApiHttpClient.ets",
+      "line": 191,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 6
+  }
+}
+FILE entry/src/main/ets\services\ai\PdfPageImageEncoder.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 389,
+      "column": 43,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 398,
+      "column": 33,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 398,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 411,
+      "column": 43,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 420,
+      "column": 33,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 420,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 433,
+      "column": 43,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 441,
+      "column": 33,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 441,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 462,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 462,
+      "column": 40,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 549,
+      "column": 36,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 550,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 550,
+      "column": 40,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 620,
+      "column": 45,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 621,
+      "column": 23,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 621,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 633,
+      "column": 45,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 634,
+      "column": 23,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 634,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 641,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 823,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 823,
+      "column": 40,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 831,
+      "column": 31,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 831,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 855,
+      "column": 45,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 856,
+      "column": 41,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 857,
+      "column": 55,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 858,
+      "column": 51,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 859,
+      "column": 23,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 859,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 859,
+      "column": 86,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 860,
+      "column": 31,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 860,
+      "column": 76,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 861,
+      "column": 28,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 35
+  }
+}
+FILE entry/src/main/ets\services\ai\PdfAiImportCoordinator.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 440,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 440,
+      "column": 48,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 448,
+      "column": 41,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\PdfImportService.ets",
+      "line": 448,
+      "column": 72,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\review\\PdfReviewSession.ets",
+      "line": 364,
+      "column": 54,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 27,
+      "column": 60,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 28,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 62,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 70,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 103,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 128,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 130,
+      "column": 56,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 61,
+      "column": 64,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 64,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 65,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 77,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 78,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 112,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 113,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 152,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 163,
+      "column": 54,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 165,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 166,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 181,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 182,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 45,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 46,
+      "column": 24,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 112,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 113,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 114,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 115,
+      "column": 61,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 134,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 135,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 136,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 137,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 138,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiVisionTransport.ets",
+      "line": 130,
+      "column": 59,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 389,
+      "column": 43,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 398,
+      "column": 33,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 398,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 411,
+      "column": 43,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 420,
+      "column": 33,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 420,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 433,
+      "column": 43,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 441,
+      "column": 33,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 441,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 462,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 462,
+      "column": 40,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 549,
+      "column": 36,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 550,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 550,
+      "column": 40,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 620,
+      "column": 45,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 621,
+      "column": 23,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 621,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 633,
+      "column": 45,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 634,
+      "column": 23,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 634,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 641,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 823,
+      "column": 14,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 823,
+      "column": 40,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 831,
+      "column": 31,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 831,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 855,
+      "column": 45,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 856,
+      "column": 41,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 857,
+      "column": 55,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 858,
+      "column": 51,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 859,
+      "column": 23,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 859,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 859,
+      "column": 86,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 860,
+      "column": 31,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 860,
+      "column": 76,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\PdfPageImageEncoder.ets",
+      "line": 861,
+      "column": 28,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 72
+  }
+}
+FILE entry/src/main/ets\services\ai\OpenAiCompatibleAdapter.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ai\MathQuestionPromptBuilder.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ai\HuksAesGcmCipher.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 27,
+      "column": 60,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 28,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 62,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 70,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 103,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 128,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 130,
+      "column": 56,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 7
+  }
+}
+FILE entry/src/main/ets\services\ai\AiVisionTransport.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiVisionTransport.ets",
+      "line": 130,
+      "column": 59,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}
+FILE entry/src/main/ets\services\ai\AiQuestionResponseParser.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ai\AiProviderConfigStore.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 45,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 46,
+      "column": 24,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 112,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 113,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 114,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 115,
+      "column": 61,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 134,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 135,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 136,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 137,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 138,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 11
+  }
+}
+FILE entry/src/main/ets\services\ai\AiProviderAdapter.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ai\AiImportSaveService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\services\ai\AiCredentialStore.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 27,
+      "column": 60,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 28,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 62,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 70,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 103,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 128,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 130,
+      "column": 56,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 61,
+      "column": 64,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 64,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 65,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 77,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 78,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 112,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 113,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 152,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 163,
+      "column": 54,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 165,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 166,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 181,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 182,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 20
+  }
+}
+FILE entry/src/main/ets\services\ai\AiCredentialEnvelopeCodec.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 27,
+      "column": 60,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 28,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 62,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 70,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 103,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 128,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 130,
+      "column": 56,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 7
+  }
+}
+FILE entry/src/main/ets\services\ai\AiConnectionTestService.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 27,
+      "column": 60,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 28,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 62,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 70,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 103,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 128,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 130,
+      "column": 56,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 61,
+      "column": 64,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 64,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 65,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 77,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 78,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 112,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 113,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 152,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 163,
+      "column": 54,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 165,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 166,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 181,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 182,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 45,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 46,
+      "column": 24,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 112,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 113,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 114,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 115,
+      "column": 61,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 134,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 135,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 136,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 137,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 138,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiVisionTransport.ets",
+      "line": 130,
+      "column": 59,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 32
+  }
+}
+FILE entry/src/main/ets\services\AccountSessionStore.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\AccountSessionStore.ets",
+      "line": 88,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}
+FILE entry/src/main/ets\services\AccountSessionService.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\WrongQuestionsPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\WrongQuestionDetailPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\QuestionListPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\QuestionDetailPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\PdfImportSetupPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\PdfImportReviewPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\PdfImportProgressPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\PdfAiImportSetupPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\PdfAiImportProgressPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\MinePage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\Index.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\ImportBankPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\HomePage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\EditQuestionPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\BooksPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\AiRecognitionSettingsPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\pages\AiPlatformPickerPage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\UiStyle.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\ResponsiveLayout.ets
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\constants\\ResponsiveLayout.ets",
+      "line": 98,
+      "column": 19,
+      "severity": "warning",
+      "message": "'px2vp' has been deprecated.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 1
+  }
+}
+FILE entry/src/main/ets\constants\PdfImportLimits.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\ImportLimits.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\HdsMaterialPolicy.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\EditorialStyle.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\AppTheme.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\ApiConfig.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\entrybackupability\EntryBackupAbility.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\constants\AiImportLimits.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\WrongQuestion.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\SyncModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\Statistics.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\QuestionImage.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\QuestionBank.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\Question.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\PdfImportModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\MainTab.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\LegacyMigrationModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\ImportResult.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\HomeDashboard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\CloudImportModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\CloudCacheModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\ApiModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\entryability\EntryAbility.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\WrongQuestionCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\ai\AiProviderConfig.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\ai\AiPlatformCatalog.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\ai\AiImportModels.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\models\AccountSession.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\QuestionCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\QuestionBankCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\MathContentView.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\LegacyMigrationCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\SectionTitle.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\QuestionSourceImages.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\StatRow.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\HuaweiAccountCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\HomeRecentSection.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\HomeOverviewCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\EmptyState.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE entry/src/main/ets\components\CloudImportStatusCard.ets
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}

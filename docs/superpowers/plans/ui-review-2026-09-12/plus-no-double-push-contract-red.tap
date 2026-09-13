@@ -1,0 +1,57 @@
+TAP version 13
+# Subtest: home keeps one import entry and names every shortcut for its real destination
+ok 1 - home keeps one import entry and names every shortcut for its real destination
+  ---
+  duration_ms: 1.3393
+  type: 'test'
+  ...
+# Subtest: recent summaries expose one list-level action and rows no longer pretend to deep-link
+ok 2 - recent summaries expose one list-level action and rows no longer pretend to deep-link
+  ---
+  duration_ms: 0.4482
+  type: 'test'
+  ...
+# Subtest: home shortcuts and primary review meet touch size and large-text layout contracts
+ok 3 - home shortcuts and primary review meet touch size and large-text layout contracts
+  ---
+  duration_ms: 1.2586
+  type: 'test'
+  ...
+# Subtest: HdsTabs action-slot mapping and guarded navigation remain intact
+not ok 4 - HdsTabs action-slot mapping and guarded navigation remain intact
+  ---
+  duration_ms: 0.6681
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\HomeUiFollowupContracts.test.cjs:74:1'
+  failureType: 'testCodeFailure'
+  error: 'the HdsTabs selection callback must not push a second copy of the import page'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    if (position === MainTabBarPosition.IMPORT) {
+                // 「+」是动作位：打开导入页，并立即把底栏恢复到原来的槽位。
+                this.openImportPage()
+                this.tabsController.changeIndex(this.tabBarIndex)
+                return
+              }
+              
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\HomeUiFollowupContracts.test.cjs:90:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.0668

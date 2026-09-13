@@ -8,6 +8,7 @@
     "start": "node dist/main.js",
     "start:dev": "ts-node src/main.ts",
     "test": "jest --runInBand",
+    "test:math-pdf-import": "node --test scripts/tests/math-pdf-import-e2e.test.cjs",
     "test:mysql-schema": "node -e \"process.env.MYSQL_INTEGRATION_REQUIRED = 'true'; require('jest').run()\" -- --runInBand src/database/migrations/1788000000000-cloud-import-schema.mysql.integration.spec.ts",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage --runInBand"

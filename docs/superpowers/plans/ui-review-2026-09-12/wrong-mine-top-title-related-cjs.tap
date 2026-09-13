@@ -1,0 +1,95 @@
+TAP version 13
+# API 24 HdsTabs contracts passed
+# Subtest: entry\\src\\test\\Api24HdsTabsContracts.test.cjs
+ok 1 - entry\\src\\test\\Api24HdsTabsContracts.test.cjs
+  ---
+  duration_ms: 89.5509
+  type: 'test'
+  ...
+# Dark mode contracts passed
+# Subtest: entry\\src\\test\\DarkModeContracts.test.cjs
+ok 2 - entry\\src\\test\\DarkModeContracts.test.cjs
+  ---
+  duration_ms: 69.3299
+  type: 'test'
+  ...
+# Editorial UI contracts passed
+# Subtest: entry\\src\\test\\EditorialUiContracts.test.cjs
+ok 3 - entry\\src\\test\\EditorialUiContracts.test.cjs
+  ---
+  duration_ms: 61.0245
+  type: 'test'
+  ...
+# Main navigation contracts passed
+# Subtest: entry\\src\\test\\MainNavigationContracts.test.cjs
+ok 4 - entry\\src\\test\\MainNavigationContracts.test.cjs
+  ---
+  duration_ms: 58.4978
+  type: 'test'
+  ...
+# Native navigation contracts passed
+# Subtest: entry\\src\\test\\NativeNavigationContracts.test.cjs
+ok 5 - entry\\src\\test\\NativeNavigationContracts.test.cjs
+  ---
+  duration_ms: 97.5529
+  type: 'test'
+  ...
+# Task 7 page contracts passed
+# Subtest: entry\\src\\test\\Task7PageContracts.test.cjs
+ok 6 - entry\\src\\test\\Task7PageContracts.test.cjs
+  ---
+  duration_ms: 59.4254
+  type: 'test'
+  ...
+# Task 8 page contracts passed
+# Subtest: entry\\src\\test\\Task8PageContracts.test.cjs
+ok 7 - entry\\src\\test\\Task8PageContracts.test.cjs
+  ---
+  duration_ms: 56.745
+  type: 'test'
+  ...
+# Subtest: wrong-question subject filters provide a readable 48vp selected control
+ok 8 - wrong-question subject filters provide a readable 48vp selected control
+  ---
+  duration_ms: 0.8502
+  type: 'test'
+  ...
+# Subtest: shared empty state supports page and embedded layouts without a fixed wrong-page box
+ok 9 - shared empty state supports page and embedded layouts without a fixed wrong-page box
+  ---
+  duration_ms: 0.3418
+  type: 'test'
+  ...
+# Subtest: wrong-question and mine feeds include the live left and right safe-area insets
+ok 10 - wrong-question and mine feeds include the live left and right safe-area insets
+  ---
+  duration_ms: 0.8095
+  type: 'test'
+  ...
+# Subtest: mine separates ordinary settings from the confirmed destructive action
+ok 11 - mine separates ordinary settings from the confirmed destructive action
+  ---
+  duration_ms: 0.2621
+  type: 'test'
+  ...
+# Subtest: account and migration actions meet the 48vp touch-target floor
+ok 12 - account and migration actions meet the 48vp touch-target floor
+  ---
+  duration_ms: 0.3728
+  type: 'test'
+  ...
+# Subtest: wrong and mine own their top titles below the live status-bar inset
+ok 13 - wrong and mine own their top titles below the live status-bar inset
+  ---
+  duration_ms: 0.584
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 139.7174

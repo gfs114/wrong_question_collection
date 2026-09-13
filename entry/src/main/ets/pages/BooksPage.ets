@@ -3,12 +3,12 @@ import { EmptyState } from '../components/EmptyState'
 import { QuestionBankCard } from '../components/QuestionBankCard'
 import {
   BODY_FONT_SIZE,
-  CARD_GAP,
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import { EDITORIAL_CARD_GAP, HAIRLINE, PAGE_TITLE_SIZE } from '../constants/EditorialStyle'
 import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { QuestionBankSummary } from '../models/QuestionBank'
@@ -18,6 +18,15 @@ import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+
+/**
+ * 题库列表的顶部呼吸间距（vp）。
+ * 题库页最上方是页面级标题「题库」，其下才是内容（图书列表）；
+ * 标题的顶部让位由真实窗口避让区（safeAreaInsets）承担，与首页同一呼吸节奏，
+ * 换机型 / 换窗口模式都会自动跟随。
+ */
+const BOOKS_FEED_TOP_GAP: number = 10
 
 class BankCardRow {
   left: QuestionBankSummary
@@ -44,6 +53,7 @@ export struct BooksPage {
   @State syncFailed: boolean = false
   @State accountId: string = ''
   @StorageProp('darkMode') darkMode: boolean = false
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }
   @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   private hasRequested: boolean = false
   private requestedVersion: number = -1
@@ -52,6 +62,11 @@ export struct BooksPage {
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
+  }
+
+  // 顶部留白 = 真实窗口避让区（状态栏 / 挖孔）+ 呼吸间距；题库列表因此紧贴状态栏下方。
+  private booksTopGap(): number {
+    return SafeAreaUtils.top(this.safeAreaInsets) + BOOKS_FEED_TOP_GAP
   }
 
   aboutToAppear(): void {
@@ -312,6 +327,25 @@ export struct BooksPage {
     .backgroundColor(this.colors().warning)
   }
 
+  // 页面级标题：最上方是「题库」，其下是内容；标题下收一条细线与内容分栏。
+  @Builder
+  private PageTitle() {
+    Column({ space: 12 }) {
+      Text('题库')
+        .fontSize(PAGE_TITLE_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .letterSpacing(2)
+        .fontColor(this.colors().textPrimary)
+
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .margin({ bottom: 6 })
+  }
+
   @Builder
   private BankCard(bank: QuestionBankSummary) {
     QuestionBankCard({
@@ -334,7 +368,11 @@ export struct BooksPage {
       if (this.loading) {
         Column() {
           if (this.bannerMessage().length > 0) {
-            this.StatusBanner()
+            Column() {
+              this.StatusBanner()
+            }
+            .width('100%')
+            .padding({ top: this.booksTopGap() })
           }
 
           Column({ space: 14 }) {
@@ -356,7 +394,11 @@ export struct BooksPage {
       } else if (this.errorMessage.length > 0) {
         Column() {
           if (this.bannerMessage().length > 0) {
-            this.StatusBanner()
+            Column() {
+              this.StatusBanner()
+            }
+            .width('100%')
+            .padding({ top: this.booksTopGap() })
           }
 
           EmptyState({
@@ -376,7 +418,11 @@ export struct BooksPage {
       } else if (this.banks.length === 0) {
         Column() {
           if (this.bannerMessage().length > 0) {
-            this.StatusBanner()
+            Column() {
+              this.StatusBanner()
+            }
+            .width('100%')
+            .padding({ top: this.booksTopGap() })
           }
 
           EmptyState({
@@ -396,11 +442,15 @@ export struct BooksPage {
         .width('100%')
         .height('100%')
       } else {
-        List({ space: CARD_GAP }) {
+        List({ space: EDITORIAL_CARD_GAP }) {
           if (this.bannerMessage().length > 0) {
             ListItem() {
               this.StatusBanner()
             }
+          }
+
+          ListItem() {
+            this.PageTitle()
           }
 
           if (this.gridColumns() === 1) {
@@ -412,7 +462,7 @@ export struct BooksPage {
           } else {
             ForEach(this.bankRows(), (row: BankCardRow) => {
               ListItem() {
-                Row({ space: CARD_GAP }) {
+                Row({ space: EDITORIAL_CARD_GAP }) {
                   Column() {
                     this.BankCard(row.left)
                   }
@@ -439,6 +489,7 @@ export struct BooksPage {
         .constraintSize({ maxWidth: this.contentMaxWidth() })
         .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
+          top: this.booksTopGap(),
           left: PAGE_PADDING,
           right: PAGE_PADDING
         })

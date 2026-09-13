@@ -2,6 +2,8 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const test = require('node:test')
+const vm = require('node:vm')
+const { stripTypeScriptTypes } = require('node:module')
 
 const etsRoot = path.resolve(__dirname, '..', 'main', 'ets')
 
@@ -114,21 +116,22 @@ test('cloud import status card exposes unified progress error and retry state', 
 })
 
 test('review reads and edits the server draft before confirmation', () => {
-  const review = read('pages/PdfImportReviewPage.ets')
+  const review = read('services/review/CloudPdfReviewAdapter.ets')
+  const page = read('pages/PdfImportReviewPage.ets')
 
   assert.match(review, /CloudImportService\.getDraft/)
   assert.match(review, /CloudImportDraft/)
   assert.match(review, /CloudImportDraftQuestion/)
   assert.match(review, /ConfirmImportResult/)
   assert.match(review, /CloudImportService\.confirm/)
-  assert.match(review, /updateQuestionText/)
-  assert.match(review, /updateOption/)
-  assert.match(review, /options\[optionKey\]\s*=\s*value/)
-  assert.match(review, /updateOption\(draftQuestion\.draftQuestionId,\s*optionKey,\s*value\)/)
+  assert.match(page, /updateQuestionText/)
+  assert.match(page, /updateOption/)
+  assert.match(page, /new PdfReviewOption\(option.key, option.key === optionKey \? value : option.value\)/)
+  assert.match(page, /updateOption\((?:draftQuestion|question)\.draftQuestionId,\s*option.key,\s*value\)/)
 })
 
 test('review downloads verified artifacts before acknowledging only stored IDs', () => {
-  const review = read('pages/PdfImportReviewPage.ets')
+  const review = read('services/review/CloudPdfReviewAdapter.ets')
   const confirmFlow = methodContaining(review, 'CloudImportService.confirm')
   const downloadFlow = methodContaining(review, 'CloudImportService.downloadArtifact')
   const verificationFlow = methodContaining(review, 'hash.hash')
@@ -137,8 +140,11 @@ test('review downloads verified artifacts before acknowledging only stored IDs',
   assert.match(review, /acknowledgeArtifacts/)
   assertOrdered(confirmFlow, [
     'CloudImportService.confirm',
+    'state.setConfirmResult(result)',
     'downloadArtifacts',
-    'CloudImportService.acknowledgeArtifacts'
+    'requireAccount(context, accountId)',
+    'CloudImportService.acknowledgeArtifacts',
+    'state.setCloudStatus(CloudImportStatus.CONFIRMED)'
   ])
   const storedIds = confirmFlow.match(
     /const\s+([A-Za-z][A-Za-z0-9_]*[Aa]rtifactIds)\s*:[^=]+=[\s\S]{0,100}downloadArtifacts/)
@@ -174,6 +180,119 @@ test('review keeps confirmed text when an artifact has expired', () => {
   assert.match(review, /原题图片已过期，文字仍可使用/)
 })
 
+test('explicit Cloud abandonment removes only its exact staged PDF before clearing state', () => {
+  const source = read('services/review/CloudPdfReviewAdapter.ets')
+  const abandon = methodContaining(source, 'async abandon')
+  assertOrdered(abandon, ['canAbandon', 'requireAccount', 'removeStagedPdf', 'resetCloudFlow'])
+  const cleanup = methodContaining(source, '/^cloud_import_pdf_')
+  assert.match(cleanup, /cloud_import_pdf_/)
+  assert.match(cleanup, /isDirectChild/)
+  assert.match(cleanup, /isSymbolicLink/)
+  assert.match(cleanup, /isFile/)
+  assert.match(cleanup, /fs\.unlink\(path\)/)
+})
+
+function cloudAdapterRuntime() {
+  const events = []
+  const draft = {
+    jobId: 'job-1', status: 'review', bankName: 'math', subject: 'math', expiresAt: 'expiry',
+    questions: ['single_choice', 'blank', 'short_answer', 'unknown'].map((type, index) => ({
+      draftQuestionId: 'draft-' + index, type, question: ' q ', answer: null, analysis: null,
+      options: index === 0 ? { B: 'second', A: 'first' } : null,
+      pageStart: 1, pageEnd: 1, confidence: 0.8, reviewRequired: true,
+      images: [{ artifactId: 'artifact-1', sha256: 'a'.repeat(64), size: 42, contentType: 'image/jpeg' }]
+    }))
+  }
+  let cached = structuredClone(draft)
+  let confirmed = null
+  let status = 'review'
+  let expired = false
+  const state = {
+    getCloudJobId: () => 'job-1', getCloudAccountId: () => 'account-1',
+    getCloudReviewDraft: () => cached, setCloudReviewDraft: value => { cached = value },
+    getConfirmResult: () => confirmed,
+    setConfirmResult: value => { events.push('checkpoint'); confirmed = value },
+    getCloudStatus: () => status,
+    setCloudStatus: value => { events.push(value); status = value },
+    getCloudArtifactExpired: () => expired, setCloudArtifactExpired: value => { expired = value }
+  }
+  const sandbox = {
+    PdfImportState: { shared: () => state },
+    AccountSessionService: { state: async () => {
+      events.push('account')
+      return { signedIn: true, userId: 'account-1' }
+    } },
+    CloudImportService: {
+      getDraft: async () => structuredClone(draft),
+      confirm: async (_context, _job, request) => {
+        events.push('confirm')
+        assert.equal(request.questions[0].answer, null)
+        return { bankId: 'bank-1', questions: [] }
+      },
+      acknowledgeArtifacts: async (_context, _job, ids) => {
+        events.push('ack')
+        assert.deepEqual(Array.from(ids), ['artifact-1'])
+      }
+    }
+  }
+  const paths = ['models/ai/AiImportModels.ets', 'models/CloudImportModels.ets',
+    'services/review/PdfReviewModels.ets', 'services/review/PdfReviewSession.ets',
+    'services/review/CloudPdfReviewAdapter.ets']
+  const source = paths.map(file => read(file)
+    .replace(/^import\s[\s\S]*?\sfrom\s+['"][^'"]+['"]\s*$/gm, '')
+    .replace(/^export\s+/gm, '')).join('\n')
+  const adapter = vm.runInNewContext(stripTypeScriptTypes(source, { mode: 'transform' }) +
+    '\nnew CloudPdfReviewAdapter()', sandbox)
+  return { adapter, events, draft, cached: () => cached, state }
+}
+
+test('Cloud adapter preserves nullable protocol fields and makes independent round-trip copies', async () => {
+  const runtime = cloudAdapterRuntime()
+  const session = await runtime.adapter.load({})
+  assert.deepEqual(Array.from(session.questions, q => q.type),
+    ['single_choice', 'blank', 'short_answer', 'unknown'])
+  assert.deepEqual(Array.from(session.questions[0].options, o => o.key), ['A', 'B'])
+  const image = session.questions[0].images[0]
+  assert.equal(image.localPath, '')
+  assert.equal(image.remoteArtifactId, 'artifact-1')
+  assert.equal(image.sha256, 'a'.repeat(64))
+  assert.equal(image.size, 42)
+  assert.equal(image.contentType, 'image/jpeg')
+  runtime.adapter.persist(session)
+  assert.equal(runtime.cached().questions[0].answer, null)
+  assert.equal(runtime.cached().questions[0].analysis, null)
+  session.questions[0].options[0].value = 'edit'
+  session.questions[0].images[0].sha256 = 'changed'
+  assert.equal(runtime.cached().questions[0].options.A, 'first')
+  assert.equal(runtime.cached().questions[0].images[0].sha256, 'a'.repeat(64))
+  const retry = await runtime.adapter.retryPage({}, session, 1)
+  retry.questions[0].options[0].value = 'retry mutation'
+  assert.equal(session.questions[0].options[0].value, 'edit')
+  const discarded = await runtime.adapter.discardFailure({}, session, 1, null)
+  assert.equal(JSON.stringify(discarded), JSON.stringify(session))
+  discarded.questions[0].images[0].localPath = 'discard mutation'
+  assert.equal(session.questions[0].images[0].localPath, '')
+})
+
+test('Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering', async () => {
+  const runtime = cloudAdapterRuntime()
+  const session = await runtime.adapter.load({})
+  runtime.events.length = 0
+  runtime.adapter.downloadArtifacts = async () => {
+    runtime.events.push('download')
+    runtime.adapter.requiredArtifactCount = 1
+    return ['artifact-1']
+  }
+  await runtime.adapter.save({}, session)
+  assert.deepEqual(runtime.events, ['account', 'confirm', 'checkpoint', 'download', 'account', 'ack', 'confirmed'])
+  assert.equal(session.saveStage, 'complete')
+  runtime.state.setCloudStatus('review')
+  runtime.events.length = 0
+  session.saveStage = 'text_saved'
+  await runtime.adapter.save({}, session)
+  assert.deepEqual(runtime.events, ['account', 'download', 'account', 'ack', 'confirmed'])
+})
+
 test('PDF import state retains cloud job metadata progress and review state', () => {
   const state = read('utils/PdfImportState.ets')
 
@@ -186,12 +305,13 @@ test('PDF import state retains cloud job metadata progress and review state', ()
   assert.match(state, /CloudImportDraft/)
 })
 
-test('import bank stages a cloud PDF selection and opens cloud setup', () => {
+test('import bank stages an AI PDF selection and opens only the AI setup page', () => {
   const importBank = read('pages/ImportBankPage.ets')
 
-  assert.match(importBank, /CloudPdfSelection/)
-  assert.match(importBank, /setCloudSelection/)
-  assert.match(importBank, /pages\/PdfImportSetupPage/)
+  assert.match(importBank, /PdfImportService\.selectPdf/)
+  assert.match(importBank, /pages\/PdfAiImportSetupPage/)
+  assert.doesNotMatch(importBank, /CloudPdfSelection|setCloudSelection/)
+  assert.doesNotMatch(importBank, /pages\/PdfImportSetupPage/)
   assert.doesNotMatch(importBank,
-    /OnDeviceOcrService|PdfImportCoordinator|PdfImportService|PdfDocumentService|\bpdfService\b/)
+    /OnDeviceOcrService|PdfImportCoordinator|PdfDocumentService|\bpdfService\b/)
 })

@@ -1,0 +1,1500 @@
+TAP version 13
+# (node:42604) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: AI recognition settings expose explicit credential controls and both routes
+not ok 1 - AI recognition settings expose explicit credential controls and both routes
+  ---
+  duration_ms: 3.5339
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\AiImportContracts.test.cjs:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /platformNote !== this\.statusMessage/. Input:
+    
+    "import { router } from '@kit.ArkUI'\n" +
+      "import { BODY_FONT_SIZE, PAGE_PADDING, themePalette } from '../constants/AppTheme'\n" +
+      "import { SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+      "import { UiStyle } from '../constants/UiStyle'\n" +
+      "import { AiPlatform, AiPlatformAccess, AiPlatformCatalog } from '../models/ai/AiPlatformCatalog'\n" +
+      'import {\n' +
+      '  AiImportError, AiImportErrorCode, AiImportErrorMessages,\n' +
+      '  AiProviderConfig, AiProviderConfigValidator, AiProviderId\n' +
+      "} from '../models/ai/AiProviderConfig'\n" +
+      "import { AiConnectionTestService } from '../services/ai/AiConnectionTestService'\n" +
+      "import { AiCredentialStore } from '../services/ai/AiCredentialStore'\n" +
+      "import { AiModelCatalogService } from '../services/ai/AiModelCatalogService'\n" +
+      "import { AiProviderConfigStore } from '../services/ai/AiProviderConfigStore'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'\n" +
+      "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+      '\n' +
+      '@Entry\n' +
+      '@Component\n' +
+      'struct AiRecognitionSettingsPage {\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }\n" +
+      '  @State providerId: string = AiProviderId.OPENAI\n' +
+      "  @State model: string = ''\n" +
+      "  @State baseUrl: string = 'https://api.openai.com/v1'\n" +
+      "  @State platformLabel: string = '自定义'\n" +
+      '  // 最近一次已应用的目录平台 id（供「重选同平台 = no-op」守卫读取；比较目录 id 而非持久化字符串）。\n' +
+      "  @State appliedPlatformId: string = ''\n" +
+      "  @State platformNote: string = ''\n" +
+      '  @State availableModels: Array<string> = new Array<string>()\n' +
+      '  @State urlEditable: boolean = false\n' +
+      "  @State apiKey: string = ''\n" +
+      '  @State showKey: boolean = false\n' +
+      '  @State configured: boolean = false\n' +
+      '  @State credentialUpdatePending: boolean = false\n' +
+      '  @State pending: boolean = false\n' +
+      "  @State statusMessage: string = ''\n" +
+      '  @State failed: boolean = false\n' +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToAppear(): void {\n' +
+      '    this.loadSettings()\n' +
+      '    this.syncPlatformFromConfig()\n' +
+      '  }\n' +
+      '\n' +
+      '  // 选择页只写回平台 id：必须先 peek 判空/判忙，通过后才 take，反序会把用户的选择静默吞掉。\n' +
+      '  onPageShow(): void {\n' +
+      '    const selectedId: string = AiPlatformSelectionState.shared().peek()\n' +
+      '    if (selectedId.length === 0 || this.pending) return\n' +
+      '    AiPlatformSelectionState.shared().take()\n' +
+      '    this.applyPlatform(selectedId)\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToDisappear(): void {\n' +
+      "    this.apiKey = ''\n" +
+      '    this.showKey = false\n' +
+      '  }\n' +
+      '\n' +
+      '  onBackPress(): boolean {\n' +
+      '    if (this.pending) return true\n' +
+      '    this.leavePage()\n' +
+      '    return true\n' +
+      '  }\n' +
+      '\n' +
+      '  private leavePage(): void {\n' +
+      '    if (this.pending) return\n' +
+      "    this.apiKey = ''\n" +
+      '    this.showKey = false\n' +
+      '    router.back()\n' +
+      '  }\n' +
+      '\n' +
+      '  private formConfig(): AiProviderConfig {\n' +
+      '    return AiProviderConfigValidator.normalize(new AiProviderConfig(this.providerId, this.model, this.baseUrl))\n' +
+      '  }\n' +
+      '\n' +
+      '  private applyConfig(config: AiProviderConfig): void {\n' +
+      '    this.providerId = config.providerId\n' +
+      '    this.model = config.model\n' +
+      '    this.baseUrl = config.baseUrl\n' +
+      '    this.syncPlatformFromConfig()\n' +
+      '  }\n' +
+      '\n' +
+      '  // 应用选择页回传的目录 id：只采用平台地址；模型必须在用户填写 Key 后从平台实时获取。\n' +
+      '  private applyPlatform(id: string): void {\n' +
+      '    const platform: AiPlatform | null = AiPlatformCatalog.find(id)\n' +
+      '    if (platform === null) return\n' +
+      '    // 重选「当前已应用」的平台是 no-op：避免把用户尚未保存的 Model / 手填地址静默清空。\n' +
+      '    // 用目录 id 比较（目录 id 恒小写），不比较持久化字符串，避免大小写变体让守卫失效。\n' +
+      '    if (this.appliedPlatformId === platform.id) return\n' +
+      '    this.appliedPlatformId = platform.id\n' +
+      '    this.platformLabel = platform.nameZh\n' +
+      '    this.platformNote = platform.note\n' +
+      '    this.availableModels = new Array<string>()\n' +
+      "    this.model = ''\n" +
+      '    if (platform.access === AiPlatformAccess.GATEWAY) {\n' +
+      '      this.providerId = AiProviderId.CUSTOM\n' +
+      "      this.baseUrl = ''\n" +
+      '      this.urlEditable = true\n' +
+      "      this.statusMessage = platform.note.length > 0 ? platform.note : '该平台需自建兼容网关，请填写你自己的地址'\n" +
+      '      this.failed = this.statusMessage.length > 0\n' +
+      '    } else {\n' +
+      '      this.providerId = platform.id\n' +
+      '      this.baseUrl = platform.baseUrl\n' +
+      '      this.urlEditable = platform.access === AiPlatformAccess.LOCAL_HTTP\n' +
+      '      // 非 gateway 平台的风险/限制说明统一显示在地址下方（platformNote），不占用底部状态区。\n' +
+      "      this.statusMessage = ''\n" +
+      '      this.failed = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  // 明文风险按「实际地址」判定，而不是按所选平台的目录 access：\n' +
+      '  // 用户完全可能在 DIRECT 平台上手动填入 http://192.168.x 地址（校验器白名单放行），\n' +
+      '  // 反之 LOCAL_HTTP 平台的 note 只是信息性文字，不应被涂成错误色。\n' +
+      '  private isCleartextAddress(): boolean {\n' +
+      "    return this.baseUrl.trim().toLowerCase().startsWith('http://')\n" +
+      '  }\n' +
+      '\n' +
+      '  // 展示层只认目录：未知/已移除的持久化 id 一律兜底「自定义」，绝不把 store 里的原始字符串渲染到 UI。\n' +
+      '  private syncPlatformFromConfig(): void {\n' +
+      '    const platform: AiPlatform | null = AiPlatformCatalog.find(this.providerId)\n' +
+      '    if (platform === null) {\n' +
+      "      this.appliedPlatformId = ''\n" +
+      "      this.platformLabel = '自定义'\n" +
+      "      this.platformNote = ''\n" +
+      '      this.availableModels = new Array<string>()\n' +
+      '      this.urlEditable = true\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.appliedPlatformId = platform.id\n' +
+      '    this.platformLabel = platform.nameZh\n' +
+      '    this.platformNote = platform.note\n' +
+      '    this.availableModels = new Array<string>()\n' +
+      '    this.urlEditable = platform.access !== AiPlatformAccess.DIRECT\n' +
+      '  }\n' +
+      '\n' +
+      '  private showError(error: Error): void {\n' +
+      '    this.failed = true\n' +
+      '    const code: AiImportErrorCode = error instanceof AiImportError ? error.code : AiImportErrorCode.PROVIDER_UNAVAILABLE\n' +
+      '    this.statusMessage = AiImportErrorMessages.forCode(code)\n' +
+      '  }\n' +
+      '\n' +
+      '  private modelOptions(): Array<SelectOption> {\n' +
+      '    const options: Array<SelectOption> = new Array<SelectOption>()\n' +
+      '    for (let index: number = 0; index < this.availableModels.length; index++) {\n' +
+      '      options.push({ value: this.availableModels[index] })\n' +
+      '    }\n' +
+      '    return options\n' +
+      '  }\n' +
+      '\n' +
+      '  private selectedModelIndex(): number {\n' +
+      '    for (let index: number = 0; index < this.availableModels.length; index++) {\n' +
+      '      if (this.availableModels[index] === this.model) return index\n' +
+      '    }\n' +
+      '    return -1\n' +
+      '  }\n' +
+      '\n' +
+      '  private async fetchCloudModels(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    if (this.apiKey.trim().length === 0) {\n' +
+      '      this.failed = true\n' +
+      "      this.statusMessage = '请输入 API Key 后再获取模型'\n" +
+      '      return\n' +
+      '    }\n' +
+      '    this.pending = true\n' +
+      '    this.failed = false\n' +
+      "    this.statusMessage = '正在从云端获取模型…'\n" +
+      '    try {\n' +
+      '      const models: Array<string> = await new AiModelCatalogService()\n' +
+      '        .fetchWithApiKey(this.baseUrl, this.apiKey)\n' +
+      '      this.availableModels = models.slice()\n' +
+      '      if (models.length === 0) {\n' +
+      "        this.model = ''\n" +
+      '        this.failed = true\n' +
+      "        this.statusMessage = '云端没有返回可选择的模型'\n" +
+      '        return\n' +
+      '      }\n' +
+      "      if (this.selectedModelIndex() < 0) this.model = ''\n" +
+      "      this.statusMessage = '已获取 ' + models.length.toString() + ' 个模型，请选择后保存'\n" +
+      '    } catch (err) {\n' +
+      '      this.availableModels = new Array<string>()\n' +
+      '      this.showError(err)\n' +
+      '    } finally {\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async loadSettings(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    this.pending = true\n' +
+      '    try {\n' +
+      '      this.credentialUpdatePending = await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))\n' +
+      '      const config: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n' +
+      '      if (config !== null) this.applyConfig(config)\n' +
+      '      if (this.credentialUpdatePending) throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n' +
+      '      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+      '    } catch (err) {\n' +
+      '      this.showError(err)\n' +
+      '    } finally {\n' +
+      "      this.apiKey = ''\n" +
+      '      this.showKey = false\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async saveSettings(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    this.pending = true\n' +
+      "    this.statusMessage = ''\n" +
+      '    this.failed = false\n' +
+      '    try {\n' +
+      '      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n' +
+      '        const config: AiProviderConfig = this.formConfig()\n' +
+      '        if (this.apiKey.trim().length > 0) {\n' +
+      '          this.credentialUpdatePending = true\n' +
+      '          await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n' +
+      '          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n' +
+      '          await AiCredentialStore.save(getContext(this), this.apiKey)\n' +
+      '          await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n' +
+      '          this.credentialUpdatePending = false\n' +
+      '        } else {\n' +
+      '          if (await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))) {\n' +
+      '            throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n' +
+      '          }\n' +
+      '          const saved: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n' +
+      '          if (await AiCredentialStore.hasCredential(getContext(this)) && !AiProviderConfigStore.sameConfig(saved, config)) {\n' +
+      '            throw new AiImportError(AiImportErrorCode.REPLACEMENT_KEY_REQUIRED)\n' +
+      '          }\n' +
+      '          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n' +
+      '        }\n' +
+      '        this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+      "        this.statusMessage = '设置已保存'\n" +
+      '      })\n' +
+      '    } catch (err) {\n' +
+      '      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n' +
+      '    } finally {\n' +
+      "      this.apiKey = ''\n" +
+      '      this.showKey = false\n' +
+      '      this.pending = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async clearApiKey(): Promise<void> {\n' +
+      '    if (this.pending) return\n' +
+      '    this.pending = true\n' +
+      '    this.failed = false\n' +
+      '    try {\n' +
+      '      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n' +
+      '        this.credentialUpdatePending = true\n' +
+      '        await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n' +
+      '        await AiCredentialStore.clear(getContext(this))\n' +
+      '        this.configured = false\n' +
+      '        this.availableModels = new Array<string>()\n' +
+      '        await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n' +
+      '        this.credentialUpdatePending = false\n' +
+      "        this.statusMessage = 'API Key 已清除'\n" +
+      '      })\n' +
+      '    } catch (err) {\n' +
+      '      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n' +
+      '    } finally {\n' +
+      "      this.apiKey = ''\n" +
+      '      this.s'... 13485 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { router } from '@kit.ArkUI'
+    import { BODY_FONT_SIZE, PAGE_PADDING, themePalette } from '../constants/AppTheme'
+    import { SHEET_RADIUS } from '../constants/EditorialStyle'
+    import { UiStyle } from '../constants/UiStyle'
+    import { AiPlatform, AiPlatformAccess, AiPlatformCatalog } from '../models/ai/AiPlatformCatalog'
+    import {
+      AiImportError, AiImportErrorCode, AiImportErrorMessages,
+      AiProviderConfig, AiProviderConfigValidator, AiProviderId
+    } from '../models/ai/AiProviderConfig'
+    import { AiConnectionTestService } from '../services/ai/AiConnectionTestService'
+    import { AiCredentialStore } from '../services/ai/AiCredentialStore'
+    import { AiModelCatalogService } from '../services/ai/AiModelCatalogService'
+    import { AiProviderConfigStore } from '../services/ai/AiProviderConfigStore'
+    import { AppColors } from '../theme/AppColors'
+    import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'
+    import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+    
+    @Entry
+    @Component
+    struct AiRecognitionSettingsPage {
+      @StorageProp('darkMode') darkMode: boolean = false
+      @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }
+      @State providerId: string = AiProviderId.OPENAI
+      @State model: string = ''
+      @State baseUrl: string = 'https://api.openai.com/v1'
+      @State platformLabel: string = '自定义'
+      // 最近一次已应用的目录平台 id（供「重选同平台 = no-op」守卫读取；比较目录 id 而非持久化字符串）。
+      @State appliedPlatformId: string = ''
+      @State platformNote: string = ''
+      @State availableModels: Array<string> = new Array<string>()
+      @State urlEditable: boolean = false
+      @State apiKey: string = ''
+      @State showKey: boolean = false
+      @State configured: boolean = false
+      @State credentialUpdatePending: boolean = false
+      @State pending: boolean = false
+      @State statusMessage: string = ''
+      @State failed: boolean = false
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      aboutToAppear(): void {
+        this.loadSettings()
+        this.syncPlatformFromConfig()
+      }
+    
+      // 选择页只写回平台 id：必须先 peek 判空/判忙，通过后才 take，反序会把用户的选择静默吞掉。
+      onPageShow(): void {
+        const selectedId: string = AiPlatformSelectionState.shared().peek()
+        if (selectedId.length === 0 || this.pending) return
+        AiPlatformSelectionState.shared().take()
+        this.applyPlatform(selectedId)
+      }
+    
+      aboutToDisappear(): void {
+        this.apiKey = ''
+        this.showKey = false
+      }
+    
+      onBackPress(): boolean {
+        if (this.pending) return true
+        this.leavePage()
+        return true
+      }
+    
+      private leavePage(): void {
+        if (this.pending) return
+        this.apiKey = ''
+        this.showKey = false
+        router.back()
+      }
+    
+      private formConfig(): AiProviderConfig {
+        return AiProviderConfigValidator.normalize(new AiProviderConfig(this.providerId, this.model, this.baseUrl))
+      }
+    
+      private applyConfig(config: AiProviderConfig): void {
+        this.providerId = config.providerId
+        this.model = config.model
+        this.baseUrl = config.baseUrl
+        this.syncPlatformFromConfig()
+      }
+    
+      // 应用选择页回传的目录 id：只采用平台地址；模型必须在用户填写 Key 后从平台实时获取。
+      private applyPlatform(id: string): void {
+        const platform: AiPlatform | null = AiPlatformCatalog.find(id)
+        if (platform === null) return
+        // 重选「当前已应用」的平台是 no-op：避免把用户尚未保存的 Model / 手填地址静默清空。
+        // 用目录 id 比较（目录 id 恒小写），不比较持久化字符串，避免大小写变体让守卫失效。
+        if (this.appliedPlatformId === platform.id) return
+        this.appliedPlatformId = platform.id
+        this.platformLabel = platform.nameZh
+        this.platformNote = platform.note
+        this.availableModels = new Array<string>()
+        this.model = ''
+        if (platform.access === AiPlatformAccess.GATEWAY) {
+          this.providerId = AiProviderId.CUSTOM
+          this.baseUrl = ''
+          this.urlEditable = true
+          this.statusMessage = platform.note.length > 0 ? platform.note : '该平台需自建兼容网关，请填写你自己的地址'
+          this.failed = this.statusMessage.length > 0
+        } else {
+          this.providerId = platform.id
+          this.baseUrl = platform.baseUrl
+          this.urlEditable = platform.access === AiPlatformAccess.LOCAL_HTTP
+          // 非 gateway 平台的风险/限制说明统一显示在地址下方（platformNote），不占用底部状态区。
+          this.statusMessage = ''
+          this.failed = false
+        }
+      }
+    
+      // 明文风险按「实际地址」判定，而不是按所选平台的目录 access：
+      // 用户完全可能在 DIRECT 平台上手动填入 http://192.168.x 地址（校验器白名单放行），
+      // 反之 LOCAL_HTTP 平台的 note 只是信息性文字，不应被涂成错误色。
+      private isCleartextAddress(): boolean {
+        return this.baseUrl.trim().toLowerCase().startsWith('http://')
+      }
+    
+      // 展示层只认目录：未知/已移除的持久化 id 一律兜底「自定义」，绝不把 store 里的原始字符串渲染到 UI。
+      private syncPlatformFromConfig(): void {
+        const platform: AiPlatform | null = AiPlatformCatalog.find(this.providerId)
+        if (platform === null) {
+          this.appliedPlatformId = ''
+          this.platformLabel = '自定义'
+          this.platformNote = ''
+          this.availableModels = new Array<string>()
+          this.urlEditable = true
+          return
+        }
+        this.appliedPlatformId = platform.id
+        this.platformLabel = platform.nameZh
+        this.platformNote = platform.note
+        this.availableModels = new Array<string>()
+        this.urlEditable = platform.access !== AiPlatformAccess.DIRECT
+      }
+    
+      private showError(error: Error): void {
+        this.failed = true
+        const code: AiImportErrorCode = error instanceof AiImportError ? error.code : AiImportErrorCode.PROVIDER_UNAVAILABLE
+        this.statusMessage = AiImportErrorMessages.forCode(code)
+      }
+    
+      private modelOptions(): Array<SelectOption> {
+        const options: Array<SelectOption> = new Array<SelectOption>()
+        for (let index: number = 0; index < this.availableModels.length; index++) {
+          options.push({ value: this.availableModels[index] })
+        }
+        return options
+      }
+    
+      private selectedModelIndex(): number {
+        for (let index: number = 0; index < this.availableModels.length; index++) {
+          if (this.availableModels[index] === this.model) return index
+        }
+        return -1
+      }
+    
+      private async fetchCloudModels(): Promise<void> {
+        if (this.pending) return
+        if (this.apiKey.trim().length === 0) {
+          this.failed = true
+          this.statusMessage = '请输入 API Key 后再获取模型'
+          return
+        }
+        this.pending = true
+        this.failed = false
+        this.statusMessage = '正在从云端获取模型…'
+        try {
+          const models: Array<string> = await new AiModelCatalogService()
+            .fetchWithApiKey(this.baseUrl, this.apiKey)
+          this.availableModels = models.slice()
+          if (models.length === 0) {
+            this.model = ''
+            this.failed = true
+            this.statusMessage = '云端没有返回可选择的模型'
+            return
+          }
+          if (this.selectedModelIndex() < 0) this.model = ''
+          this.statusMessage = '已获取 ' + models.length.toString() + ' 个模型，请选择后保存'
+        } catch (err) {
+          this.availableModels = new Array<string>()
+          this.showError(err)
+        } finally {
+          this.pending = false
+        }
+      }
+    
+      private async loadSettings(): Promise<void> {
+        if (this.pending) return
+        this.pending = true
+        try {
+          this.credentialUpdatePending = await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))
+          const config: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))
+          if (config !== null) this.applyConfig(config)
+          if (this.credentialUpdatePending) throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)
+          this.configured = await AiCredentialStore.hasCredential(getContext(this))
+        } catch (err) {
+          this.showError(err)
+        } finally {
+          this.apiKey = ''
+          this.showKey = false
+          this.pending = false
+        }
+      }
+    
+      private async saveSettings(): Promise<void> {
+        if (this.pending) return
+        this.pending = true
+        this.statusMessage = ''
+        this.failed = false
+        try {
+          await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {
+            const config: AiProviderConfig = this.formConfig()
+            if (this.apiKey.trim().length > 0) {
+              this.credentialUpdatePending = true
+              await AiProviderConfigStore.beginCredentialUpdate(getContext(this))
+              this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))
+              await AiCredentialStore.save(getContext(this), this.apiKey)
+              await AiProviderConfigStore.completeCredentialUpdate(getContext(this))
+              this.credentialUpdatePending = false
+            } else {
+              if (await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))) {
+                throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)
+              }
+              const saved: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))
+              if (await AiCredentialStore.hasCredential(getContext(this)) && !AiProviderConfigStore.sameConfig(saved, config)) {
+                throw new AiImportError(AiImportErrorCode.REPLACEMENT_KEY_REQUIRED)
+              }
+              this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))
+            }
+            this.configured = await AiCredentialStore.hasCredential(getContext(this))
+            this.statusMessage = '设置已保存'
+          })
+        } catch (err) {
+          this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)
+        } finally {
+          this.apiKey = ''
+          this.showKey = false
+          this.pending = false
+        }
+      }
+    
+      private async clearApiKey(): Promise<void> {
+        if (this.pending) return
+        this.pending = true
+        this.failed = false
+        try {
+          await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {
+            this.credentialUpdatePending = true
+            await AiProviderConfigStore.beginCredentialUpdate(getContext(this))
+            await AiCredentialStore.clear(getContext(this))
+            this.configured = false
+            this.availableModels = new Array<string>()
+            await AiProviderConfigStore.completeCredentialUpdate(getContext(this))
+            this.credentialUpdatePending = false
+            this.statusMessage = 'API Key 已清除'
+          })
+        } catch (err) {
+          this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)
+        } finally {
+          this.apiKey = ''
+          this.showKey = false
+          this.pending = false
+        }
+      }
+    
+      private async testConnection(): Promise<void> {
+        if (this.pending) return
+        if (this.apiKey.length > 0) {
+          this.failed = true
+          this.statusMessage = '请先保存新 API Key，再测试连接'
+          return
+        }
+        this.pending = true
+        this.statusMessage = '正在测试连接…'
+        this.failed = false
+        try {
+          const config: AiProviderConfig = this.formConfig()
+          await AiProviderConfigStore.requireUsable(getContext(this), config)
+          this.configured = await AiCredentialStore.hasCredential(getContext(this))
+          if (!this.configured) throw new AiImportError(AiImportErrorCode.MISSING_API_KEY)
+          await new AiConnectionTestService().test(getContext(this), config)
+          this.statusMessage = '连接成功'
+        } catch (err) {
+          this.showError(err)
+        } finally {
+          this.pending = false
+        }
+      }
+    
+      private openPlatformPicker(): void {
+        if (this.pending) return
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/AiPlatformPickerPage' }).catch(() => {
+          this.failed = true
+          this.statusMessage = '平台选择页面暂不可用，请稍后重试'
+        })
+      }
+    
+      @Builder
+      private FieldLabel(label: string) {
+        Text(label)
+          .fontSize(UiStyle.DETAIL_SIZE)
+          .fontColor(this.colors().textPrimary)
+          .fontWeight(FontWeight.Medium)
+      }
+    
+      @Builder
+      private HeaderBar() {
+        Row({ space: 12 }) {
+          Button('返回')
+            .type(ButtonType.Normal)
+            .constraintSize({ minWidth: UiStyle.TOUCH_TARGET, minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(UiStyle.action(this.darkMode))
+            .backgroundColor(this.colors().pageBackground)
+            .enabled(!this.pending)
+            .accessibilityText('返回')
+            .onClick(() => this.leavePage())
+    
+          Text('AI 识别设置')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+        }
+        .width('100%')
+        .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH, minHeight: UiStyle.TOUCH_TARGET })
+        .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
+      }
+    
+      @Builder
+      private StatusNotice() {
+        if (this.statusMessage.length > 0) {
+          Text(this.statusMessage)
+            .width('100%')
+            .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH, minHeight: UiStyle.TOUCH_TARGET })
+            .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.failed ? UiStyle.errorText(this.darkMode) : this.colors().successText)
+            .backgroundColor(this.failed ? this.colors().errorSoft : this.colors().brandSoft)
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .accessibilityText((this.failed ? '操作失败：' : '操作状态：') + this.statusMessage)
+        }
+      }
+    
+      @Builder
+      private ServiceAndModelSection() {
+        Column({ space: UiStyle.FIELD_GAP }) {
+          Text('服务与模型')
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('识别平台')
+            Row({ space: 12 }) {
+              Column({ space: 3 }) {
+                Text(this.platformLabel)
+                  .fontSize(UiStyle.BODY_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(this.colors().textPrimary)
+                  .maxLines(2)
+                Text('选择平台后填写 API Key，将自动获取云端模型')
+                  .fontSize(12)
+                  .fontColor(this.colors().textCaption)
+                  .maxLines(2)
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
+    
+              Button('切换平台')
+                .type(ButtonType.Normal)
+                .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                .fontSize(UiStyle.DETAIL_SIZE)
+                .fontColor(UiStyle.action(this.darkMode))
+                .backgroundColor(this.colors().brandSoft)
+                .borderRadius(UiStyle.CONTROL_RADIUS)
+                .enabled(!this.pending)
+                .onClick(() => {
+                  this.openPlatformPicker()
+                })
+            }
+            .width('100%')
+            .alignItems(VerticalAlign.Center)
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('API 地址')
+            TextInput({ text: this.baseUrl, placeholder: this.urlEditable ? 'https://服务地址/v1' : '' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending && this.urlEditable)
+              .onChange((value: string) => {
+                this.baseUrl = value
+                this.model = ''
+                this.availableModels = new Array<string>()
+              })
+    
+            Button(this.urlEditable ? '完成自定义地址' : '自定义地址')
+              .type(ButtonType.Normal)
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.action(this.darkMode))
+              .backgroundColor(this.colors().cardBackground)
+              .enabled(!this.pending)
+              .onClick(() => {
+                this.urlEditable = !this.urlEditable
+              })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Text('密钥会发送至此地址，请仅填写你信任的 AI 服务。更改配置后需重新输入 API Key 并保存，才能测试。')
+            .width('100%')
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(this.colors().textCaption)
+            .lineHeight(22)
+    
+          if (this.platformNote.length > 0 && this.platformNote !== this.statusMessage) {
+            Text(this.platformNote).fontSize(13).fontColor(this.colors().textCaption)
+              .width('100%')
+              .lineHeight(21)
+          }
+    
+          if (this.isCleartextAddress()) {
+            Text('⚠ 明文 HTTP 仅适用于本机或私网服务，API Key 会以明文在局域网内传输。')
+              .width('100%')
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.errorText(this.darkMode))
+              .lineHeight(22)
+          }
+    
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+    
+      @Builder
+      private CredentialSection() {
+        Column({ space: UiStyle.FIELD_GAP }) {
+          Row() {
+            Text('密钥管理')
+              .fontSize(16)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.colors().textPrimary)
+            Blank()
+            Text(this.configured ? '已配置' : '未配置')
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(this.configured ? this.colors().successText : this.colors().textCaption)
+          }
+          .width('100%')
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('API Key')
+            TextInput({ text: this.apiKey, placeholder: '输入新 API Key；留空保留已保存密钥' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .type(this.showKey ? InputType.Normal : InputType.Password).showPasswordIcon(false)
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending)
+              .onChange((value: string) => {
+                this.apiKey = value
+                this.model = ''
+                this.availableModels = new Array<string>()
+              })
+              .onSubmit(() => { this.fetchCloudModels() })
+              .onBlur(() => {
+                if (this.apiKey.trim().length > 0 && this.availableModels.length === 0) {
+                  this.fetchCloudModels()
+                }
+              })
+    
+            Button(this.showKey ? '隐藏本次输入' : '显示本次输入')
+              .type(ButtonType.Normal)
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(this.apiKey.length > 0 ? UiStyle.action(this.darkMode) : this.colors().disabled)
+              .backgroundColor(this.colors().cardBackground)
+              .enabled(!this.pending && this.apiKey.length > 0)
+              .onClick(() => { this.showKey = !this.showKey })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('云端模型')
+            if (this.availableModels.length > 0) {
+              Select(this.modelOptions())
+                .selected(this.selectedModelIndex())
+                .value(this.model.length > 0 ? this.model : '选择模型')
+                .width('100%')
+                .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                .font({ size: UiStyle.BODY_SIZE })
+                .fontColor(this.colors().textPrimary)
+                .backgroundColor(this.colors().inputBackground)
+                .borderRadius(UiStyle.CONTROL_RADIUS)
+                .enabled(!this.pending)
+                .onSelect((index: number, value: string) => {
+                  this.model = value
+                })
+            } else {
+              Text(this.model.length > 0 ? '当前模型：' + this.model : '输入完整 API Key 后将自动获取可用模型')
+                .width('100%')
+                .fontSize(UiStyle.DETAIL_SIZE)
+                .fontColor(this.colors().textCaption)
+                .lineHeight(22)
+            }
+    
+            Button(this.pending ? '正在获取…' :
+              (this.availableModels.length > 0 ? '重新获取模型' : '获取模型'))
+              .type(ButtonType.Normal)
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.action(this.darkMode))
+              .backgroundColor(this.colors().cardBackground)
+              .border({ width: 1, color: UiStyle.action(this.darkMode) })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending && this.apiKey.trim().length > 0)
+              .onClick(() => { this.fetchCloudModels() })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Button('保存设置')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.BODY_SIZE)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(UiStyle.onAction(this.darkMode))
+            .backgroundColor(UiStyle.action(this.darkMode))
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .enabled(!this.pending && this.model.trim().length > 0)
+            .onClick(() => { this.saveSettings() })
+    
+          Divider().color(this.colors().divider)
+    
+          Button('清除 API Key')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(UiStyle.errorText(this.darkMode))
+            .backgroundColor(this.colors().cardBackground)
+            .enabled(!this.pending)
+            .onClick(() => { this.clearApiKey() })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+    
+      @Builder
+      private ConnectionSection() {
+        Column({ space: 12 }) {
+          Text('连接验证')
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+    
+          Text('测试连接会发送一张极小测试图片，可能产生极少量模型费用')
+            .width('100%')
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(this.colors().textCaption)
+            .lineHeight(22)
+    
+          Button(this.pending ? '正在处理…' : '测试连接')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontSize(UiStyle.BODY_SIZE)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(UiStyle.action(this.darkMode))
+            .backgroundColor(this.colors().cardBackground)
+            .border({ width: 1, color: UiStyle.action(this.darkMode) })
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .enabled(!this.pending)
+            .onClick(() => { this.testConnection() })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+    
+      build() {
+        Column() {
+          this.HeaderBar()
+          this.StatusNotice()
+          Scroll() {
+            Column({ space: UiStyle.GROUP_GAP }) {
+              Column({ space: 6 }) {
+                Text('AI 视觉识别（推荐）')
+                  .width('100%')
+                  .fontSize(24)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.colors().textPrimary)
+                Text('配置图片识别服务，保存后可在 PDF 导入中使用')
+                  .width('100%')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontColor(this.colors().textCaption)
+              }
+              .width('100%')
+              .alignItems(HorizontalAlign.Start)
+    
+              this.ServiceAndModelSection()
+              this.CredentialSection()
+              this.ConnectionSection()
+            }
+            .width('100%')
+            .padding({ top: 16, bottom: PAGE_PADDING })
+          }
+          .layoutWeight(1)
+          .width('100%')
+          .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+          .scrollBar(BarState.Off)
+          .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
+        }
+        .width('100%')
+        .height('100%')
+        .backgroundColor(this.colors().pageBackground)
+        .padding({
+          top: SafeAreaUtils.top(this.safeAreaInsets),
+          bottom: SafeAreaUtils.bottom(this.safeAreaInsets),
+          left: SafeAreaUtils.left(this.safeAreaInsets),
+          right: SafeAreaUtils.right(this.safeAreaInsets)
+        })
+      }
+    }
+    
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiImportContracts.test.cjs:25:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: AI PDF setup validates durable provider state, account and key before progress
+ok 2 - AI PDF setup validates durable provider state, account and key before progress
+  ---
+  duration_ms: 0.6857
+  type: 'test'
+  ...
+# Subtest: AI PDF progress starts once and owns one cancellation cleanup path
+ok 3 - AI PDF progress starts once and owns one cancellation cleanup path
+  ---
+  duration_ms: 0.7779
+  type: 'test'
+  ...
+# Subtest: connection test sends one 1x1 JPEG with normalized form config and releases its request
+ok 4 - connection test sends one 1x1 JPEG with normalized form config and releases its request
+  ---
+  duration_ms: 42.6566
+  type: 'test'
+  ...
+# Subtest: connection response validation releases exactly once after extraction and accepts content without questions
+ok 5 - connection response validation releases exactly once after extraction and accepts content without questions
+  ---
+  duration_ms: 6.5915
+  type: 'test'
+  ...
+# Subtest: connection failure preserves stable codes, releases body, and never retries
+ok 6 - connection failure preserves stable codes, releases body, and never retries
+  ---
+  duration_ms: 3.879
+  type: 'test'
+  ...
+# Subtest: connection invalid config and missing saved credential do not reach adapter or transport
+ok 7 - connection invalid config and missing saved credential do not reach adapter or transport
+  ---
+  duration_ms: 3.7391
+  type: 'test'
+  ...
+# Subtest: connection service keeps the entire transport await inside saved credential scope
+ok 8 - connection service keeps the entire transport await inside saved credential scope
+  ---
+  duration_ms: 5.4447
+  type: 'test'
+  ...
+# Subtest: settings load never fetches a key and save/clear erase typed key on success and failure
+ok 9 - settings load never fetches a key and save/clear erase typed key on success and failure
+  ---
+  duration_ms: 18.2068
+  type: 'test'
+  ...
+# Subtest: settings model discovery uses only the typed key and keeps persistence untouched until save
+ok 10 - settings model discovery uses only the typed key and keeps persistence untouched until save
+  ---
+  duration_ms: 5.4188
+  type: 'test'
+  ...
+# Subtest: settings requires saving a new key and blocks mutations/back while a saved-config test runs
+ok 11 - settings requires saving a new key and blocks mutations/back while a saved-config test runs
+  ---
+  duration_ms: 4.7877
+  type: 'test'
+  ...
+# Subtest: settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally
+ok 12 - settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally
+  ---
+  duration_ms: 16.0835
+  type: 'test'
+  ...
+# Subtest: settings platform row applies addresses without injecting static model recommendations
+ok 13 - settings platform row applies addresses without injecting static model recommendations
+  ---
+  duration_ms: 4.8873
+  type: 'test'
+  ...
+# Subtest: settings onPageShow consumes a picker selection once only after the guard
+ok 14 - settings onPageShow consumes a picker selection once only after the guard
+  ---
+  duration_ms: 5.0736
+  type: 'test'
+  ...
+# Subtest: preflight cancellation cleans the selected PDF at every await boundary
+ok 15 - preflight cancellation cleans the selected PDF at every await boundary
+  ---
+  duration_ms: 16.7098
+  type: 'test'
+  ...
+# Subtest: preflight cancellation retains identity and exposes retry after direct PDF cleanup failure
+ok 16 - preflight cancellation retains identity and exposes retry after direct PDF cleanup failure
+  ---
+  duration_ms: 3.1747
+  type: 'test'
+  ...
+# Subtest: typed non-cancelled run cleanup debt blocks exit and converges through central retry
+ok 17 - typed non-cancelled run cleanup debt blocks exit and converges through central retry
+  ---
+  duration_ms: 3.3103
+  type: 'test'
+  ...
+# Subtest: completed import disables cancellation, rechecks account and retries review navigation without rerun
+ok 18 - completed import disables cancellation, rechecks account and retries review navigation without rerun
+  ---
+  duration_ms: 2.5777
+  type: 'test'
+  ...
+# Subtest: post-run account mismatch discards before clearing state and returning to import
+ok 19 - post-run account mismatch discards before clearing state and returning to import
+  ---
+  duration_ms: 2.4924
+  type: 'test'
+  ...
+# Subtest: completed-session abandon retains request and review id until discard retry succeeds
+ok 20 - completed-session abandon retains request and review id until discard retry succeeds
+  ---
+  duration_ms: 2.2788
+  type: 'test'
+  ...
+# Subtest: credential update barrier persists across restart and ambiguous completion failure
+ok 21 - credential update barrier persists across restart and ambiguous completion failure
+  ---
+  duration_ms: 16.1206
+  type: 'test'
+  ...
+# Subtest: HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker
+ok 22 - HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker
+  ---
+  duration_ms: 7.5896
+  type: 'test'
+  ...
+# Subtest: config-only changes and unsaved test forms never reuse an existing key
+ok 23 - config-only changes and unsaved test forms never reuse an existing key
+  ---
+  duration_ms: 13.8845
+  type: 'test'
+  ...
+# Subtest: failed marker begin and key clear leave dispatch blocked without updating public configuration
+ok 24 - failed marker begin and key clear leave dispatch blocked without updating public configuration
+  ---
+  duration_ms: 5.1744
+  type: 'test'
+  ...
+# Subtest: default coordinator checks persisted config and holds update barrier through credential dispatch
+ok 25 - default coordinator checks persisted config and holds update barrier through credential dispatch
+  ---
+  duration_ms: 16.2927
+  type: 'test'
+  ...
+# Subtest: source-neutral review isolates providers and renders editable local evidence
+ok 26 - source-neutral review isolates providers and renders editable local evidence
+  ---
+  duration_ms: 1.0705
+  type: 'test'
+  ...
+# Subtest: review retains committed retry state and exposes image retry without draft questions
+ok 27 - review retains committed retry state and exposes image retry without draft questions
+  ---
+  duration_ms: 0.4724
+  type: 'test'
+  ...
+# Subtest: AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy
+ok 28 - AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy
+  ---
+  duration_ms: 11.7373
+  type: 'test'
+  ...
+# Subtest: AI adapter propagates durable account/corruption failures instead of falling back to memory
+ok 29 - AI adapter propagates durable account/corruption failures instead of falling back to memory
+  ---
+  duration_ms: 27.4343
+  type: 'test'
+  ...
+# Subtest: review edits and manual failure conversion persist deep copies with stable evidence UUIDs
+ok 30 - review edits and manual failure conversion persist deep copies with stable evidence UUIDs
+  ---
+  duration_ms: 6.5608
+  type: 'test'
+  ...
+# Subtest: review serializes save and back and abandons only after explicit draft choice
+ok 31 - review serializes save and back and abandons only after explicit draft choice
+  ---
+  duration_ms: 6.6985
+  type: 'test'
+  ...
+# Subtest: review failed retry publishes committed session while hiding arbitrary provider errors
+ok 32 - review failed retry publishes committed session while hiding arbitrary provider errors
+  ---
+  duration_ms: 6.975
+  type: 'test'
+  ...
+# Subtest: failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles
+ok 33 - failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles
+  ---
+  duration_ms: 6.2629
+  type: 'test'
+  ...
+# Subtest: review exposes an explicit authoritative-state reload action and gates mutation while uncertain
+ok 34 - review exposes an explicit authoritative-state reload action and gates mutation while uncertain
+  ---
+  duration_ms: 0.5556
+  type: 'test'
+  ...
+# Subtest: checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment
+ok 35 - checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment
+  ---
+  duration_ms: 5.8022
+  type: 'test'
+  ...
+# Subtest: initial review load failure keeps page ownership until authoritative reload succeeds
+ok 36 - initial review load failure keeps page ownership until authoritative reload succeeds
+  ---
+  duration_ms: 5.637
+  type: 'test'
+  ...
+# Subtest: repeated authoritative reload failure remains locked until owner checkpoint reload succeeds
+ok 37 - repeated authoritative reload failure remains locked until owner checkpoint reload succeeds
+  ---
+  duration_ms: 5.0716
+  type: 'test'
+  ...
+# Subtest: committed retry plus authoritative reload failure stays locked until explicit reload
+ok 38 - committed retry plus authoritative reload failure stays locked until explicit reload
+  ---
+  duration_ms: 6.1546
+  type: 'test'
+  ...
+# Subtest: committed discard or manual transfer plus reload failure locks until authoritative reload
+ok 39 - committed discard or manual transfer plus reload failure locks until authoritative reload
+  ---
+  duration_ms: 12.4657
+  type: 'test'
+  ...
+# Subtest: AI provider config storage persists only normalized public configuration
+ok 40 - AI provider config storage persists only normalized public configuration
+  ---
+  duration_ms: 0.9148
+  type: 'test'
+  ...
+# Subtest: provider validator accepts local http only for private hosts
+ok 41 - provider validator accepts local http only for private hosts
+  ---
+  duration_ms: 3.2914
+  type: 'test'
+  ...
+# Subtest: endpoint guard allows https and private http but never public http
+ok 42 - endpoint guard allows https and private http but never public http
+  ---
+  duration_ms: 2.4334
+  type: 'test'
+  ...
+# Subtest: OpenAI-compatible adapter sends one page image through chat completions
+ok 43 - OpenAI-compatible adapter sends one page image through chat completions
+  ---
+  duration_ms: 0.4046
+  type: 'test'
+  ...
+# Subtest: AI transport is bounded, non-redirecting, cancellable and independent
+ok 44 - AI transport is bounded, non-redirecting, cancellable and independent
+  ---
+  duration_ms: 0.6345
+  type: 'test'
+  ...
+# Subtest: PDF encoder releases page pixels before returning network-ready text
+ok 45 - PDF encoder releases page pixels before returning network-ready text
+  ---
+  duration_ms: 0.9712
+  type: 'test'
+  ...
+# Subtest: PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership
+ok 46 - PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership
+  ---
+  duration_ms: 0.9774
+  type: 'test'
+  ...
+# Subtest: PDF encoder defers close through active operation leases and preserves late failures
+ok 47 - PDF encoder defers close through active operation leases and preserves late failures
+  ---
+  duration_ms: 0.6029
+  type: 'test'
+  ...
+# Subtest: PDF encoder isolates retry artifacts by exact logical session and attempt ownership
+ok 48 - PDF encoder isolates retry artifacts by exact logical session and attempt ownership
+  ---
+  duration_ms: 0.5266
+  type: 'test'
+  ...
+# Subtest: PDF encoder deletes only an explicit cache-root session-owned evidence file
+ok 49 - PDF encoder deletes only an explicit cache-root session-owned evidence file
+  ---
+  duration_ms: 0.37
+  type: 'test'
+  ...
+# Subtest: AI coordinator owns one sequential local-only page pipeline
+ok 50 - AI coordinator owns one sequential local-only page pipeline
+  ---
+  duration_ms: 0.4526
+  type: 'test'
+  ...
+# Subtest: AI coordinator keeps cancellation and request cleanup generation safe
+ok 51 - AI coordinator keeps cancellation and request cleanup generation safe
+  ---
+  duration_ms: 0.3811
+  type: 'test'
+  ...
+# Subtest: AI coordinator retry is page-bounded, atomic and shares processPage
+ok 52 - AI coordinator retry is page-bounded, atomic and shares processPage
+  ---
+  duration_ms: 0.3319
+  type: 'test'
+  ...
+# Subtest: AI coordinator cleans only failed attempt artifacts and retains successful namespaces
+ok 53 - AI coordinator cleans only failed attempt artifacts and retains successful namespaces
+  ---
+  duration_ms: 0.297
+  type: 'test'
+  ...
+# Subtest: AI coordinator retains initial page evidence but fully cleans failed retries
+ok 54 - AI coordinator retains initial page evidence but fully cleans failed retries
+  ---
+  duration_ms: 0.3505
+  type: 'test'
+  ...
+# Subtest: AI coordinator surfaces cleanup failure while retaining the primary error code
+ok 55 - AI coordinator surfaces cleanup failure while retaining the primary error code
+  ---
+  duration_ms: 0.4142
+  type: 'test'
+  ...
+# Subtest: coordinator exposes cleanup debt only while the final exact cleanup still fails
+ok 56 - coordinator exposes cleanup debt only while the final exact cleanup still fails
+  ---
+  duration_ms: 3.4895
+  type: 'test'
+  ...
+# Subtest: AI coordinator guards credential-delayed transport dispatch by identity and generation
+ok 57 - AI coordinator guards credential-delayed transport dispatch by identity and generation
+  ---
+  duration_ms: 0.5464
+  type: 'test'
+  ...
+# Subtest: AI coordinator commits retry before narrowly deleting superseded failure evidence
+ok 58 - AI coordinator commits retry before narrowly deleting superseded failure evidence
+  ---
+  duration_ms: 0.3437
+  type: 'test'
+  ...
+# Subtest: AI coordinator discard always attempts both cleanups and retains first failure
+ok 59 - AI coordinator discard always attempts both cleanups and retains first failure
+  ---
+  duration_ms: 0.4133
+  type: 'test'
+  ...
+# Subtest: default PDF cleanup remembers successful exact paths across discard retries
+ok 60 - default PDF cleanup remembers successful exact paths across discard retries
+  ---
+  duration_ms: 1.6012
+  type: 'test'
+  ...
+# Subtest: discard retry converges after image, PDF, or combined partial failure
+ok 61 - discard retry converges after image, PDF, or combined partial failure
+  ---
+  duration_ms: 5.7026
+  type: 'test'
+  ...
+# Subtest: AI review keeps an image even when bbox is unusable
+ok 62 - AI review keeps an image even when bbox is unusable
+  ---
+  duration_ms: 0.8601
+  type: 'test'
+  ...
+# Subtest: unusable bbox skips cropping and keeps whole-page evidence as the question image
+ok 63 - unusable bbox skips cropping and keeps whole-page evidence as the question image
+  ---
+  duration_ms: 6.7901
+  type: 'test'
+  ...
+# Subtest: usable bbox crops per question and discards the unused whole-page evidence
+ok 64 - usable bbox crops per question and discards the unused whole-page evidence
+  ---
+  duration_ms: 3.8031
+  type: 'test'
+  ...
+# Subtest: automated tests use fakes and cannot call an external provider
+ok 65 - automated tests use fakes and cannot call an external provider
+  ---
+  duration_ms: 1.6222
+  type: 'test'
+  ...
+# Subtest: test-only network helpers reject real provider URLs and production network APIs
+ok 66 - test-only network helpers reject real provider URLs and production network APIs
+  ---
+  duration_ms: 1.1064
+  type: 'test'
+  ...
+# Subtest: provider config store keeps catalog platform ids and tolerates unknown ids
+ok 67 - provider config store keeps catalog platform ids and tolerates unknown ids
+  ---
+  duration_ms: 0.3247
+  type: 'test'
+  ...
+# Subtest: provider config store preserves catalog and unknown provider ids at runtime
+ok 68 - provider config store preserves catalog and unknown provider ids at runtime
+  ---
+  duration_ms: 10.6642
+  type: 'test'
+  ...
+# Subtest: platform picker page is registered once and reachable from the settings page
+ok 69 - platform picker page is registered once and reachable from the settings page
+  ---
+  duration_ms: 0.8721
+  type: 'test'
+  ...
+# (node:21820) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: settings removes static recommendations and fetches after API key completion
+not ok 70 - settings removes static recommendations and fetches after API key completion
+  ---
+  duration_ms: 1.9446
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\AiModelCatalogContracts.test.cjs:42:1'
+  failureType: 'testCodeFailure'
+  error: 'the custom-address action must not leave explanatory copy below it'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    private ServiceAndModelSection() {
+        Column({ space: UiStyle.FIELD_GAP }) {
+          Text('服务与模型')
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('识别平台')
+            Row({ space: 12 }) {
+              Column({ space: 3 }) {
+                Text(this.platformLabel)
+                  .fontSize(UiStyle.BODY_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(this.colors().textPrimary)
+                  .maxLines(2)
+                Text('选择平台后填写 API Key，将自动获取云端模型')
+                  .fontSize(12)
+                  .fontColor(this.colors().textCaption)
+                  .maxLines(2)
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
+    
+              Button('切换平台')
+                .type(ButtonType.Normal)
+                .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                .fontSize(UiStyle.DETAIL_SIZE)
+                .fontColor(UiStyle.action(this.darkMode))
+                .backgroundColor(this.colors().brandSoft)
+                .borderRadius(UiStyle.CONTROL_RADIUS)
+                .enabled(!this.pending)
+                .onClick(() => {
+                  this.openPlatformPicker()
+                })
+            }
+            .width('100%')
+            .alignItems(VerticalAlign.Center)
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Column({ space: 8 }) {
+            this.FieldLabel('API 地址')
+            TextInput({ text: this.baseUrl, placeholder: this.urlEditable ? 'https://服务地址/v1' : '' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending && this.urlEditable)
+              .onChange((value: string) => {
+                this.baseUrl = value
+                this.model = ''
+                this.availableModels = new Array<string>()
+              })
+    
+            Button(this.urlEditable ? '完成自定义地址' : '自定义地址')
+              .type(ButtonType.Normal)
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.action(this.darkMode))
+              .backgroundColor(this.colors().cardBackground)
+              .enabled(!this.pending)
+              .onClick(() => {
+                this.urlEditable = !this.urlEditable
+              })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+    
+          Text('密钥会发送至此地址，请仅填写你信任的 AI 服务。更改配置后需重新输入 API Key 并保存，才能测试。')
+            .width('100%')
+            .fontSize(UiStyle.DETAIL_SIZE)
+            .fontColor(this.colors().textCaption)
+            .lineHeight(22)
+    
+          if (this.platformNote.length > 0 && this.platformNote !== this.statusMessage) {
+            Text(this.platformNote).fontSize(13).fontColor(this.colors().textCaption)
+              .width('100%')
+              .lineHeight(21)
+          }
+    
+          if (this.isCleartextAddress()) {
+            Text('⚠ 明文 HTTP 仅适用于本机或私网服务，API Key 会以明文在局域网内传输。')
+              .width('100%')
+              .fontSize(UiStyle.DETAIL_SIZE)
+              .fontColor(UiStyle.errorText(this.darkMode))
+              .lineHeight(22)
+          }
+    
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+        .padding(20)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: 1, color: this.colors().divider })
+        .borderRadius(SHEET_RADIUS)
+      }
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:50:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: model list parser accepts the OpenAI envelope, deduplicates ids and rejects malformed payloads
+ok 71 - model list parser accepts the OpenAI envelope, deduplicates ids and rejects malformed payloads
+  ---
+  duration_ms: 49.5451
+  type: 'test'
+  ...
+# Subtest: typed key model fetch stays bounded, uses one GET endpoint and zeroes credential bytes
+ok 72 - typed key model fetch stays bounded, uses one GET endpoint and zeroes credential bytes
+  ---
+  duration_ms: 5.3719
+  type: 'test'
+  ...
+# Subtest: transport owns authenticated model GET with the same endpoint and response bounds
+ok 73 - transport owns authenticated model GET with the same endpoint and response bounds
+  ---
+  duration_ms: 0.7176
+  type: 'test'
+  ...
+1..73
+# tests 73
+# suites 0
+# pass 71
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 463.1554

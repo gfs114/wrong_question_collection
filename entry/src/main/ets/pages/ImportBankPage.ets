@@ -1,24 +1,36 @@
 import { Context } from '@kit.AbilityKit'
-import { router } from '@kit.ArkUI'
-import { BusinessError } from '@kit.BasicServicesKit'
-import fs from '@ohos.file.fs'
-import picker from '@ohos.file.picker'
 import {
   BODY_FONT_SIZE,
-  CARD_RADIUS,
-  CONTENT_MAX_WIDTH,
   PAGE_PADDING,
   SUBTITLE_FONT_SIZE,
   themePalette
 } from '../constants/AppTheme'
-import { PdfImportLimits } from '../constants/PdfImportLimits'
+import { SHEET_RADIUS } from '../constants/EditorialStyle'
+import { UiStyle } from '../constants/UiStyle'
 import { ImportErrorCode, ImportResult } from '../models/ImportResult'
 import { AccountSessionState } from '../models/AccountSession'
+import { PdfFileSelection } from '../models/PdfImportModels'
 import { AccountSessionService } from '../services/AccountSessionService'
 import { ImportService } from '../services/ImportService'
+import { PdfImportService } from '../services/PdfImportService'
 import { AppColors } from '../theme/AppColors'
-import { CloudPdfSelection, PdfImportState } from '../utils/PdfImportState'
+import { PdfImportState } from '../utils/PdfImportState'
 import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+
+const JSON_BANK_EXAMPLE: string = `{
+  "bankName": "数学错题示例",
+  "subject": "数学",
+  "questions": [
+    {
+      "id": "q-001",
+      "type": "single_choice",
+      "question": "2 + 3 = ?",
+      "options": ["A. 4", "B. 5", "C. 6"],
+      "answer": "B",
+      "analysis": "2 + 3 = 5。"
+    }
+  ]
+}`
 
 @Entry
 @Component
@@ -26,6 +38,7 @@ struct ImportBankPage {
   @State importing: boolean = false
   @State pdfSelecting: boolean = false
   @State errorMessage: string = ''
+  @State jsonHelpExpanded: boolean = false
   @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
     top: 0, left: 0, right: 0, bottom: 0
   }
@@ -116,161 +129,44 @@ struct ImportBankPage {
   }
 
   private async selectPdf(): Promise<void> {
-    if (this.importing || this.pdfSelecting) {
-      return
-    }
+    if (this.importing || this.pdfSelecting) return
     this.pdfSelecting = true
     this.errorMessage = ''
-    let stagedPath: string = ''
-    let selectionStored: boolean = false
     try {
       const context: Context = getContext(this)
-      const documentPicker: picker.DocumentViewPicker = new picker.DocumentViewPicker(context)
-      const pickerOptions: picker.DocumentSelectOptions = new picker.DocumentSelectOptions()
-      pickerOptions.fileSuffixFilters = ['PDF文件|.pdf']
-      pickerOptions.maxSelectNumber = 1
-      const selectedUris: Array<string> = await documentPicker.select(pickerOptions)
-      if (selectedUris.length === 0) {
-        return
-      }
-      const sourceUri: string = selectedUris[0]
-      const sourceFile: fs.File = await fs.open(sourceUri, fs.OpenMode.READ_ONLY)
-      let sourceSize: number = 0
-      let fileName: string = 'selected.pdf'
-      try {
-        const sourceInfo: fs.Stat = await fs.stat(sourceFile.fd)
-        sourceSize = sourceInfo.size
-        if (!Number.isSafeInteger(sourceSize) || sourceSize <= 0 ||
-          sourceSize > PdfImportLimits.MAX_FILE_BYTES) {
-          throw new Error('PDF 文件大小无效或超过限制')
-        }
-        fileName = this.resolveFileName(sourceUri, sourceFile.name)
-        stagedPath = context.cacheDir + '/cloud_import_pdf_' + Date.now().toString() + '.pdf'
-        await this.copyPdf(sourceFile.fd, stagedPath, sourceSize)
-      } finally {
-        await fs.close(sourceFile)
-      }
-      const stagedInfo: fs.Stat = await fs.lstat(stagedPath)
-      if (stagedInfo.isSymbolicLink() || !stagedInfo.isFile() ||
-        stagedInfo.size !== sourceSize) {
-        throw new Error('PDF 暂存文件校验失败')
-      }
+      const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)
+      if (selection === null) return
       const state: PdfImportState = PdfImportState.shared()
-      const previousSelection: CloudPdfSelection | null = state.getCloudSelection()
-      if (previousSelection !== null && previousSelection.pdfPath !== stagedPath) {
-        await this.removeStagedPdf(context.cacheDir, previousSelection.pdfPath)
+      const previous: PdfFileSelection | null = state.getSelection()
+      if (previous !== null && previous.uri !== selection.uri) {
+        try {
+          await PdfImportService.removeTemporaryPdf(previous.uri)
+        } catch {
+          const removed: boolean = await this.releaseUnpublishedSelection(selection)
+          this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :
+            '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'
+          return
+        }
       }
       state.reset()
-      state.setCloudSelection(new CloudPdfSelection(stagedPath, fileName, sourceSize))
-      selectionStored = true
-      const options: router.RouterOptions = {
-        url: 'pages/PdfImportSetupPage'
+      state.setSelection(selection)
+      try {
+        await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })
+      } catch {
+        state.reset()
+        const removed: boolean = await this.releaseUnpublishedSelection(selection)
+        this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :
+          'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'
       }
-      await this.getUIContext().getRouter().pushUrl(options)
     } catch (err) {
       this.errorMessage = this.messageForPdfError(err)
-      if (stagedPath.length > 0) {
-        try {
-          await this.removeStagedPdf(getContext(this).cacheDir, stagedPath)
-        } catch {
-          this.errorMessage = this.errorMessage + '；PDF 临时文件清理失败，请重试'
-        }
-      }
-      if (selectionStored) {
-        PdfImportState.shared().reset()
-      }
     } finally {
       this.pdfSelecting = false
     }
   }
 
-  private async copyPdf(sourceFd: number, stagedPath: string, expectedSize: number): Promise<void> {
-    const targetFile: fs.File = await fs.open(stagedPath,
-      fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE | fs.OpenMode.TRUNC | fs.OpenMode.NOFOLLOW)
-    let totalCopied: number = 0
-    try {
-      const buffer: ArrayBuffer = new ArrayBuffer(64 * 1024)
-      while (totalCopied < expectedSize) {
-        const bytesRead: number = await fs.read(sourceFd, buffer)
-        if (!Number.isInteger(bytesRead) || bytesRead <= 0 || bytesRead > buffer.byteLength) {
-          throw new Error('PDF 文件在读取期间发生变化')
-        }
-        const nextTotal: number = totalCopied + bytesRead
-        if (!Number.isSafeInteger(nextTotal) || nextTotal > expectedSize ||
-          nextTotal > PdfImportLimits.MAX_FILE_BYTES) {
-          throw new Error('PDF 文件在读取期间超过大小限制')
-        }
-        let written: number = 0
-        while (written < bytesRead) {
-          const writeBuffer: ArrayBuffer = buffer.slice(written, bytesRead)
-          const currentWrite: number = await fs.write(targetFile.fd, writeBuffer)
-          if (!Number.isInteger(currentWrite) || currentWrite <= 0 ||
-            currentWrite > writeBuffer.byteLength) {
-            throw new Error('PDF 暂存写入失败')
-          }
-          written += currentWrite
-        }
-        totalCopied = nextTotal
-      }
-      const extraBuffer: ArrayBuffer = new ArrayBuffer(1)
-      const extraBytes: number = await fs.read(sourceFd, extraBuffer)
-      if (extraBytes !== 0 || totalCopied !== expectedSize) {
-        throw new Error('PDF 文件在读取期间发生变化')
-      }
-      await fs.fsync(targetFile.fd)
-    } finally {
-      await fs.close(targetFile)
-    }
-  }
-
-  private async removeStagedPdf(cacheDir: string, path: string): Promise<void> {
-    const prefix: string = cacheDir + '/cloud_import_pdf_'
-    if (!path.startsWith(prefix) || !path.endsWith('.pdf') || path.indexOf('\\') >= 0 ||
-      path.substring(cacheDir.length + 1).indexOf('/') >= 0) {
-      throw new Error('PDF 临时文件路径无效')
-    }
-    const info: fs.Stat | null = await this.lstatIfPresent(path)
-    if (info === null) {
-      return
-    }
-    if (info.isSymbolicLink() || !info.isFile()) {
-      throw new Error('PDF 临时文件类型无效')
-    }
-    await fs.unlink(path)
-  }
-
-  private async lstatIfPresent(path: string): Promise<fs.Stat | null> {
-    return new Promise<fs.Stat | null>((resolve, reject): void => {
-      fs.lstat(path, (err: BusinessError, info: fs.Stat): void => {
-        if (err) {
-          if (err.code === 13900002) {
-            resolve(null)
-            return
-          }
-          reject(new Error(err.message.length > 0 ? err.message : '文件状态读取失败'))
-          return
-        }
-        resolve(info)
-      })
-    })
-  }
-
-  private resolveFileName(uri: string, fallback: string): string {
-    let encodedName: string = fallback
-    if (encodedName.length === 0) {
-      const slashIndex: number = uri.lastIndexOf('/')
-      encodedName = slashIndex >= 0 ? uri.substring(slashIndex + 1) : 'selected.pdf'
-    }
-    const queryIndex: number = encodedName.indexOf('?')
-    if (queryIndex >= 0) {
-      encodedName = encodedName.substring(0, queryIndex)
-    }
-    try {
-      const decodedName: string = decodeURIComponent(encodedName)
-      return decodedName.length > 0 ? decodedName : 'selected.pdf'
-    } catch {
-      return fallback.length > 0 ? fallback : 'selected.pdf'
-    }
+  private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {
+    return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)
   }
 
   private messageForPdfError(err: Error): string {
@@ -297,114 +193,229 @@ struct ImportBankPage {
     Navigation() {
       Column() {
         Scroll() {
-        Column({ space: 18 }) {
-          Column({ space: 14 }) {
-            Row() {
-              Text('JSON 格式说明')
-                .fontSize(SUBTITLE_FONT_SIZE)
+          Column({ space: UiStyle.GROUP_GAP }) {
+            Column({ space: 8 }) {
+              Text('选择资料来源')
+                .width('100%')
+                .fontSize(24)
                 .fontWeight(FontWeight.Bold)
                 .fontColor(this.colors().textPrimary)
 
-              Blank()
-
-              Text('仅支持单选题')
-                .fontSize(12)
-                .fontColor(this.colors().brand)
-            }
-            .width('100%')
-
-            Text('文件需要包含题库名称 bankName、学科 subject 和题目数组 questions。每道题需包含 id、type、question、options、answer 与 analysis。')
-              .width('100%')
-              .fontSize(BODY_FONT_SIZE)
-              .fontColor(this.colors().textCaption)
-              .lineHeight(22)
-
-            Text('type 请填写 single_choice，answer 使用与选项对应的字母。文件编码需为 UTF-8。')
-              .width('100%')
-              .fontSize(BODY_FONT_SIZE)
-              .fontColor(this.colors().textCaption)
-              .lineHeight(22)
-          }
-          .width('100%')
-          .padding(20)
-          .backgroundColor(this.colors().cardBackground)
-          .borderRadius(CARD_RADIUS)
-
-          if (this.importing) {
-            Row({ space: 12 }) {
-              LoadingProgress()
-                .width(24)
-                .height(24)
-                .color(this.colors().brand)
-
-              Text('正在读取并导入题库…')
-                .fontSize(BODY_FONT_SIZE)
+              Text('PDF 和结构化 JSON 题库均可导入')
+                .width('100%')
+                .fontSize(UiStyle.DETAIL_SIZE)
                 .fontColor(this.colors().textCaption)
             }
             .width('100%')
-            .height(56)
-            .justifyContent(FlexAlign.Center)
-            .backgroundColor(this.colors().cardBackground)
-            .borderRadius(16)
-          }
+            .alignItems(HorizontalAlign.Start)
 
-          if (this.errorMessage.length > 0) {
-            Text(this.errorMessage)
+            Column({ space: 12 }) {
+              Row() {
+                Text('PDF 资料')
+                  .fontSize(SUBTITLE_FONT_SIZE)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.colors().textPrimary)
+
+                Blank()
+
+                Text('推荐')
+                  .fontSize(12)
+                  .fontColor(UiStyle.action(this.darkMode))
+              }
               .width('100%')
-              .constraintSize({ minHeight: 48 })
-              .padding({ left: 16, right: 16, top: 13, bottom: 13 })
-              .fontSize(BODY_FONT_SIZE)
-              .fontColor(this.colors().error)
-              .backgroundColor(this.colors().errorSoft)
-              .borderRadius(14)
-              .accessibilityText('导入失败：' + this.errorMessage)
-          }
 
-          Button() {
-            Text(this.importing ? '正在导入…' : '选择 JSON 文件')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(this.colors().onBrand)
-          }
-          .type(ButtonType.Normal)
-          .width('100%')
-          .height(52)
-          .backgroundColor(this.colors().brand)
-          .borderRadius(16)
-          .enabled(!this.importing && !this.pdfSelecting)
-          .accessibilityText(this.importing ? '正在导入题库' : '选择 JSON 文件')
-          .onClick(() => {
-            this.startImport()
-          })
+              Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')
+                .width('100%')
+                .fontSize(UiStyle.DETAIL_SIZE)
+                .fontColor(this.colors().textCaption)
+                .lineHeight(22)
 
-          Button() {
-            Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(this.colors().brand)
+              Button() {
+                Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')
+                  .fontSize(UiStyle.BODY_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(UiStyle.onAction(this.darkMode))
+              }
+              .type(ButtonType.Normal)
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .backgroundColor(UiStyle.action(this.darkMode))
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pdfSelecting && !this.importing)
+              .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')
+              .onClick(() => {
+                this.selectPdf()
+              })
+            }
+            .width('100%')
+            .padding(20)
+            .alignItems(HorizontalAlign.Start)
+            .backgroundColor(this.colors().cardBackground)
+            .border({ width: 1, color: this.colors().divider })
+            .borderRadius(SHEET_RADIUS)
+
+            if (this.importing) {
+              Row({ space: 12 }) {
+                LoadingProgress()
+                  .width(24)
+                  .height(24)
+                  .color(UiStyle.action(this.darkMode))
+
+                Text('正在读取并导入题库…')
+                  .fontSize(BODY_FONT_SIZE)
+                  .fontColor(this.colors().textCaption)
+              }
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .padding({ left: 16, right: 16 })
+              .justifyContent(FlexAlign.Center)
+              .backgroundColor(this.colors().cardBackground)
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+            }
+
+            if (this.errorMessage.length > 0) {
+              Text(this.errorMessage)
+                .width('100%')
+                .constraintSize({ minHeight: 48 })
+                .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor(UiStyle.errorText(this.darkMode))
+                .backgroundColor(this.colors().errorSoft)
+                .borderRadius(UiStyle.CONTROL_RADIUS)
+                .accessibilityText('导入失败：' + this.errorMessage)
+            }
+
+            Column({ space: 12 }) {
+              Row() {
+                Text('已有结构化题库')
+                  .fontSize(SUBTITLE_FONT_SIZE)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.colors().textPrimary)
+
+                Blank()
+
+                Text('仅支持单选题')
+                  .fontSize(12)
+                  .fontColor(UiStyle.action(this.darkMode))
+              }
+              .width('100%')
+
+              Text('选择 JSON 文件可直接导入已有题库。')
+                .width('100%')
+                .fontSize(UiStyle.DETAIL_SIZE)
+                .fontColor(this.colors().textCaption)
+
+              Button() {
+                Text(this.importing ? '正在导入…' : '选择 JSON 文件')
+                  .fontSize(UiStyle.BODY_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(UiStyle.action(this.darkMode))
+              }
+              .type(ButtonType.Normal)
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .backgroundColor(this.colors().cardBackground)
+              .border({ width: 1, color: UiStyle.action(this.darkMode) })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.importing && !this.pdfSelecting)
+              .accessibilityText(this.importing ? '正在导入题库' : '选择 JSON 文件')
+              .onClick(() => {
+                this.startImport()
+              })
+
+              Button() {
+                Row({ space: 12 }) {
+                  Text('JSON 格式与示例')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(this.colors().textPrimary)
+
+                  Blank()
+
+                  Text(this.jsonHelpExpanded ? '收起' : '展开')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(UiStyle.action(this.darkMode))
+                }
+                .width('100%')
+              }
+              .type(ButtonType.Normal)
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .padding({ left: 14, right: 14 })
+              .backgroundColor(this.colors().inputBackground)
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .accessibilityText(this.jsonHelpExpanded ?
+                '收起 JSON 格式与示例' : '展开 JSON 格式与示例')
+              .onClick(() => {
+                this.jsonHelpExpanded = !this.jsonHelpExpanded
+              })
+
+              if (this.jsonHelpExpanded) {
+                Divider()
+                  .color(this.colors().divider)
+
+                Text('JSON 格式说明')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(this.colors().textPrimary)
+
+                Text('文件需要包含题库名称 bankName、学科 subject 和题目数组 questions。每道题需包含 id、type、question、options、answer 与 analysis。')
+                  .width('100%')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontColor(this.colors().textCaption)
+                  .lineHeight(22)
+
+                Text('type 请填写 single_choice，answer 使用与选项对应的字母。文件编码需为 UTF-8。')
+                  .width('100%')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontColor(this.colors().textCaption)
+                  .lineHeight(22)
+
+                Divider()
+                  .color(this.colors().divider)
+
+                Text('JSON 示例')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(this.colors().textPrimary)
+
+                Text('以下内容可直接保存为 UTF-8 编码的 .json 文件后导入。')
+                  .width('100%')
+                  .fontSize(UiStyle.DETAIL_SIZE)
+                  .fontColor(this.colors().textCaption)
+                  .lineHeight(22)
+
+                Text(JSON_BANK_EXAMPLE)
+                  .width('100%')
+                  .padding(16)
+                  .fontSize(13)
+                  .fontFamily('monospace')
+                  .fontColor(this.colors().textSecondary)
+                  .lineHeight(20)
+                  .backgroundColor(this.colors().inputBackground)
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .accessibilityText('JSON 题库示例：' + JSON_BANK_EXAMPLE)
+              }
+            }
+            .width('100%')
+            .padding(20)
+            .alignItems(HorizontalAlign.Start)
+            .backgroundColor(this.colors().cardBackground)
+            .border({ width: 1, color: this.colors().divider })
+            .borderRadius(SHEET_RADIUS)
           }
-          .type(ButtonType.Normal)
           .width('100%')
-          .height(52)
-          .backgroundColor(this.colors().cardBackground)
-          .border({ width: 1, color: this.colors().brand })
-          .borderRadius(16)
-          .enabled(!this.pdfSelecting && !this.importing)
-          .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')
-          .onClick(() => {
-            this.selectPdf()
+          .align(Alignment.Top)
+          .padding({
+            top: PAGE_PADDING,
+            left: PAGE_PADDING,
+            right: PAGE_PADDING,
+            bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
           })
-        }
-        .width('100%')
-        .padding({
-          left: PAGE_PADDING,
-          right: PAGE_PADDING,
-          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
-        })
         }
         .layoutWeight(1)
         .width('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
+        .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
         .scrollBar(BarState.Off)
       }
       .width('100%')
@@ -419,5 +430,10 @@ struct ImportBankPage {
     .mode(NavigationMode.Stack)
     .width('100%')
     .height('100%')
+    .padding({
+      top: SafeAreaUtils.top(this.safeAreaInsets),
+      left: SafeAreaUtils.left(this.safeAreaInsets),
+      right: SafeAreaUtils.right(this.safeAreaInsets)
+    })
   }
 }

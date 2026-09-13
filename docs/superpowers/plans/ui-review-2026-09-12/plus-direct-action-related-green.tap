@@ -1,0 +1,62 @@
+TAP version 13
+# API 24 HdsTabs contracts passed
+# Subtest: entry\\src\\test\\Api24HdsTabsContracts.test.cjs
+ok 1 - entry\\src\\test\\Api24HdsTabsContracts.test.cjs
+  ---
+  duration_ms: 101.26
+  type: 'test'
+  ...
+# Dark mode contracts passed
+# Subtest: entry\\src\\test\\DarkModeContracts.test.cjs
+ok 2 - entry\\src\\test\\DarkModeContracts.test.cjs
+  ---
+  duration_ms: 78.7539
+  type: 'test'
+  ...
+# Subtest: home keeps one import entry and names every shortcut for its real destination
+ok 3 - home keeps one import entry and names every shortcut for its real destination
+  ---
+  duration_ms: 1.8256
+  type: 'test'
+  ...
+# Subtest: recent summaries expose one list-level action and rows no longer pretend to deep-link
+ok 4 - recent summaries expose one list-level action and rows no longer pretend to deep-link
+  ---
+  duration_ms: 0.5801
+  type: 'test'
+  ...
+# Subtest: home shortcuts and primary review meet touch size and large-text layout contracts
+ok 5 - home shortcuts and primary review meet touch size and large-text layout contracts
+  ---
+  duration_ms: 1.6986
+  type: 'test'
+  ...
+# Subtest: HdsTabs action-slot mapping and guarded navigation remain intact
+ok 6 - HdsTabs action-slot mapping and guarded navigation remain intact
+  ---
+  duration_ms: 0.3663
+  type: 'test'
+  ...
+# Main navigation contracts passed
+# Subtest: entry\\src\\test\\MainNavigationContracts.test.cjs
+ok 4 - entry\\src\\test\\MainNavigationContracts.test.cjs
+  ---
+  duration_ms: 65.7369
+  type: 'test'
+  ...
+# Native navigation contracts passed
+# Subtest: entry\\src\\test\\NativeNavigationContracts.test.cjs
+ok 5 - entry\\src\\test\\NativeNavigationContracts.test.cjs
+  ---
+  duration_ms: 110.2875
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 155.7064

@@ -1,0 +1,232 @@
+TAP version 13
+# Auth session contracts passed
+# Subtest: entry\\src\\test\\AuthSessionContracts.test.cjs
+ok 1 - entry\\src\\test\\AuthSessionContracts.test.cjs
+  ---
+  duration_ms: 97.6469
+  type: 'test'
+  ...
+# Dark mode contracts passed
+# Subtest: entry\\src\\test\\DarkModeContracts.test.cjs
+ok 2 - entry\\src\\test\\DarkModeContracts.test.cjs
+  ---
+  duration_ms: 135.7032
+  type: 'test'
+  ...
+# Editorial UI contracts passed
+# Subtest: entry\\src\\test\\EditorialUiContracts.test.cjs
+ok 3 - entry\\src\\test\\EditorialUiContracts.test.cjs
+  ---
+  duration_ms: 80.008
+  type: 'test'
+  ...
+# Huawei login contracts passed
+# Subtest: entry\\src\\test\\HuaweiLoginContracts.test.cjs
+ok 4 - entry\\src\\test\\HuaweiLoginContracts.test.cjs
+  ---
+  duration_ms: 72.0846
+  type: 'test'
+  ...
+# Subtest: migration model covers the five stages with strict ArkTS types
+ok 5 - migration model covers the five stages with strict ArkTS types
+  ---
+  duration_ms: 1.505
+  type: 'test'
+  ...
+# Subtest: MigrationPolicy binds accounts and retires only on all three conditions
+ok 6 - MigrationPolicy binds accounts and retires only on all three conditions
+  ---
+  duration_ms: 1.3242
+  type: 'test'
+  ...
+# Subtest: text normalization is deterministic, UUID ordered, and server-trim aware
+ok 7 - text normalization is deterministic, UUID ordered, and server-trim aware
+  ---
+  duration_ms: 0.5453
+  type: 'test'
+  ...
+# Subtest: migration state lives outside sync_outbox and never writes it
+ok 8 - migration state lives outside sync_outbox and never writes it
+  ---
+  duration_ms: 0.6534
+  type: 'test'
+  ...
+# Subtest: legacy scan excludes sample data and reads stable identities
+ok 9 - legacy scan excludes sample data and reads stable identities
+  ---
+  duration_ms: 0.8353
+  type: 'test'
+  ...
+# Subtest: upload reuses the server sync API with stable UUIDs in bounded batches
+ok 10 - upload reuses the server sync API with stable UUIDs in bounded batches
+  ---
+  duration_ms: 0.4175
+  type: 'test'
+  ...
+# Subtest: server ACK is required before the verifying stage
+ok 11 - server ACK is required before the verifying stage
+  ---
+  duration_ms: 1.1918
+  type: 'test'
+  ...
+# Subtest: verification pulls the authoritative snapshot and fails on count mismatch
+ok 12 - verification pulls the authoritative snapshot and fails on count mismatch
+  ---
+  duration_ms: 0.4695
+  type: 'test'
+  ...
+# Subtest: SHA-256 digest mismatch blocks cacheVerified and completion
+ok 13 - SHA-256 digest mismatch blocks cacheVerified and completion
+  ---
+  duration_ms: 0.3
+  type: 'test'
+  ...
+# Subtest: cloud cache is written only after every bank verified
+ok 14 - cloud cache is written only after every bank verified
+  ---
+  duration_ms: 0.4011
+  type: 'test'
+  ...
+# Subtest: completion requires all three conditions and never deletes legacy data
+ok 15 - completion requires all three conditions and never deletes legacy data
+  ---
+  duration_ms: 0.3821
+  type: 'test'
+  ...
+# Subtest: image rebinding keeps device images private and preserves the originals
+ok 16 - image rebinding keeps device images private and preserves the originals
+  ---
+  duration_ms: 0.4077
+  type: 'test'
+  ...
+# Subtest: failure states allow retry and resume from acknowledged banks
+ok 17 - failure states allow retry and resume from acknowledged banks
+  ---
+  duration_ms: 0.5245
+  type: 'test'
+  ...
+# Subtest: legacy OCR and PDF fallback services are retired and unreferenced by migration
+ok 18 - legacy OCR and PDF fallback services are retired and unreferenced by migration
+  ---
+  duration_ms: 0.4391
+  type: 'test'
+  ...
+# Subtest: bootstrap restores migration state without auto claiming an account
+ok 19 - bootstrap restores migration state without auto claiming an account
+  ---
+  duration_ms: 0.9165
+  type: 'test'
+  ...
+# Subtest: migration card shows all five states, counts, and a retry action
+ok 20 - migration card shows all five states, counts, and a retry action
+  ---
+  duration_ms: 0.4744
+  type: 'test'
+  ...
+# Subtest: mine page requires login and explicit confirmation before migrating
+ok 21 - mine page requires login and explicit confirmation before migrating
+  ---
+  duration_ms: 0.4456
+  type: 'test'
+  ...
+# Subtest: ConnectivityPolicy allows mutation only when signed in and online
+ok 22 - ConnectivityPolicy allows mutation only when signed in and online
+  ---
+  duration_ms: 1.5258
+  type: 'test'
+  ...
+# Subtest: every data page shows the offline read-only state and uses the cloud repository
+ok 23 - every data page shows the offline read-only state and uses the cloud repository
+  ---
+  duration_ms: 2.0887
+  type: 'test'
+  ...
+# Subtest: pages never call the old local-first mutation services
+ok 24 - pages never call the old local-first mutation services
+  ---
+  duration_ms: 1.6265
+  type: 'test'
+  ...
+# Subtest: mutation buttons are disabled or guarded when offline or signed out
+ok 25 - mutation buttons are disabled or guarded when offline or signed out
+  ---
+  duration_ms: 1.5733
+  type: 'test'
+  ...
+# Subtest: CloudQuestionRepository exposes the required server-first API
+ok 26 - CloudQuestionRepository exposes the required server-first API
+  ---
+  duration_ms: 0.4753
+  type: 'test'
+  ...
+# Subtest: mutation order is server request then server success then cache update
+ok 27 - mutation order is server request then server success then cache update
+  ---
+  duration_ms: 0.4508
+  type: 'test'
+  ...
+# Subtest: refresh failure preserves the existing cloud cache
+ok 28 - refresh failure preserves the existing cloud cache
+  ---
+  duration_ms: 0.3693
+  type: 'test'
+  ...
+# Subtest: mutation success reflects in cache before the page refreshes
+ok 29 - mutation success reflects in cache before the page refreshes
+  ---
+  duration_ms: 0.3046
+  type: 'test'
+  ...
+# Task 7 page contracts passed
+# Subtest: entry\\src\\test\\Task7PageContracts.test.cjs
+ok 7 - entry\\src\\test\\Task7PageContracts.test.cjs
+  ---
+  duration_ms: 68.1595
+  type: 'test'
+  ...
+# Task 8 page contracts passed
+# Subtest: entry\\src\\test\\Task8PageContracts.test.cjs
+ok 8 - entry\\src\\test\\Task8PageContracts.test.cjs
+  ---
+  duration_ms: 66.1574
+  type: 'test'
+  ...
+# Subtest: wrong-question subject filters provide a readable 48vp selected control
+ok 32 - wrong-question subject filters provide a readable 48vp selected control
+  ---
+  duration_ms: 1.2838
+  type: 'test'
+  ...
+# Subtest: shared empty state supports page and embedded layouts without a fixed wrong-page box
+ok 33 - shared empty state supports page and embedded layouts without a fixed wrong-page box
+  ---
+  duration_ms: 0.4077
+  type: 'test'
+  ...
+# Subtest: wrong-question and mine feeds include the live left and right safe-area insets
+ok 34 - wrong-question and mine feeds include the live left and right safe-area insets
+  ---
+  duration_ms: 1.0708
+  type: 'test'
+  ...
+# Subtest: mine separates ordinary settings from the confirmed destructive action
+ok 35 - mine separates ordinary settings from the confirmed destructive action
+  ---
+  duration_ms: 0.3576
+  type: 'test'
+  ...
+# Subtest: account and migration actions meet the 48vp touch-target floor
+ok 36 - account and migration actions meet the 48vp touch-target floor
+  ---
+  duration_ms: 0.5917
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.8155

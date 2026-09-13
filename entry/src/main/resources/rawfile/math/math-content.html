@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none'; img-src data:">
+  <link rel="stylesheet" href="./katex.min.css">
+  <style>
+    html,
+    body {
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    #math-root {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+      min-height: 1px;
+      margin: 0;
+      padding: 0;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overflow-wrap: break-word;
+    }
+
+    .katex-display {
+      max-width: 100%;
+      margin: 0.35em 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+  </style>
+  <script defer src="./katex.min.js"></script>
+  <script defer src="./auto-render.min.js"></script>
+</head>
+<body>
+  <div id="math-root"></div>
+  <script>
+    (function () {
+      'use strict';
+
+      var resizeObserver = null;
+      var lastReportedHeight = 0;
+      var activeGeneration = -1;
+      var pendingFrame = 0;
+
+      var delimiters = [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$', right: '$', display: false }
+      ];
+
+      function isEscaped(content, index) {
+        var slashCount = 0;
+        var cursor = index - 1;
+        while (cursor >= 0 && content.charAt(cursor) === '\\') {
+          slashCount += 1;
+          cursor -= 1;
+        }
+        return slashCount % 2 === 1;
+      }
+
+      function startsAt(content, token, index) {
+        return index >= 0 && index + token.length <= content.length &&
+          content.substring(index, index + token.length) === token;
+      }
+
+      function findClosingDelimiter(content, closing, start) {
+        var index = content.indexOf(closing, start);
+        while (index >= 0) {
+          if (!isEscaped(content, index) && (closing !== '$' ||
+            (content.charAt(index - 1) !== '$' && content.charAt(index + 1) !== '$'))) {
+            return index;
+          }
+          index = content.indexOf(closing, index + closing.length);
+        }
+        return -1;
+      }
+
+      function isDigit(value) {
+        return value >= '0' && value <= '9';
+      }
+
+      function countUnescapedSingleDollars(content, start) {
+        var count = 0;
+        for (var index = start; index < content.length; index += 1) {
+          if (content.charAt(index) === '$' && !isEscaped(content, index) &&
+            content.charAt(index - 1) !== '$' && content.charAt(index + 1) !== '$') {
+            count += 1;
+          }
+        }
+        return count;
+      }
+
+      function isWhitespace(value) {
+        return value === ' ' || value === '\t' || value === '\r' || value === '\n';
+      }
+
+      function currencyAmountEnd(content, start) {
+        var index = start;
+        while (index < content.length) {
+          var value = content.charAt(index);
+          if (isDigit(value)) {
+            index += 1;
+          } else if ((value === '.' || value === ',') && isDigit(content.charAt(index + 1))) {
+            index += 1;
+          } else {
+            break;
+          }
+        }
+        return index;
+      }
+
+      function isCurrencyBoundary(value) {
+        return value.length === 0 || isWhitespace(value) || value === ',' || value === '.' ||
+          value === ';' || value === ':' || value === '，' || value === '。' || value === '；' ||
+          value === '：' || value === '！' || value === '？' || value === '、';
+      }
+
+      function isLikelyFormulaFragment(content) {
+        var fragment = content.trim();
+        if (fragment.length === 0) {
+          return false;
+        }
+        var signals = '\\^_=+-*/()[]{}!';
+        for (var index = 0; index < fragment.length; index += 1) {
+          if (signals.indexOf(fragment.charAt(index)) >= 0) {
+            return true;
+          }
+        }
+        if (fragment.length === 1) {
+          return (fragment >= 'A' && fragment <= 'Z') || (fragment >= 'a' && fragment <= 'z') ||
+            isDigit(fragment);
+        }
+        return isDigit(fragment.charAt(0)) && !/\s/.test(fragment);
+      }
+
+      function isLikelyCurrencyRange(content, openingIndex, closingIndex) {
+        if (!isDigit(content.charAt(openingIndex + 1))) {
+          return false;
+        }
+        if (isDigit(content.charAt(closingIndex + 1))) {
+          return true;
+        }
+        var amountEnd = currencyAmountEnd(content, openingIndex + 1);
+        if (amountEnd >= closingIndex || !isCurrencyBoundary(content.charAt(amountEnd))) {
+          return false;
+        }
+        if (countUnescapedSingleDollars(content, openingIndex + 1) < 2) {
+          return false;
+        }
+        if (!isCurrencyBoundary(content.charAt(closingIndex + 1))) {
+          return true;
+        }
+        var nextDollar = findClosingDelimiter(content, '$', closingIndex + 1);
+        return nextDollar > closingIndex &&
+          isLikelyFormulaFragment(content.substring(closingIndex + 1, nextDollar));
+      }
+
+      function analyzeDelimiters(content) {
+        var analysis = { ranges: [], malformed: false, requiresCustomRender: false };
+        var index = 0;
+        while (index < content.length) {
+          if (isEscaped(content, index)) {
+            if (content.charAt(index) === '$') {
+              analysis.requiresCustomRender = true;
+            }
+            index += 1;
+            continue;
+          }
+          var opening = '';
+          var closing = '';
+          var display = false;
+          if (startsAt(content, '$$', index)) {
+            opening = '$$';
+            closing = '$$';
+            display = true;
+          } else if (startsAt(content, '\\[', index)) {
+            opening = '\\[';
+            closing = '\\]';
+            display = true;
+          } else if (startsAt(content, '\\(', index)) {
+            opening = '\\(';
+            closing = '\\)';
+          } else if (content.charAt(index) === '$' &&
+            content.charAt(index - 1) !== '$' && content.charAt(index + 1) !== '$') {
+            opening = '$';
+            closing = '$';
+          }
+          if (opening.length === 0) {
+            index += 1;
+            continue;
+          }
+          var closingIndex = findClosingDelimiter(content, closing, index + opening.length);
+          if (closingIndex <= index + opening.length) {
+            if (opening === '$' && isDigit(content.charAt(index + 1))) {
+              analysis.requiresCustomRender = true;
+              index += 1;
+              continue;
+            }
+            analysis.malformed = true;
+            return analysis;
+          }
+          if (opening === '$' && isLikelyCurrencyRange(content, index, closingIndex)) {
+            analysis.requiresCustomRender = true;
+            index += 1;
+            continue;
+          }
+          analysis.ranges.push({
+            openingStart: index,
+            openingLength: opening.length,
+            closingStart: closingIndex,
+            closingLength: closing.length,
+            display: display
+          });
+          index = closingIndex + closing.length;
+        }
+        return analysis;
+      }
+
+      function positiveNumber(value, fallback) {
+        var parsed = Number(value);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+      }
+
+      function applyStyles(root) {
+        root.style.fontSize = positiveNumber(window.mathBridge.getFontSize(), 16) + 'px';
+        root.style.fontWeight = String(positiveNumber(window.mathBridge.getFontWeight(), 400));
+        root.style.color = String(window.mathBridge.getTextColor());
+        root.style.lineHeight = positiveNumber(window.mathBridge.getLineHeight(), 24) + 'px';
+      }
+
+      function reportHeight(root, generation) {
+        if (generation !== activeGeneration) {
+          return;
+        }
+        var height = Math.max(Math.ceil(root.getBoundingClientRect().height), root.scrollHeight, 1);
+        if (height !== lastReportedHeight) {
+          lastReportedHeight = height;
+          window.mathBridge.reportSuccess(generation, height);
+        }
+      }
+
+      function reportFailure(generation) {
+        if (generation === activeGeneration) {
+          window.mathBridge.reportFailure(generation);
+        }
+      }
+
+      function observeHeight(root, generation) {
+        if (resizeObserver !== null) {
+          resizeObserver.disconnect();
+        }
+        resizeObserver = new ResizeObserver(function () {
+          reportHeight(root, generation);
+        });
+        resizeObserver.observe(root);
+      }
+
+      function katexOptions(displayMode) {
+        return {
+          throwOnError: true,
+          trust: false,
+          strict: 'error',
+          output: 'htmlAndMathml',
+          maxSize: 50,
+          maxExpand: 1000,
+          displayMode: displayMode
+        };
+      }
+
+      function renderParsedContent(root, content, ranges) {
+        root.textContent = '';
+        var cursor = 0;
+        for (var index = 0; index < ranges.length; index += 1) {
+          var range = ranges[index];
+          root.appendChild(document.createTextNode(content.substring(cursor, range.openingStart)));
+          var target = document.createElement(range.display ? 'div' : 'span');
+          katex.render(
+            content.substring(range.openingStart + range.openingLength, range.closingStart),
+            target,
+            katexOptions(range.display)
+          );
+          root.appendChild(target);
+          cursor = range.closingStart + range.closingLength;
+        }
+        root.appendChild(document.createTextNode(content.substring(cursor)));
+      }
+
+      window.renderMathContent = function () {
+        var root = document.getElementById('math-root');
+        var content = String(window.mathBridge.getContent());
+        var generation = Number(window.mathBridge.getGeneration());
+        activeGeneration = generation;
+        lastReportedHeight = 0;
+        if (resizeObserver !== null) {
+          resizeObserver.disconnect();
+          resizeObserver = null;
+        }
+        if (pendingFrame !== 0) {
+          window.cancelAnimationFrame(pendingFrame);
+          pendingFrame = 0;
+        }
+        root.textContent = content;
+        applyStyles(root);
+
+        var options = katexOptions(false);
+
+        try {
+          var analysis = analyzeDelimiters(content);
+          if (analysis.malformed) {
+            throw new Error('Malformed math delimiter');
+          }
+          if (analysis.ranges.length > 0 && analysis.requiresCustomRender) {
+            renderParsedContent(root, content, analysis.ranges);
+          } else if (analysis.ranges.length > 0) {
+            var renderFailed = false;
+            renderMathInElement(root, {
+              delimiters: delimiters,
+              throwOnError: options.throwOnError,
+              trust: options.trust,
+              strict: options.strict,
+              output: options.output,
+              maxSize: options.maxSize,
+              maxExpand: options.maxExpand,
+              errorCallback: function () {
+                renderFailed = true;
+              }
+            });
+            if (renderFailed) {
+              throw new Error('KaTeX auto-render failed');
+            }
+            if (root.querySelectorAll('.katex').length < analysis.ranges.length) {
+              throw new Error('KaTeX did not render every formula');
+            }
+          } else if (analysis.requiresCustomRender) {
+            throw new Error('Ambiguous dollar usage');
+          } else {
+            katex.render(content, root, options);
+          }
+
+          observeHeight(root, generation);
+          reportHeight(root, generation);
+          pendingFrame = window.requestAnimationFrame(function () {
+            pendingFrame = 0;
+            reportHeight(root, generation);
+          });
+          if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(function () {
+              reportHeight(root, generation);
+            }).catch(function () {
+              reportFailure(generation);
+            });
+          }
+        } catch (error) {
+          if (generation === activeGeneration) {
+            root.textContent = content;
+            reportFailure(generation);
+          }
+        }
+      };
+
+      window.addEventListener('load', function () {
+        window.renderMathContent();
+      });
+    }());
+  </script>
+</body>
+</html>

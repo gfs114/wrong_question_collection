@@ -1,0 +1,103 @@
+TAP version 13
+# Subtest: home keeps one import entry and names every shortcut for its real destination
+ok 1 - home keeps one import entry and names every shortcut for its real destination
+  ---
+  duration_ms: 1.2759
+  type: 'test'
+  ...
+# Subtest: recent summaries expose one list-level action and rows no longer pretend to deep-link
+ok 2 - recent summaries expose one list-level action and rows no longer pretend to deep-link
+  ---
+  duration_ms: 0.4393
+  type: 'test'
+  ...
+# Subtest: home shortcuts and primary review meet touch size and large-text layout contracts
+not ok 3 - home shortcuts and primary review meet touch size and large-text layout contracts
+  ---
+  duration_ms: 1.5734
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\HomeUiFollowupContracts.test.cjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /\.onClick\(\(\) => \{\s*this\.openImportPage\(\)\s*\}\)/. Input:
+    
+    'private TabBarImportAction() {\n' +
+      '    Column() {\n' +
+      '      Stack() {\n' +
+      '        Column()\n' +
+      '          .width(48)\n' +
+      '          .height(48)\n' +
+      '          .backgroundColor(this.colors().brand)\n' +
+      '          .borderRadius(24)\n' +
+      '\n' +
+      "        SymbolGlyph($r('sys.symbol.plus'))\n" +
+      '          .fontSize(20)\n' +
+      '          .fontWeight(FontWeight.Bold)\n' +
+      '          .fontColor([this.colors().onBrand])\n' +
+      '      }\n' +
+      '      .width(48)\n' +
+      '      .height(48)\n' +
+      '    }\n' +
+      "    .width('100%')\n" +
+      "    .height('100%')\n" +
+      '    .justifyContent(FlexAlign.Center)\n' +
+      "    .accessibilityText('导入题库')\n" +
+      '  }\n' +
+      '\n' +
+      '  @Builder\n' +
+      '  '
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    private TabBarImportAction() {
+        Column() {
+          Stack() {
+            Column()
+              .width(48)
+              .height(48)
+              .backgroundColor(this.colors().brand)
+              .borderRadius(24)
+    
+            SymbolGlyph($r('sys.symbol.plus'))
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .fontColor([this.colors().onBrand])
+          }
+          .width(48)
+          .height(48)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+        .accessibilityText('导入题库')
+      }
+    
+      @Builder
+      
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\HomeUiFollowupContracts.test.cjs:71:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: HdsTabs action-slot mapping and guarded navigation remain intact
+ok 4 - HdsTabs action-slot mapping and guarded navigation remain intact
+  ---
+  duration_ms: 0.2756
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 75.9421

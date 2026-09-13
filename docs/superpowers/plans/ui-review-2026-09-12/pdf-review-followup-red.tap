@@ -1,0 +1,62 @@
+(node:47112) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ primary and selected controls use readable light and dark color pairs (36.1944ms)
+✔ import leads with PDF and keeps JSON format and mutually exclusive handlers (0.9449ms)
+✔ JSON format guidance is collapsed by default behind one accessible disclosure (0.3871ms)
+✔ settings group Model with service and expose status outside the scrolling form (0.2803ms)
+✔ three page shells consume four insets and constrain readable content and touch targets (1.8606ms)
+✔ picker clears both filters, restores actual catalog and still selects only the platform id (13.3752ms)
+✔ AI PDF setup presents one responsive configuration flow with persistent feedback and actions (1.0224ms)
+✔ AI PDF progress presents a focused responsive stage with persistent recovery actions (0.8176ms)
+✔ short AI PDF setup content starts at the top of the available pane (0.5746ms)
+✔ AI PDF progress keeps the tablet task and recovery actions in one focused workspace (0.686ms)
+✔ AI PDF progress applies safe areas to the navigation shell so its title clears the status bar (0.5808ms)
+✔ PDF review uses native navigation and responsive evidence editing with one recovery path (0.6587ms)
+✖ PDF review applies safe areas to the navigation shell so its title clears the status bar (1.305ms)
+✖ PDF review keeps failed pages compact and separates them from recognized questions (0.4786ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 12
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.8393
+
+✖ failing tests:
+
+test at entry\src\test\UiRemediationContracts.test.cjs:284:1
+✖ PDF review applies safe areas to the navigation shell so its title clears the status bar (1.305ms)
+  AssertionError [ERR_ASSERTION]: review: content padding cannot move the native navigation title
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:290:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: "  build() {\n    Navigation() {\n      Column() {\n        this.ReviewContent()\n        this.StatusNotices()\n        this.BottomAction()\n      }\n      .width('100%')\n      .height('100%')\n      .backgroundColor(this.colors().pageBackground)\n      .padding({\n        top: SafeAreaUtils.top(this.safeAreaInsets),\n        bottom: SafeAreaUtils.bottom(this.safeAreaInsets),\n        left: SafeAreaUtils.left(this.safeAreaInsets),\n        right: SafeAreaUtils.right(this.safeAreaInsets)\n      })\n    }\n",
+    expected: /SafeAreaUtils\./,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at entry\src\test\UiRemediationContracts.test.cjs:297:1
+✖ PDF review keeps failed pages compact and separates them from recognized questions (0.4786ms)
+  AssertionError [ERR_ASSERTION]: review: expanded failures should put the page thumbnail beside the actions
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:307:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: "  private FailureCard(failure: PdfReviewFailure): void {\n    Column({ space: 14 }) {\n      Text('第 ' + failure.pageNumber.toString() + ' 页识别未完成')\n        .width('100%')\n        .fontSize(SUBTITLE_FONT_SIZE)\n        .fontWeight(FontWeight.Bold)\n        .fontColor(UiStyle.errorText(this.darkMode))\n      Text(AiImportErrorMessages.forCode(failure.code))\n        .width('100%')\n        .fontSize(BODY_FONT_SIZE)\n        .fontColor(this.colors().textSecondary)\n      if (failure.evidencePath.length > 0) {\n        Image('file://' + failure.evidencePath)\n          .width('100%')\n          .height(this.windowSizeClass === WindowSizeClass.EXPANDED ? 300 : 220)\n          .objectFit(ImageFit.Contain)\n          .backgroundColor(this.colors().inputBackground)\n          .border({ width: 1, color: this.colors().divider })\n          .borderRadius(UiStyle.CONTROL_RADIUS)\n          .accessibilityText('第 ' + failure.pageNumber.toString() + ' 页原图')\n      }\n      this.FailureActions(failure)\n    }\n    .width('100%')\n    .alignItems(HorizontalAlign.Start)\n    .padding(18)\n    .backgroundColor(this.colors().cardBackground)\n    .border({ width: 1, color: UiStyle.errorText(this.darkMode) })\n    .borderRadius(CARD_RADIUS)\n  }\n\n",
+    expected: /if \(this\.windowSizeClass === WindowSizeClass\.EXPANDED && failure\.evidencePath\.length > 0\) \{\s*Row\(\{ space: 18 \}\)/,
+    operator: 'match',
+    diff: 'simple'
+  }

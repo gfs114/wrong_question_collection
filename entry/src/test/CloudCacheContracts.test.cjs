@@ -11,6 +11,32 @@ function read(relativePath) {
   return fs.readFileSync(filePath, 'utf8')
 }
 
+function extractMethod(source, signature) {
+  const start = source.indexOf(signature)
+  assert.notEqual(start, -1, 'missing method ' + signature)
+  const openingBrace = source.indexOf('{', start)
+  assert.notEqual(openingBrace, -1, 'missing method body ' + signature)
+  let depth = 0
+  for (let index = openingBrace; index < source.length; index++) {
+    if (source[index] === '{') {
+      depth += 1
+    } else if (source[index] === '}') {
+      depth -= 1
+      if (depth === 0) return source.slice(start, index + 1)
+    }
+  }
+  assert.fail('unterminated method ' + signature)
+}
+
+function assertOrdered(source, fragments) {
+  let prior = -1
+  for (const fragment of fragments) {
+    const current = source.indexOf(fragment, prior + 1)
+    assert.notEqual(current, -1, 'missing fragment ' + fragment)
+    prior = current
+  }
+}
+
 function tableDefinition(source, tableName) {
   const marker = `CREATE TABLE IF NOT EXISTS ${tableName} (`
   const start = source.indexOf(marker)
@@ -143,10 +169,14 @@ test('device image mappings require matching account and question ownership', ()
 test('logout removes only current account text cache and retains device images', () => {
   const session = read('services/AccountSessionService.ets')
   const cache = read('services/CloudCacheService.ets')
+  const signOut = extractMethod(session, 'static async signOut')
+  const signOutExclusive = extractMethod(session, 'private static async performSignOutExclusive')
 
-  assert.match(session, /const session:\s*AccountSessionState = await AccountSessionService\.state\(context\)/)
+  assert.match(signOutExclusive,
+    /const session:\s*AccountSessionState = await AccountSessionService\.state\(context\)/)
   assert.match(session, /private static signingOut:\s*boolean = false/)
-  assert.match(session, /AccountSessionService\.signingOut = true[\s\S]*const session:\s*AccountSessionState = await AccountSessionService\.state\(context\)[\s\S]*const activeRefresh:\s*Promise<string> \| null = AccountSessionService\.refreshInFlight[\s\S]*await activeRefresh/)
+  assert.match(signOut,
+    /AccountSessionService\.signingOut = true[\s\S]*const activeRefresh:\s*Promise<string> \| null = AccountSessionService\.refreshInFlight[\s\S]*await activeRefresh[\s\S]*runAccountExclusive/)
   assert.match(session, /static async refresh[\s\S]*if \(AccountSessionService\.signingOut\)[\s\S]*return ''/)
   assert.match(session, /err\.statusCode === 401[\s\S]*if \(!AccountSessionService\.signingOut\)[\s\S]*clearMetadata\(context\)/)
   assert.match(session, /finally \{[\s\S]*AccountSessionService\.signingOut = false/)
@@ -159,4 +189,115 @@ test('logout removes only current account text cache and retains device images',
   assert.match(cache, /DELETE FROM cloud_wrong_cache WHERE account_id = \?/)
   assert.match(cache, /DELETE FROM cloud_cache_state WHERE account_id = \?/)
   assert.doesNotMatch(cache, /DELETE FROM device_question_image/)
+})
+
+test('AI import can persist validated stable bank and question UUIDs', () => {
+  const source = read('services/CloudQuestionRepository.ets')
+  const account = read('services/AccountSessionService.ets')
+  const payloadFactory = read('services/SyncPayloadFactory.ets')
+  const legacy = extractMethod(source, 'static async createBank(')
+  const withIds = extractMethod(source, 'static async createBankWithIds')
+  const questionPayload = extractMethod(payloadFactory, 'static questionFieldsPayload')
+
+  assert.match(legacy, /createBankWithIds/)
+  assert.match(withIds, /snapshotBank\.id/)
+  assert.match(withIds, /question\.id/)
+  assert.match(withIds, /SyncEntityType\.QUESTION_BANK/)
+  assert.match(withIds, /SyncEntityType\.QUESTION/)
+  assert.match(withIds, /pushOperations/)
+  assert.doesNotMatch(withIds, /entityId.*generateRandomUUID/)
+  assert.doesNotMatch(withIds,
+    /localPath|pdfPath|imagePath|sha256|bbox|provider|credential|authorization/i)
+  assert.ok(withIds.indexOf('snapshotBank(bank)') < withIds.indexOf('await'),
+    'all entity UUIDs must be snapshotted and validated before authentication or outbound work')
+  assert.match(withIds, /expectedAccountId:\s*string/)
+  assert.match(withIds, /snapshotBank/)
+  assert.match(withIds, /pushOperationsForAccount\(context, expectedAccountId/)
+  assert.match(withIds, /requireAccount\(context, expectedAccountId\)/)
+  assert.match(account, /static async accessTokenForAccount\(context:\s*Context,\s*expectedAccountId:\s*string\)/)
+  assert.match(account,
+    /accessTokenForAccount[\s\S]*requireAccount\(context, expectedAccountId\)[\s\S]*accessToken\(context\)[\s\S]*requireAccount\(context, expectedAccountId\)/)
+  for (const field of ['bankClientId', 'type', 'question', 'options', 'answer', 'analysis']) {
+    assert.match(questionPayload, new RegExp(`['"]${field}['"]`), `sync payload must retain ${field}`)
+  }
+  assert.doesNotMatch(questionPayload,
+    /localPath|pdfPath|imagePath|imageBytes|sha256|bbox|provider|credential|authorization|api[_ -]?key|baseUrl/i)
+})
+
+test('AI bank batches stay pinned to one expected account across every response', () => {
+  const source = read('services/CloudQuestionRepository.ets')
+  const push = extractMethod(source, 'private static async pushOperationsForAccount')
+  const authorized = extractMethod(source, 'private static async authorizedPushForAccount')
+
+  assert.match(push, /while \(offset < operations\.length\)/)
+  assert.match(push, /authorizedPushForAccount[\s\S]*expectedAccountId/)
+  assert.match(authorized, /accessTokenForAccount\(context, expectedAccountId\)/)
+  assert.match(authorized,
+    /ApiHttpClient\.authorizedPost[\s\S]*requireAccount\(context, expectedAccountId\)/)
+  assert.match(authorized, /refreshForAccount\(context, expectedAccountId\)/)
+})
+
+test('sign out is gated before joining the serialized account mutation lane', () => {
+  const source = read('services/AccountSessionService.ets')
+  const installLogin = extractMethod(source, 'static async installLogin')
+  const signOut = extractMethod(source, 'static async signOut')
+  const exclusive = extractMethod(source, 'private static async performSignOutExclusive')
+
+  assert.match(installLogin, /if \(AccountSessionService\.signingOut\)/)
+  assert.match(installLogin, /runAccountExclusive/)
+  assert.ok(signOut.indexOf('signingOut = true') < signOut.indexOf('runAccountExclusive'),
+    'new token reads must be gated before sign-out waits for the account lock')
+  assert.match(signOut, /refreshInFlight[\s\S]*await activeRefresh/)
+  assert.match(signOut, /runAccountExclusive/)
+  assert.match(exclusive, /AccountSessionStore\.clearSession/)
+  assert.match(exclusive, /clearMetadata\(context\)/)
+})
+
+test('AI bank cache apply is scoped under the serialized expected-account lane', () => {
+  const source = read('services/CloudQuestionRepository.ets')
+  const account = read('services/AccountSessionService.ets')
+  const withIds = extractMethod(source, 'static async createBankWithIds')
+  const localExclusive = extractMethod(account, 'static async runExpectedAccountLocalExclusive')
+
+  assert.match(withIds, /runExpectedAccountLocalExclusive\(context, expectedAccountId/)
+  assert.match(withIds,
+    /runExpectedAccountLocalExclusive[\s\S]*loadSnapshot\(expectedAccountId\)[\s\S]*applyOrdered\(expectedAccountId[\s\S]*saveSnapshot\(expectedAccountId/)
+  assert.doesNotMatch(withIds, /clearAccountTextCache/)
+  assert.match(localExclusive, /runAccountExclusive/)
+  assert.match(localExclusive, /AccountSessionService\.state\(context\)/)
+  assert.match(localExclusive, /current\.userId !== accountId/)
+  assert.doesNotMatch(localExclusive, /accessToken|refresh\(/)
+})
+
+test('device images validate a complete batch before one immediate transaction', () => {
+  const source = read('services/DeviceImageStore.ets')
+  const save = extractMethod(source, 'static async save(')
+  const batch = extractMethod(source, 'static async saveBatch')
+  const optionsStart = source.indexOf('const DEVICE_IMAGE_TRANSACTION_OPTIONS')
+  const optionsEnd = source.indexOf('export enum DeviceImageWriteOutcome', optionsStart)
+  const transactionOptions = source.slice(optionsStart, optionsEnd)
+
+  assert.match(save, /return DeviceImageStore\.saveBatch\(context, \[image\]\)/)
+  assert.match(transactionOptions,
+    /transactionType:\s*relationalStore\.TransactionType\.IMMEDIATE/)
+  assert.equal((batch.match(/createTransaction\(DEVICE_IMAGE_TRANSACTION_OPTIONS\)/g) || []).length, 1)
+  assert.ok(batch.indexOf('createTransaction(DEVICE_IMAGE_TRANSACTION_OPTIONS)') >
+    batch.indexOf('const store: relationalStore.RdbStore = DatabaseService.getStore()'))
+  assert.match(batch, /await transaction\.commit\(\)/)
+  assert.match(batch, /await transaction\.rollback\(\)/)
+  assert.match(batch, /duplicate/i)
+  assertOrdered(batch, [
+    'for (let index: number = 0; index < images.length; index++)',
+    'if (keys.has(key))',
+    'snapshotImages.push',
+    'const store: relationalStore.RdbStore = DatabaseService.getStore()',
+    'createTransaction(DEVICE_IMAGE_TRANSACTION_OPTIONS)'
+  ])
+  assert.match(batch, /primaryError/)
+  assert.match(batch, /rollbackError/)
+  assert.match(batch, /snapshotImages/)
+  assert.match(source, /export enum DeviceImageWriteOutcome/)
+  assert.match(source, /export class DeviceImageStoreError extends Error/)
+  assert.match(batch, /DeviceImageWriteOutcome\.UNKNOWN/)
+  assert.match(batch, /DeviceImageWriteOutcome\.ROLLED_BACK/)
 })

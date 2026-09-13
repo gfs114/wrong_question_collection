@@ -4,6 +4,7 @@ import { IdUtils } from '../main/ets/utils/IdUtils';
 import { JsonParser } from '../main/ets/utils/JsonParser';
 import { NavigationState } from '../main/ets/utils/NavigationState';
 import { Utf8Utils } from '../main/ets/utils/Utf8Utils';
+import { MathContentUtils } from '../main/ets/utils/MathContentUtils';
 import { PdfImportLimits } from '../main/ets/constants/PdfImportLimits';
 import { ImportErrorCode, ImportResult } from '../main/ets/models/ImportResult';
 import {
@@ -108,6 +109,80 @@ class JsonSamples {
 }
 
 export default function localUnitTest(): void {
+  describe('mathContentUtils', () => {
+    it('detects explicit math while keeping ordinary underscores native', 0, () => {
+      expect(MathContentUtils.containsMath('函数的定义域为实数集。')).assertFalse()
+      expect(MathContentUtils.containsMath('file_name')).assertFalse()
+      expect(MathContentUtils.containsMath('$x^2+y^2=1$')).assertTrue()
+      expect(MathContentUtils.containsMath('$$\\frac{x+1}{x-1}$$')).assertTrue()
+      expect(MathContentUtils.containsMath('\\(a_1+a_2\\)')).assertTrue()
+      expect(MathContentUtils.containsMath('\\[\\sqrt{x^2+1}\\]')).assertTrue()
+      expect(MathContentUtils.containsMath('\\frac{1}{2}')).assertTrue()
+      expect(MathContentUtils.containsMath('x^2')).assertTrue()
+      expect(MathContentUtils.containsMath('a_1')).assertTrue()
+      expect(MathContentUtils.containsMath('价格从 $5 降到 $4。')).assertFalse()
+      expect(MathContentUtils.containsMath('价格区间 $5-$10。')).assertFalse()
+      expect(MathContentUtils.containsMath('价格是 \\$5。')).assertFalse()
+      expect(MathContentUtils.containsMath('价格是 $5。')).assertFalse()
+      expect(MathContentUtils.containsMath('价格 $5，公式 $x^2$。')).assertTrue()
+      expect(MathContentUtils.containsMath('Price $5, solve $x^2$.')).assertTrue()
+      expect(MathContentUtils.containsMath('Price $5, solve $ x^2 $.')).assertTrue()
+      expect(MathContentUtils.containsMath('$5 + $x$')).assertTrue()
+      expect(MathContentUtils.containsMath('Area $2x$ costs $5.')).assertTrue()
+      expect(MathContentUtils.containsMath('Area $2 x$ costs $5.')).assertTrue()
+      expect(MathContentUtils.containsMath('Value $2 + 1$ costs $5.')).assertTrue()
+      expect(MathContentUtils.containsMath('Price $5, area $2x$, cost $10.')).assertTrue()
+      expect(MathContentUtils.containsMath('$2x$')).assertTrue()
+      expect(MathContentUtils.containsMath('$12cm$')).assertTrue()
+      expect(MathContentUtils.containsMath('$2x2$')).assertTrue()
+      expect(MathContentUtils.containsMath('$2n!$')).assertTrue()
+    })
+
+    it('creates readable list previews without changing stored input', 0, () => {
+      const source: string = '$x^2+y^2=1$'
+      expect(MathContentUtils.toPlainPreview(source)).assertEqual('x²+y²=1')
+      expect(source).assertEqual('$x^2+y^2=1$')
+      expect(MathContentUtils.toPlainPreview('$a_1+a_2+\\cdots+a_n$')).assertEqual('a₁+a₂+⋯+aₙ')
+      expect(MathContentUtils.toPlainPreview('$\\frac{x+1}{x-1}$')).assertEqual('(x+1)/(x-1)')
+      expect(MathContentUtils.toPlainPreview('$\\sqrt{x}$')).assertEqual('√x')
+      expect(MathContentUtils.toPlainPreview('$\\sqrt{x^2+1}$')).assertEqual('√(x²+1)')
+      expect(MathContentUtils.toPlainPreview('$\\alpha+\\beta=\\pi$')).assertEqual('α+β=π')
+      expect(MathContentUtils.toPlainPreview('$x\\le y, y\\ge 0, x\\neq y$')).assertEqual('x≤ y, y≥ 0, x≠ y')
+      expect(MathContentUtils.toPlainPreview('$a\\times b\\div c\\pm d$')).assertEqual('a× b÷ c± d')
+      expect(MathContentUtils.toPlainPreview('$\\int_0^1 x^2\\,dx$')).assertEqual('∫₀¹ x²dx')
+      expect(MathContentUtils.toPlainPreview('$\\sum_{i=1}^{n} i$')).assertEqual('∑_{i=1}ⁿ i')
+    })
+
+    it('preserves lines and special characters in previews', 0, () => {
+      const special: string = '第一行：< > & " \' \\\n第二行：$x^2$'
+      expect(MathContentUtils.toPlainPreview(special)).assertEqual('第一行：< > & " \' \\\n第二行：x²')
+      expect(MathContentUtils.toPlainPreview('价格是 $5，文件名 file_name。'))
+        .assertEqual('价格是 $5，文件名 file_name。')
+      expect(MathContentUtils.toPlainPreview('价格从 $5 降到 $4，文件名 file_name。'))
+        .assertEqual('价格从 $5 降到 $4，文件名 file_name。')
+      expect(MathContentUtils.toPlainPreview('价格区间 $5-$10。')).assertEqual('价格区间 $5-$10。')
+      expect(MathContentUtils.toPlainPreview('价格是 \\$5。')).assertEqual('价格是 \\$5。')
+      expect(MathContentUtils.toPlainPreview('价格 $5，公式 $x^2$，文件名 file_name。'))
+        .assertEqual('价格 $5，公式 x²，文件名 file_name。')
+      expect(MathContentUtils.toPlainPreview('Price $5, solve $x^2$.'))
+        .assertEqual('Price $5, solve x².')
+      expect(MathContentUtils.toPlainPreview('Price $5, solve $ x^2 $.'))
+        .assertEqual('Price $5, solve  x² .')
+      expect(MathContentUtils.toPlainPreview('$5 + $x$')).assertEqual('$5 + x')
+      expect(MathContentUtils.toPlainPreview('Area $2x$ costs $5.')).assertEqual('Area 2x costs $5.')
+      expect(MathContentUtils.toPlainPreview('Area $2 x$ costs $5.')).assertEqual('Area 2 x costs $5.')
+      expect(MathContentUtils.toPlainPreview('Value $2 + 1$ costs $5.')).assertEqual('Value 2 + 1 costs $5.')
+      expect(MathContentUtils.toPlainPreview('Price $5, area $2x$, cost $10.'))
+        .assertEqual('Price $5, area 2x, cost $10.')
+      expect(MathContentUtils.toPlainPreview('$2x$')).assertEqual('2x')
+      expect(MathContentUtils.toPlainPreview('$12cm$')).assertEqual('12cm')
+      expect(MathContentUtils.toPlainPreview('$2x2$')).assertEqual('2x2')
+      expect(MathContentUtils.toPlainPreview('$2n!$')).assertEqual('2n!')
+      expect(MathContentUtils.toPlainPreview('文件 file_name，分数 \\frac{1}{2}。'))
+        .assertEqual('文件 file_name，分数 (1)/(2)。')
+    })
+  })
+
   describe('legacyMigrationPolicy', () => {
     it('claims only an unclaimed or same-account migration', 0, () => {
       expect(MigrationPolicy.canClaim('', 'user-a')).assertTrue()

@@ -1,0 +1,412 @@
+TAP version 13
+# (node:57936) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: setup performs signed-in online PDF preflight and creates a cloud job
+ok 1 - setup performs signed-in online PDF preflight and creates a cloud job
+  ---
+  duration_ms: 1.7178
+  type: 'test'
+  ...
+# Subtest: progress resumes upload and polls cloud jobs with bounded backoff
+ok 2 - progress resumes upload and polls cloud jobs with bounded backoff
+  ---
+  duration_ms: 1.4172
+  type: 'test'
+  ...
+# Subtest: inactive progress page stops polling without cancelling the server job
+ok 3 - inactive progress page stops polling without cancelling the server job
+  ---
+  duration_ms: 1.2603
+  type: 'test'
+  ...
+# Subtest: cloud import status card exposes unified progress error and retry state
+ok 4 - cloud import status card exposes unified progress error and retry state
+  ---
+  duration_ms: 0.6076
+  type: 'test'
+  ...
+# Subtest: review reads and edits the server draft before confirmation
+ok 5 - review reads and edits the server draft before confirmation
+  ---
+  duration_ms: 0.8603
+  type: 'test'
+  ...
+# Subtest: review downloads verified artifacts before acknowledging only stored IDs
+ok 6 - review downloads verified artifacts before acknowledging only stored IDs
+  ---
+  duration_ms: 3.6249
+  type: 'test'
+  ...
+# Subtest: review keeps confirmed text when an artifact has expired
+ok 7 - review keeps confirmed text when an artifact has expired
+  ---
+  duration_ms: 1.6176
+  type: 'test'
+  ...
+# Subtest: explicit Cloud abandonment removes only its exact staged PDF before clearing state
+ok 8 - explicit Cloud abandonment removes only its exact staged PDF before clearing state
+  ---
+  duration_ms: 1.8173
+  type: 'test'
+  ...
+# Subtest: Cloud adapter preserves nullable protocol fields and makes independent round-trip copies
+ok 9 - Cloud adapter preserves nullable protocol fields and makes independent round-trip copies
+  ---
+  duration_ms: 72.5114
+  type: 'test'
+  ...
+# Subtest: Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering
+ok 10 - Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering
+  ---
+  duration_ms: 18.7527
+  type: 'test'
+  ...
+# Subtest: PDF import state retains cloud job metadata progress and review state
+ok 11 - PDF import state retains cloud job metadata progress and review state
+  ---
+  duration_ms: 1.1563
+  type: 'test'
+  ...
+# Subtest: import bank stages an AI PDF selection and opens only the AI setup page
+ok 12 - import bank stages an AI PDF selection and opens only the AI setup page
+  ---
+  duration_ms: 0.6723
+  type: 'test'
+  ...
+# (node:54268) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: current schema contains question image storage and durable cleanup debt
+ok 13 - current schema contains question image storage and durable cleanup debt
+  ---
+  duration_ms: 1.4183
+  type: 'test'
+  ...
+# Subtest: version one migration probes columns and conditionally repairs partial migrations
+ok 14 - version one migration probes columns and conditionally repairs partial migrations
+  ---
+  duration_ms: 1.1367
+  type: 'test'
+  ...
+# Subtest: import persistence snapshots inputs before awaiting and separates commit from object mutation
+ok 15 - import persistence snapshots inputs before awaiting and separates commit from object mutation
+  ---
+  duration_ms: 0.9597
+  type: 'test'
+  ...
+# Subtest: question image reads are ordered, mapped, and closed in method scope
+ok 16 - question image reads are ordered, mapped, and closed in method scope
+  ---
+  duration_ms: 0.5272
+  type: 'test'
+  ...
+# Subtest: update and delete methods keep their exact storage boundaries
+ok 17 - update and delete methods keep their exact storage boundaries
+  ---
+  duration_ms: 1.3337
+  type: 'test'
+  ...
+# Subtest: pdf selection stages one validated file through bounded streaming io
+ok 18 - pdf selection stages one validated file through bounded streaming io
+  ---
+  duration_ms: 0.8571
+  type: 'test'
+  ...
+# Subtest: temporary pdf cleanup requires exact staged ownership and unregisters only after safe outcomes
+ok 19 - temporary pdf cleanup requires exact staged ownership and unregisters only after safe outcomes
+  ---
+  duration_ms: 0.8893
+  type: 'test'
+  ...
+# Subtest: pdf selection serializes picker work and removes only direct unregistered stale cache files
+ok 20 - pdf selection serializes picker work and removes only direct unregistered stale cache files
+  ---
+  duration_ms: 1.3845
+  type: 'test'
+  ...
+# Subtest: question crop converts coordinates directly and owns every file and image resource
+ok 21 - question crop converts coordinates directly and owns every file and image resource
+  ---
+  duration_ms: 1.0907
+  type: 'test'
+  ...
+# Subtest: PDF import device pipeline stays offline even with app-level INTERNET permission
+ok 22 - PDF import device pipeline stays offline even with app-level INTERNET permission
+  ---
+  duration_ms: 0.7422
+  type: 'test'
+  ...
+# Subtest: device OCR and PDF coordinator services are retired after the cloud cutover
+ok 23 - device OCR and PDF coordinator services are retired after the cloud cutover
+  ---
+  duration_ms: 0.832
+  type: 'test'
+  ...
+# Subtest: PDF import routes keep rollback pages and register the formal AI flow
+ok 24 - PDF import routes keep rollback pages and register the formal AI flow
+  ---
+  duration_ms: 0.7098
+  type: 'test'
+  ...
+# Subtest: formal PDF selection enters only the client AI setup
+ok 25 - formal PDF selection enters only the client AI setup
+  ---
+  duration_ms: 0.5492
+  type: 'test'
+  ...
+# Subtest: formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path
+ok 26 - formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path
+  ---
+  duration_ms: 1.0086
+  type: 'test'
+  ...
+# Subtest: formal PDF selection preserves exactly one reachable owner across replacement and route failures
+ok 27 - formal PDF selection preserves exactly one reachable owner across replacement and route failures
+  ---
+  duration_ms: 54.1294
+  type: 'test'
+  ...
+# Subtest: PDF setup validates cloud metadata and page range before progress routing
+ok 28 - PDF setup validates cloud metadata and page range before progress routing
+  ---
+  duration_ms: 2.2263
+  type: 'test'
+  ...
+# Subtest: resource route registry contains each AI page exactly once
+ok 29 - resource route registry contains each AI page exactly once
+  ---
+  duration_ms: 0.6262
+  type: 'test'
+  ...
+# Subtest: import entry serializes JSON and AI PDF selection, blocks back, and grows errors
+ok 30 - import entry serializes JSON and AI PDF selection, blocks back, and grows errors
+  ---
+  duration_ms: 0.764
+  type: 'test'
+  ...
+# Subtest: question image cleanup debt is idempotent and retry retains only failed paths
+ok 31 - question image cleanup debt is idempotent and retry retains only failed paths
+  ---
+  duration_ms: 0.8967
+  type: 'test'
+  ...
+# Subtest: temporary PDF abandonment moves only exact active ownership to retryable orphan storage
+ok 32 - temporary PDF abandonment moves only exact active ownership to retryable orphan storage
+  ---
+  duration_ms: 0.6132
+  type: 'test'
+  ...
+# Subtest: failed candidate deletion atomically transfers exact ownership to orphan cleanup
+ok 33 - failed candidate deletion atomically transfers exact ownership to orphan cleanup
+  ---
+  duration_ms: 0.3938
+  type: 'test'
+  ...
+# Subtest: saveCrop registers only an owned temporary residue when immediate cleanup fails
+ok 34 - saveCrop registers only an owned temporary residue when immediate cleanup fails
+  ---
+  duration_ms: 0.7044
+  type: 'test'
+  ...
+# Subtest: question image debt retry shares one transition and recovers strict direct cache files after restart
+ok 35 - question image debt retry shares one transition and recovers strict direct cache files after restart
+  ---
+  duration_ms: 1.2592
+  type: 'test'
+  ...
+# Subtest: PDF stale cleanup isolates per-file failures so picker construction remains reachable
+ok 36 - PDF stale cleanup isolates per-file failures so picker construction remains reachable
+  ---
+  duration_ms: 2.1794
+  type: 'test'
+  ...
+# Subtest: savePdfBank keeps bank questions and images in one transaction without changing JSON import API
+ok 37 - savePdfBank keeps bank questions and images in one transaction without changing JSON import API
+  ---
+  duration_ms: 0.894
+  type: 'test'
+  ...
+# Subtest: committed PDF image rollback is path-owned idempotent and reports recoverable cleanup state
+ok 38 - committed PDF image rollback is path-owned idempotent and reports recoverable cleanup state
+  ---
+  duration_ms: 2.6898
+  type: 'test'
+  ...
+# Subtest: partial image commit rollback failure preserves structured recoverable ownership
+ok 39 - partial image commit rollback failure preserves structured recoverable ownership
+  ---
+  duration_ms: 1.5966
+  type: 'test'
+  ...
+# Subtest: uncertain PDF bank save exports exact three-state verification
+ok 40 - uncertain PDF bank save exports exact three-state verification
+  ---
+  duration_ms: 0.9259
+  type: 'test'
+  ...
+# Subtest: saved question source images render only when present and use stable image identifiers
+ok 41 - saved question source images render only when present and use stable image identifiers
+  ---
+  duration_ms: 0.564
+  type: 'test'
+  ...
+# Subtest: question detail reloads on page show, renders source before question content, and opens editing for selected question
+ok 42 - question detail reloads on page show, renders source before question content, and opens editing for selected question
+  ---
+  duration_ms: 0.7744
+  type: 'test'
+  ...
+# Subtest: question list cards show pending review only for questions that need review
+ok 43 - question list cards show pending review only for questions that need review
+  ---
+  duration_ms: 3.7858
+  type: 'test'
+  ...
+# Subtest: saved question editor clones all editable fields but preserves source image ownership
+ok 44 - saved question editor clones all editable fields but preserves source image ownership
+  ---
+  duration_ms: 0.8367
+  type: 'test'
+  ...
+# Subtest: bank deletion is server-first and refreshes the cache only after server success
+ok 45 - bank deletion is server-first and refreshes the cache only after server success
+  ---
+  duration_ms: 0.8454
+  type: 'test'
+  ...
+# Subtest: question list reloads the active query on page show and lazily renders a fully notified data source
+ok 46 - question list reloads the active query on page show and lazily renders a fully notified data source
+  ---
+  duration_ms: 1.7643
+  type: 'test'
+  ...
+# Subtest: list and search queries do not serially hydrate source images while detail still does
+ok 47 - list and search queries do not serially hydrate source images while detail still does
+  ---
+  duration_ms: 0.6332
+  type: 'test'
+  ...
+# Subtest: bank deletion durably records exact image debt inside the same transaction before deleting rows
+ok 48 - bank deletion durably records exact image debt inside the same transaction before deleting rows
+  ---
+  duration_ms: 0.7941
+  type: 'test'
+  ...
+# Subtest: cleanup retry merges exact durable debt, protects live references, and clears debt only after safe cleanup
+ok 49 - cleanup retry merges exact durable debt, protects live references, and clears debt only after safe cleanup
+  ---
+  duration_ms: 0.648
+  type: 'test'
+  ...
+# Subtest: direct image deletion clears durable debt after safe absence or unlink and retries empty bank directory cleanup
+ok 50 - direct image deletion clears durable debt after safe absence or unlink and retries empty bank directory cleanup
+  ---
+  duration_ms: 0.6624
+  type: 'test'
+  ...
+# Subtest: PDF import manifest allows INTERNET but device pipeline contains no network client
+ok 51 - PDF import manifest allows INTERNET but device pipeline contains no network client
+  ---
+  duration_ms: 0.9305
+  type: 'test'
+  ...
+# Subtest: temporary PDF deletion is an idempotent direct-child operation under its registered cache root
+ok 52 - temporary PDF deletion is an idempotent direct-child operation under its registered cache root
+  ---
+  duration_ms: 0.5759
+  type: 'test'
+  ...
+# Subtest: read-only temporary PDF absence proof accepts only a missing strict direct child
+ok 53 - read-only temporary PDF absence proof accepts only a missing strict direct child
+  ---
+  duration_ms: 20.3876
+  type: 'test'
+  ...
+# Subtest: temporary PDF absence proof rejects malformed and cross-root paths without deletion
+ok 54 - temporary PDF absence proof rejects malformed and cross-root paths without deletion
+  ---
+  duration_ms: 12.5093
+  type: 'test'
+  ...
+# Subtest: temporary PDF absence proof is read-only and validates path then cache then lstat absence
+ok 55 - temporary PDF absence proof is read-only and validates path then cache then lstat absence
+  ---
+  duration_ms: 0.3882
+  type: 'test'
+  ...
+# Subtest: question image deletion accepts only exact service cache files or exact bank image hierarchy
+ok 56 - question image deletion accepts only exact service cache files or exact bank image hierarchy
+  ---
+  duration_ms: 0.4217
+  type: 'test'
+  ...
+# Subtest: unknown or malformed PDF ownership throws and only strict registered staged files can be abandoned
+ok 57 - unknown or malformed PDF ownership throws and only strict registered staged files can be abandoned
+  ---
+  duration_ms: 0.4018
+  type: 'test'
+  ...
+# Subtest: current schema durably records exact rollback mappings and retry restores mappings without committed scans
+ok 58 - current schema durably records exact rollback mappings and retry restores mappings without committed scans
+  ---
+  duration_ms: 0.4869
+  type: 'test'
+  ...
+# Subtest: structured PDF storage errors are preserved by retained local services
+ok 59 - structured PDF storage errors are preserved by retained local services
+  ---
+  duration_ms: 0.3058
+  type: 'test'
+  ...
+# Subtest: PDF page error cards use supported constraint sizing
+ok 60 - PDF page error cards use supported constraint sizing
+  ---
+  duration_ms: 0.3304
+  type: 'test'
+  ...
+# (node:50472) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: primary and selected controls use readable light and dark color pairs
+ok 61 - primary and selected controls use readable light and dark color pairs
+  ---
+  duration_ms: 46.2837
+  type: 'test'
+  ...
+# Subtest: import leads with PDF and keeps JSON format and mutually exclusive handlers
+ok 62 - import leads with PDF and keeps JSON format and mutually exclusive handlers
+  ---
+  duration_ms: 1.9757
+  type: 'test'
+  ...
+# Subtest: JSON format guidance is collapsed by default behind one accessible disclosure
+ok 63 - JSON format guidance is collapsed by default behind one accessible disclosure
+  ---
+  duration_ms: 0.4586
+  type: 'test'
+  ...
+# Subtest: settings group Model with service and expose status outside the scrolling form
+ok 64 - settings group Model with service and expose status outside the scrolling form
+  ---
+  duration_ms: 0.3612
+  type: 'test'
+  ...
+# Subtest: three page shells consume four insets and constrain readable content and touch targets
+ok 65 - three page shells consume four insets and constrain readable content and touch targets
+  ---
+  duration_ms: 2.8589
+  type: 'test'
+  ...
+# Subtest: picker clears both filters, restores actual catalog and still selects only the platform id
+ok 66 - picker clears both filters, restores actual catalog and still selects only the platform id
+  ---
+  duration_ms: 26.1019
+  type: 'test'
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 260.6457

@@ -1,0 +1,63 @@
+TAP version 13
+# Subtest: wrong-question subject filters provide a readable 48vp selected control
+ok 1 - wrong-question subject filters provide a readable 48vp selected control
+  ---
+  duration_ms: 0.8299
+  type: 'test'
+  ...
+# Subtest: shared empty state supports page and embedded layouts without a fixed wrong-page box
+ok 2 - shared empty state supports page and embedded layouts without a fixed wrong-page box
+  ---
+  duration_ms: 0.3178
+  type: 'test'
+  ...
+# Subtest: wrong-question and mine feeds include the live left and right safe-area insets
+ok 3 - wrong-question and mine feeds include the live left and right safe-area insets
+  ---
+  duration_ms: 0.8785
+  type: 'test'
+  ...
+# Subtest: mine separates ordinary settings from the confirmed destructive action
+ok 4 - mine separates ordinary settings from the confirmed destructive action
+  ---
+  duration_ms: 0.3858
+  type: 'test'
+  ...
+# Subtest: account and migration actions meet the 48vp touch-target floor
+ok 5 - account and migration actions meet the 48vp touch-target floor
+  ---
+  duration_ms: 0.4137
+  type: 'test'
+  ...
+# Subtest: wrong and mine own their top titles below the live status-bar inset
+not ok 6 - wrong and mine own their top titles below the live status-bar inset
+  ---
+  duration_ms: 0.731
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\WrongMineUiFollowupContracts.test.cjs:79:1'
+  failureType: 'testCodeFailure'
+  error: 'missing start marker: private PageTitle()'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: -1
+  actual: -1
+  operator: 'notStrictEqual'
+  stack: |-
+    slice (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:14:10)
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:93:19)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 71.597

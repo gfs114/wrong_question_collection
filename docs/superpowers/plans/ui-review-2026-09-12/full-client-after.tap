@@ -1,0 +1,1789 @@
+TAP version 13
+# (node:51696) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: interrupted B credential write cannot relabel its token as metadata account A after restart
+ok 1 - interrupted B credential write cannot relabel its token as metadata account A after restart
+  ---
+  duration_ms: 84.5937
+  type: 'test'
+  ...
+# Subtest: normal login writes one owner-bound secret and restart refresh and logout retain its owner
+ok 2 - normal login writes one owner-bound secret and restart refresh and logout retain its owner
+  ---
+  duration_ms: 15.9611
+  type: 'test'
+  ...
+# Subtest: legacy and malformed secret records fail closed without refresh or logout requests
+ok 3 - legacy and malformed secret records fail closed without refresh or logout requests
+  ---
+  duration_ms: 48.0259
+  type: 'test'
+  ...
+# Subtest: metadata B with credential A also fails closed and cached access is not reused
+ok 4 - metadata B with credential A also fails closed and cached access is not reused
+  ---
+  duration_ms: 5.4089
+  type: 'test'
+  ...
+# Account session contracts passed
+# Subtest: entry\\src\\test\\AccountSessionContracts.test.cjs
+ok 2 - entry\\src\\test\\AccountSessionContracts.test.cjs
+  ---
+  duration_ms: 249.1028
+  type: 'test'
+  ...
+# (node:49020) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: explicit failure discard deletes unreferenced evidence once before removing the failure
+ok 6 - explicit failure discard deletes unreferenced evidence once before removing the failure
+  ---
+  duration_ms: 120.1609
+  type: 'test'
+  ...
+# Subtest: failure discard cleanup failure retains the published failure and evidence for retry
+ok 7 - failure discard cleanup failure retains the published failure and evidence for retry
+  ---
+  duration_ms: 19.308
+  type: 'test'
+  ...
+# Subtest: manual question transfer publishes one coherent session without deleting transferred evidence
+ok 8 - manual question transfer publishes one coherent session without deleting transferred evidence
+  ---
+  duration_ms: 12.2939
+  type: 'test'
+  ...
+# Subtest: manual transfer publication failure leaves the original failure and evidence intact
+ok 9 - manual transfer publication failure leaves the original failure and evidence intact
+  ---
+  duration_ms: 10.6649
+  type: 'test'
+  ...
+# Subtest: discard deduplicates obsolete paths and retains shared question or other failure evidence
+ok 10 - discard deduplicates obsolete paths and retains shared question or other failure evidence
+  ---
+  duration_ms: 30.0467
+  type: 'test'
+  ...
+# Subtest: all-crop success deletes the unused whole-page JPEG before publishing the page
+ok 11 - all-crop success deletes the unused whole-page JPEG before publishing the page
+  ---
+  duration_ms: 9.9793
+  type: 'test'
+  ...
+# Subtest: mixed crop and full-page questions retain the referenced whole-page JPEG
+ok 12 - mixed crop and full-page questions retain the referenced whole-page JPEG
+  ---
+  duration_ms: 13.4743
+  type: 'test'
+  ...
+# Subtest: successful retries replace every old image only after new questions are stored
+ok 13 - successful retries replace every old image only after new questions are stored
+  ---
+  duration_ms: 23.7093
+  type: 'test'
+  ...
+# Subtest: duplicate old question and failure evidence is deleted once, excluding paths still referenced
+ok 14 - duplicate old question and failure evidence is deleted once, excluding paths still referenced
+  ---
+  duration_ms: 10.339
+  type: 'test'
+  ...
+# Subtest: an old image shared with an unchanged page survives a successful retry
+ok 15 - an old image shared with an unchanged page survives a successful retry
+  ---
+  duration_ms: 10.4508
+  type: 'test'
+  ...
+# Subtest: failed retry cleans only the new attempt and keeps old questions and evidence
+ok 16 - failed retry cleans only the new attempt and keeps old questions and evidence
+  ---
+  duration_ms: 9.2374
+  type: 'test'
+  ...
+# Subtest: unused whole-page cleanup failure fails and cleans the page attempt
+ok 17 - unused whole-page cleanup failure fails and cleans the page attempt
+  ---
+  duration_ms: 7.8832
+  type: 'test'
+  ...
+# Subtest: post-commit old-image cleanup failure preserves new state and surfaces a diagnostic
+ok 18 - post-commit old-image cleanup failure preserves new state and surfaces a diagnostic
+  ---
+  duration_ms: 13.2054
+  type: 'test'
+  ...
+# (node:45736) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: AI recognition settings expose explicit credential controls and both routes
+ok 19 - AI recognition settings expose explicit credential controls and both routes
+  ---
+  duration_ms: 4.1959
+  type: 'test'
+  ...
+# Subtest: AI PDF setup validates durable provider state, account and key before progress
+ok 20 - AI PDF setup validates durable provider state, account and key before progress
+  ---
+  duration_ms: 0.6985
+  type: 'test'
+  ...
+# Subtest: AI PDF progress starts once and owns one cancellation cleanup path
+ok 21 - AI PDF progress starts once and owns one cancellation cleanup path
+  ---
+  duration_ms: 0.9842
+  type: 'test'
+  ...
+# Subtest: connection test sends one 1x1 JPEG with normalized form config and releases its request
+ok 22 - connection test sends one 1x1 JPEG with normalized form config and releases its request
+  ---
+  duration_ms: 77.9918
+  type: 'test'
+  ...
+# Subtest: connection response validation releases exactly once after extraction and accepts content without questions
+ok 23 - connection response validation releases exactly once after extraction and accepts content without questions
+  ---
+  duration_ms: 10.6282
+  type: 'test'
+  ...
+# Subtest: connection failure preserves stable codes, releases body, and never retries
+ok 24 - connection failure preserves stable codes, releases body, and never retries
+  ---
+  duration_ms: 5.8951
+  type: 'test'
+  ...
+# Subtest: connection invalid config and missing saved credential do not reach adapter or transport
+ok 25 - connection invalid config and missing saved credential do not reach adapter or transport
+  ---
+  duration_ms: 22.1163
+  type: 'test'
+  ...
+# Subtest: connection service keeps the entire transport await inside saved credential scope
+ok 26 - connection service keeps the entire transport await inside saved credential scope
+  ---
+  duration_ms: 5.4815
+  type: 'test'
+  ...
+# Subtest: settings load never fetches a key and save/clear erase typed key on success and failure
+ok 27 - settings load never fetches a key and save/clear erase typed key on success and failure
+  ---
+  duration_ms: 29.2806
+  type: 'test'
+  ...
+# Subtest: settings requires saving a new key and blocks mutations/back while a saved-config test runs
+ok 28 - settings requires saving a new key and blocks mutations/back while a saved-config test runs
+  ---
+  duration_ms: 10.3757
+  type: 'test'
+  ...
+# Subtest: settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally
+ok 29 - settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally
+  ---
+  duration_ms: 24.6454
+  type: 'test'
+  ...
+# Subtest: settings platform row applies catalog data without aliasing catalog arrays
+ok 30 - settings platform row applies catalog data without aliasing catalog arrays
+  ---
+  duration_ms: 5.5482
+  type: 'test'
+  ...
+# Subtest: settings onPageShow consumes a picker selection once only after the guard
+ok 31 - settings onPageShow consumes a picker selection once only after the guard
+  ---
+  duration_ms: 9.5572
+  type: 'test'
+  ...
+# Subtest: preflight cancellation cleans the selected PDF at every await boundary
+ok 32 - preflight cancellation cleans the selected PDF at every await boundary
+  ---
+  duration_ms: 26.124
+  type: 'test'
+  ...
+# Subtest: preflight cancellation retains identity and exposes retry after direct PDF cleanup failure
+ok 33 - preflight cancellation retains identity and exposes retry after direct PDF cleanup failure
+  ---
+  duration_ms: 3.8553
+  type: 'test'
+  ...
+# Subtest: typed non-cancelled run cleanup debt blocks exit and converges through central retry
+ok 34 - typed non-cancelled run cleanup debt blocks exit and converges through central retry
+  ---
+  duration_ms: 7.8072
+  type: 'test'
+  ...
+# Subtest: completed import disables cancellation, rechecks account and retries review navigation without rerun
+ok 35 - completed import disables cancellation, rechecks account and retries review navigation without rerun
+  ---
+  duration_ms: 5.1318
+  type: 'test'
+  ...
+# Subtest: post-run account mismatch discards before clearing state and returning to import
+ok 36 - post-run account mismatch discards before clearing state and returning to import
+  ---
+  duration_ms: 5.2607
+  type: 'test'
+  ...
+# Subtest: completed-session abandon retains request and review id until discard retry succeeds
+ok 37 - completed-session abandon retains request and review id until discard retry succeeds
+  ---
+  duration_ms: 4.205
+  type: 'test'
+  ...
+# Subtest: credential update barrier persists across restart and ambiguous completion failure
+ok 38 - credential update barrier persists across restart and ambiguous completion failure
+  ---
+  duration_ms: 27.7432
+  type: 'test'
+  ...
+# Subtest: HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker
+ok 39 - HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker
+  ---
+  duration_ms: 11.4635
+  type: 'test'
+  ...
+# Subtest: config-only changes and unsaved test forms never reuse an existing key
+ok 40 - config-only changes and unsaved test forms never reuse an existing key
+  ---
+  duration_ms: 31.1256
+  type: 'test'
+  ...
+# Subtest: failed marker begin and key clear leave dispatch blocked without updating public configuration
+ok 41 - failed marker begin and key clear leave dispatch blocked without updating public configuration
+  ---
+  duration_ms: 15.354
+  type: 'test'
+  ...
+# Subtest: default coordinator checks persisted config and holds update barrier through credential dispatch
+ok 42 - default coordinator checks persisted config and holds update barrier through credential dispatch
+  ---
+  duration_ms: 29.0958
+  type: 'test'
+  ...
+# Subtest: source-neutral review isolates providers and renders editable local evidence
+ok 43 - source-neutral review isolates providers and renders editable local evidence
+  ---
+  duration_ms: 1.616
+  type: 'test'
+  ...
+# Subtest: review retains committed retry state and exposes image retry without draft questions
+ok 44 - review retains committed retry state and exposes image retry without draft questions
+  ---
+  duration_ms: 0.6027
+  type: 'test'
+  ...
+# Subtest: AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy
+ok 45 - AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy
+  ---
+  duration_ms: 17.914
+  type: 'test'
+  ...
+# Subtest: AI adapter propagates durable account/corruption failures instead of falling back to memory
+ok 46 - AI adapter propagates durable account/corruption failures instead of falling back to memory
+  ---
+  duration_ms: 32.8154
+  type: 'test'
+  ...
+# Subtest: review edits and manual failure conversion persist deep copies with stable evidence UUIDs
+ok 47 - review edits and manual failure conversion persist deep copies with stable evidence UUIDs
+  ---
+  duration_ms: 6.4743
+  type: 'test'
+  ...
+# Subtest: review serializes save and back and abandons only after explicit draft choice
+ok 48 - review serializes save and back and abandons only after explicit draft choice
+  ---
+  duration_ms: 23.5465
+  type: 'test'
+  ...
+# Subtest: review failed retry publishes committed session while hiding arbitrary provider errors
+ok 49 - review failed retry publishes committed session while hiding arbitrary provider errors
+  ---
+  duration_ms: 20.2463
+  type: 'test'
+  ...
+# Subtest: failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles
+ok 50 - failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles
+  ---
+  duration_ms: 9.6567
+  type: 'test'
+  ...
+# Subtest: review exposes an explicit authoritative-state reload action and gates mutation while uncertain
+ok 51 - review exposes an explicit authoritative-state reload action and gates mutation while uncertain
+  ---
+  duration_ms: 0.54
+  type: 'test'
+  ...
+# Subtest: checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment
+ok 52 - checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment
+  ---
+  duration_ms: 7.6534
+  type: 'test'
+  ...
+# Subtest: initial review load failure keeps page ownership until authoritative reload succeeds
+ok 53 - initial review load failure keeps page ownership until authoritative reload succeeds
+  ---
+  duration_ms: 9.4743
+  type: 'test'
+  ...
+# Subtest: repeated authoritative reload failure remains locked until owner checkpoint reload succeeds
+ok 54 - repeated authoritative reload failure remains locked until owner checkpoint reload succeeds
+  ---
+  duration_ms: 10.4878
+  type: 'test'
+  ...
+# Subtest: committed retry plus authoritative reload failure stays locked until explicit reload
+ok 55 - committed retry plus authoritative reload failure stays locked until explicit reload
+  ---
+  duration_ms: 13.0736
+  type: 'test'
+  ...
+# Subtest: committed discard or manual transfer plus reload failure locks until authoritative reload
+ok 56 - committed discard or manual transfer plus reload failure locks until authoritative reload
+  ---
+  duration_ms: 31.1062
+  type: 'test'
+  ...
+# Subtest: AI provider config storage persists only normalized public configuration
+ok 57 - AI provider config storage persists only normalized public configuration
+  ---
+  duration_ms: 0.8506
+  type: 'test'
+  ...
+# Subtest: provider validator accepts local http only for private hosts
+ok 58 - provider validator accepts local http only for private hosts
+  ---
+  duration_ms: 4.1751
+  type: 'test'
+  ...
+# Subtest: endpoint guard allows https and private http but never public http
+ok 59 - endpoint guard allows https and private http but never public http
+  ---
+  duration_ms: 3.034
+  type: 'test'
+  ...
+# Subtest: OpenAI-compatible adapter sends one page image through chat completions
+ok 60 - OpenAI-compatible adapter sends one page image through chat completions
+  ---
+  duration_ms: 0.4332
+  type: 'test'
+  ...
+# Subtest: AI transport is bounded, non-redirecting, cancellable and independent
+ok 61 - AI transport is bounded, non-redirecting, cancellable and independent
+  ---
+  duration_ms: 0.6481
+  type: 'test'
+  ...
+# Subtest: PDF encoder releases page pixels before returning network-ready text
+ok 62 - PDF encoder releases page pixels before returning network-ready text
+  ---
+  duration_ms: 1.093
+  type: 'test'
+  ...
+# Subtest: PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership
+ok 63 - PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership
+  ---
+  duration_ms: 1.832
+  type: 'test'
+  ...
+# Subtest: PDF encoder defers close through active operation leases and preserves late failures
+ok 64 - PDF encoder defers close through active operation leases and preserves late failures
+  ---
+  duration_ms: 0.9814
+  type: 'test'
+  ...
+# Subtest: PDF encoder isolates retry artifacts by exact logical session and attempt ownership
+ok 65 - PDF encoder isolates retry artifacts by exact logical session and attempt ownership
+  ---
+  duration_ms: 1.1677
+  type: 'test'
+  ...
+# Subtest: PDF encoder deletes only an explicit cache-root session-owned evidence file
+ok 66 - PDF encoder deletes only an explicit cache-root session-owned evidence file
+  ---
+  duration_ms: 0.615
+  type: 'test'
+  ...
+# Subtest: AI coordinator owns one sequential local-only page pipeline
+ok 67 - AI coordinator owns one sequential local-only page pipeline
+  ---
+  duration_ms: 0.6669
+  type: 'test'
+  ...
+# Subtest: AI coordinator keeps cancellation and request cleanup generation safe
+ok 68 - AI coordinator keeps cancellation and request cleanup generation safe
+  ---
+  duration_ms: 0.6151
+  type: 'test'
+  ...
+# Subtest: AI coordinator retry is page-bounded, atomic and shares processPage
+ok 69 - AI coordinator retry is page-bounded, atomic and shares processPage
+  ---
+  duration_ms: 0.6446
+  type: 'test'
+  ...
+# Subtest: AI coordinator cleans only failed attempt artifacts and retains successful namespaces
+ok 70 - AI coordinator cleans only failed attempt artifacts and retains successful namespaces
+  ---
+  duration_ms: 0.5824
+  type: 'test'
+  ...
+# Subtest: AI coordinator retains initial page evidence but fully cleans failed retries
+ok 71 - AI coordinator retains initial page evidence but fully cleans failed retries
+  ---
+  duration_ms: 0.6866
+  type: 'test'
+  ...
+# Subtest: AI coordinator surfaces cleanup failure while retaining the primary error code
+ok 72 - AI coordinator surfaces cleanup failure while retaining the primary error code
+  ---
+  duration_ms: 0.6345
+  type: 'test'
+  ...
+# Subtest: coordinator exposes cleanup debt only while the final exact cleanup still fails
+ok 73 - coordinator exposes cleanup debt only while the final exact cleanup still fails
+  ---
+  duration_ms: 6.7944
+  type: 'test'
+  ...
+# Subtest: AI coordinator guards credential-delayed transport dispatch by identity and generation
+ok 74 - AI coordinator guards credential-delayed transport dispatch by identity and generation
+  ---
+  duration_ms: 0.4998
+  type: 'test'
+  ...
+# Subtest: AI coordinator commits retry before narrowly deleting superseded failure evidence
+ok 75 - AI coordinator commits retry before narrowly deleting superseded failure evidence
+  ---
+  duration_ms: 0.4548
+  type: 'test'
+  ...
+# Subtest: AI coordinator discard always attempts both cleanups and retains first failure
+ok 76 - AI coordinator discard always attempts both cleanups and retains first failure
+  ---
+  duration_ms: 0.4418
+  type: 'test'
+  ...
+# Subtest: default PDF cleanup remembers successful exact paths across discard retries
+ok 77 - default PDF cleanup remembers successful exact paths across discard retries
+  ---
+  duration_ms: 1.6713
+  type: 'test'
+  ...
+# Subtest: discard retry converges after image, PDF, or combined partial failure
+ok 78 - discard retry converges after image, PDF, or combined partial failure
+  ---
+  duration_ms: 9.0489
+  type: 'test'
+  ...
+# Subtest: AI review keeps an image even when bbox is unusable
+ok 79 - AI review keeps an image even when bbox is unusable
+  ---
+  duration_ms: 0.8842
+  type: 'test'
+  ...
+# Subtest: unusable bbox skips cropping and keeps whole-page evidence as the question image
+ok 80 - unusable bbox skips cropping and keeps whole-page evidence as the question image
+  ---
+  duration_ms: 9.2051
+  type: 'test'
+  ...
+# Subtest: usable bbox crops per question and discards the unused whole-page evidence
+ok 81 - usable bbox crops per question and discards the unused whole-page evidence
+  ---
+  duration_ms: 6.478
+  type: 'test'
+  ...
+# Subtest: automated tests use fakes and cannot call an external provider
+ok 82 - automated tests use fakes and cannot call an external provider
+  ---
+  duration_ms: 2.5298
+  type: 'test'
+  ...
+# Subtest: test-only network helpers reject real provider URLs and production network APIs
+ok 83 - test-only network helpers reject real provider URLs and production network APIs
+  ---
+  duration_ms: 2.889
+  type: 'test'
+  ...
+# Subtest: provider config store keeps catalog platform ids and tolerates unknown ids
+ok 84 - provider config store keeps catalog platform ids and tolerates unknown ids
+  ---
+  duration_ms: 0.4403
+  type: 'test'
+  ...
+# Subtest: provider config store preserves catalog and unknown provider ids at runtime
+ok 85 - provider config store preserves catalog and unknown provider ids at runtime
+  ---
+  duration_ms: 34.1249
+  type: 'test'
+  ...
+# Subtest: platform picker page is registered once and reachable from the settings page
+ok 86 - platform picker page is registered once and reachable from the settings page
+  ---
+  duration_ms: 1.2317
+  type: 'test'
+  ...
+# (node:49920) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public save can repeat with the same supplied session after cleanup without IO replay
+ok 87 - public save can repeat with the same supplied session after cleanup without IO replay
+  ---
+  duration_ms: 120.2507
+  type: 'test'
+  ...
+# Subtest: two queued stale DRAFT public saves execute exactly one complete lifecycle
+ok 88 - two queued stale DRAFT public saves execute exactly one complete lifecycle
+  ---
+  duration_ms: 19.142
+  type: 'test'
+  ...
+# Subtest: COMPLETE without durable or memory state is sanitized without another cleanup
+ok 89 - COMPLETE without durable or memory state is sanitized without another cleanup
+  ---
+  duration_ms: 15.6099
+  type: 'test'
+  ...
+# Subtest: draft abandon prefix-cleans unreferenced failed-attempt debt before releasing ownership
+ok 90 - draft abandon prefix-cleans unreferenced failed-attempt debt before releasing ownership
+  ---
+  duration_ms: 18.4482
+  type: 'test'
+  ...
+# Subtest: COMPLETE save prefix-cleans post-commit superseded debt before checkpoint release
+ok 91 - COMPLETE save prefix-cleans post-commit superseded debt before checkpoint release
+  ---
+  duration_ms: 15.8476
+  type: 'test'
+  ...
+# Subtest: save prefix cleanup failure preserves checkpoint memory and PDF for terminal retry
+ok 92 - save prefix cleanup failure preserves checkpoint memory and PDF for terminal retry
+  ---
+  duration_ms: 17.0691
+  type: 'test'
+  ...
+# Subtest: abandon prefix cleanup failure preserves draft memory and PDF for terminal retry
+ok 93 - abandon prefix cleanup failure preserves draft memory and PDF for terminal retry
+  ---
+  duration_ms: 14.9764
+  type: 'test'
+  ...
+# Subtest: COMPLETE save retries after PDF deletion and a post-cleanup account failure
+ok 94 - COMPLETE save retries after PDF deletion and a post-cleanup account failure
+  ---
+  duration_ms: 17.969
+  type: 'test'
+  ...
+# Subtest: abandon retries after PDF deletion and a post-cleanup checkpoint failure
+ok 95 - abandon retries after PDF deletion and a post-cleanup checkpoint failure
+  ---
+  duration_ms: 23.9194
+  type: 'test'
+  ...
+# Subtest: completed memory rejects another active account and incompatible caller ownership
+ok 96 - completed memory rejects another active account and incompatible caller ownership
+  ---
+  duration_ms: 47.6549
+  type: 'test'
+  ...
+# Subtest: an unrelated session progresses while the first public save is blocked
+ok 97 - an unrelated session progresses while the first public save is blocked
+  ---
+  duration_ms: 12.1472
+  type: 'test'
+  ...
+# Subtest: a mismatched durable session id is rejected before cleanup or publication
+ok 98 - a mismatched durable session id is rejected before cleanup or publication
+  ---
+  duration_ms: 11.7072
+  type: 'test'
+  ...
+# Subtest: a terminal caller without memory still requires its owning account
+ok 99 - a terminal caller without memory still requires its owning account
+  ---
+  duration_ms: 24.6123
+  type: 'test'
+  ...
+# Subtest: AI settings never decrypt or redisplay a saved key and clear typed state on every operation
+ok 100 - AI settings never decrypt or redisplay a saved key and clear typed state on every operation
+  ---
+  duration_ms: 3.7701
+  type: 'test'
+  ...
+# Subtest: connection test uses saved credential scope and releases temporary body and response
+ok 101 - connection test uses saved credential scope and releases temporary body and response
+  ---
+  duration_ms: 0.7037
+  type: 'test'
+  ...
+# Subtest: production AI retry and credential dispatch require persisted usable config
+ok 102 - production AI retry and credential dispatch require persisted usable config
+  ---
+  duration_ms: 1.0958
+  type: 'test'
+  ...
+# Subtest: credential storage uses HUKS AES-256-GCM and a versioned envelope
+ok 103 - credential storage uses HUKS AES-256-GCM and a versioned envelope
+  ---
+  duration_ms: 1.0405
+  type: 'test'
+  ...
+# Subtest: credential preferences are excluded from device backup
+ok 104 - credential preferences are excluded from device backup
+  ---
+  duration_ms: 1.2447
+  type: 'test'
+  ...
+# Subtest: credential operations use one atomic record and detect corruption before HUKS decrypt
+ok 105 - credential operations use one atomic record and detect corruption before HUKS decrypt
+  ---
+  duration_ms: 0.8559
+  type: 'test'
+  ...
+# Subtest: AI network errors expose only local stable messages
+ok 106 - AI network errors expose only local stable messages
+  ---
+  duration_ms: 0.3737
+  type: 'test'
+  ...
+# Subtest: AI credentials reject empty and header-control values before Authorization construction
+ok 107 - AI credentials reject empty and header-control values before Authorization construction
+  ---
+  duration_ms: 2.0886
+  type: 'test'
+  ...
+# Subtest: AI coordinator does not retain credentials, provider bodies or response text
+ok 108 - AI coordinator does not retain credentials, provider bodies or response text
+  ---
+  duration_ms: 1.2106
+  type: 'test'
+  ...
+# Subtest: AI save payload excludes provider and local-only data
+ok 109 - AI save payload excludes provider and local-only data
+  ---
+  duration_ms: 0.8103
+  type: 'test'
+  ...
+# Subtest: AI image preparation verifies ownership and cleans only newly copied finals on failure
+ok 110 - AI image preparation verifies ownership and cleans only newly copied finals on failure
+  ---
+  duration_ms: 0.64
+  type: 'test'
+  ...
+# Subtest: AI session cache cleanup accepts exact legacy and attempt names using tilde ownership
+ok 111 - AI session cache cleanup accepts exact legacy and attempt names using tilde ownership
+  ---
+  duration_ms: 0.5992
+  type: 'test'
+  ...
+# Subtest: AI terminal cleanup performs the strict encoder session sweep before releasing ownership
+ok 112 - AI terminal cleanup performs the strict encoder session sweep before releasing ownership
+  ---
+  duration_ms: 0.8047
+  type: 'test'
+  ...
+# Subtest: AI image copy cleans partial and newly committed files after late failures
+ok 113 - AI image copy cleans partial and newly committed files after late failures
+  ---
+  duration_ms: 0.6167
+  type: 'test'
+  ...
+# Subtest: AI save freezes a durable checkpoint before any text write and checks the account first
+ok 114 - AI save freezes a durable checkpoint before any text write and checks the account first
+  ---
+  duration_ms: 3.6763
+  type: 'test'
+  ...
+# Subtest: AI image persistence is serialized and retains finals for an ambiguous DB outcome
+ok 115 - AI image persistence is serialized and retains finals for an ambiguous DB outcome
+  ---
+  duration_ms: 0.6477
+  type: 'test'
+  ...
+# Subtest: AI abandon rejects every durable or in-progress text stage
+ok 116 - AI abandon rejects every durable or in-progress text stage
+  ---
+  duration_ms: 2.0848
+  type: 'test'
+  ...
+# Subtest: raw durable loads stay unpublished until identifiers and account ownership pass
+ok 117 - raw durable loads stay unpublished until identifiers and account ownership pass
+  ---
+  duration_ms: 1.2814
+  type: 'test'
+  ...
+# Subtest: AI save lifecycle uses removable keyed session tails
+ok 118 - AI save lifecycle uses removable keyed session tails
+  ---
+  duration_ms: 1.2104
+  type: 'test'
+  ...
+# Subtest: durable checkpoint index drives foreground recovery and safe staged PDF deletion
+ok 119 - durable checkpoint index drives foreground recovery and safe staged PDF deletion
+  ---
+  duration_ms: 1.3364
+  type: 'test'
+  ...
+# Subtest: COMPLETE access cleanup removal and publication remain account owned
+ok 120 - COMPLETE access cleanup removal and publication remain account owned
+  ---
+  duration_ms: 0.626
+  type: 'test'
+  ...
+# Subtest: image preflight is non-mutating and precedes durable and remote text writes
+ok 121 - image preflight is non-mutating and precedes durable and remote text writes
+  ---
+  duration_ms: 0.8611
+  type: 'test'
+  ...
+# Subtest: stale pending pruning repairs only durable index state
+ok 122 - stale pending pruning repairs only durable index state
+  ---
+  duration_ms: 0.7224
+  type: 'test'
+  ...
+# Subtest: durable IO cannot publish or delete memory before lifecycle account revalidation
+ok 123 - durable IO cannot publish or delete memory before lifecycle account revalidation
+  ---
+  duration_ms: 0.4001
+  type: 'test'
+  ...
+# Subtest: default checkpoint mutations and cache cleanup pin the owning account for all awaits
+ok 124 - default checkpoint mutations and cache cleanup pin the owning account for all awaits
+  ---
+  duration_ms: 1.6789
+  type: 'test'
+  ...
+# Subtest: AI modules have no logging, OCR fallback, or business import endpoint
+ok 125 - AI modules have no logging, OCR fallback, or business import endpoint
+  ---
+  duration_ms: 2.9301
+  type: 'test'
+  ...
+# Subtest: Authorization ownership scan catches lowercase leaks and normalizes Windows paths
+ok 126 - Authorization ownership scan catches lowercase leaks and normalizes Windows paths
+  ---
+  duration_ms: 1.6156
+  type: 'test'
+  ...
+# Subtest: sync writer cannot see provider configuration, credentials, PDF, or image bytes
+ok 127 - sync writer cannot see provider configuration, credentials, PDF, or image bytes
+  ---
+  duration_ms: 0.8107
+  type: 'test'
+  ...
+# Subtest: transport delegates its endpoint scheme guard to the shared private-host predicate
+ok 128 - transport delegates its endpoint scheme guard to the shared private-host predicate
+  ---
+  duration_ms: 0.3895
+  type: 'test'
+  ...
+# API 24 configuration contracts passed
+# Subtest: entry\\src\\test\\Api24ConfigurationContracts.test.cjs
+ok 7 - entry\\src\\test\\Api24ConfigurationContracts.test.cjs
+  ---
+  duration_ms: 217.5987
+  type: 'test'
+  ...
+# API 24 HdsTabs contracts passed
+# Subtest: entry\\src\\test\\Api24HdsTabsContracts.test.cjs
+ok 8 - entry\\src\\test\\Api24HdsTabsContracts.test.cjs
+  ---
+  duration_ms: 315.1638
+  type: 'test'
+  ...
+# API client contracts passed
+# Subtest: entry\\src\\test\\ApiClientContracts.test.cjs
+ok 9 - entry\\src\\test\\ApiClientContracts.test.cjs
+  ---
+  duration_ms: 223.1555
+  type: 'test'
+  ...
+# Auth session contracts passed
+# Subtest: entry\\src\\test\\AuthSessionContracts.test.cjs
+ok 10 - entry\\src\\test\\AuthSessionContracts.test.cjs
+  ---
+  duration_ms: 242.8427
+  type: 'test'
+  ...
+# Subtest: schema version six adds every account-scoped cache table
+ok 133 - schema version six adds every account-scoped cache table
+  ---
+  duration_ms: 2.9841
+  type: 'test'
+  ...
+# Subtest: version five migration only creates cache tables and indexes
+ok 134 - version five migration only creates cache tables and indexes
+  ---
+  duration_ms: 2.9425
+  type: 'test'
+  ...
+# Subtest: legacy tables and outbox remain intact while device OCR services are retired
+ok 135 - legacy tables and outbox remain intact while device OCR services are retired
+  ---
+  duration_ms: 0.8205
+  type: 'test'
+  ...
+# Subtest: cache models are strict ArkTS classes with server UUID ownership
+ok 136 - cache models are strict ArkTS classes with server UUID ownership
+  ---
+  duration_ms: 0.5789
+  type: 'test'
+  ...
+# Subtest: replacePage atomically replaces account text and rejects stale cursors
+ok 137 - replacePage atomically replaces account text and rejects stale cursors
+  ---
+  duration_ms: 0.6682
+  type: 'test'
+  ...
+# Subtest: all cloud cache reads require account ID
+ok 138 - all cloud cache reads require account ID
+  ---
+  duration_ms: 0.6201
+  type: 'test'
+  ...
+# Subtest: device image mappings require matching account and question ownership
+ok 139 - device image mappings require matching account and question ownership
+  ---
+  duration_ms: 0.4806
+  type: 'test'
+  ...
+# Subtest: logout removes only current account text cache and retains device images
+ok 140 - logout removes only current account text cache and retains device images
+  ---
+  duration_ms: 1.7342
+  type: 'test'
+  ...
+# Subtest: AI import can persist validated stable bank and question UUIDs
+ok 141 - AI import can persist validated stable bank and question UUIDs
+  ---
+  duration_ms: 1.6209
+  type: 'test'
+  ...
+# Subtest: AI bank batches stay pinned to one expected account across every response
+ok 142 - AI bank batches stay pinned to one expected account across every response
+  ---
+  duration_ms: 1.8918
+  type: 'test'
+  ...
+# Subtest: sign out is gated before joining the serialized account mutation lane
+ok 143 - sign out is gated before joining the serialized account mutation lane
+  ---
+  duration_ms: 1.1925
+  type: 'test'
+  ...
+# Subtest: AI bank cache apply is scoped under the serialized expected-account lane
+ok 144 - AI bank cache apply is scoped under the serialized expected-account lane
+  ---
+  duration_ms: 1.0344
+  type: 'test'
+  ...
+# Subtest: device images validate a complete batch before one immediate transaction
+ok 145 - device images validate a complete batch before one immediate transaction
+  ---
+  duration_ms: 0.8204
+  type: 'test'
+  ...
+# Subtest: production code no longer references device OCR services or recognizeText
+ok 146 - production code no longer references device OCR services or recognizeText
+  ---
+  duration_ms: 4.2613
+  type: 'test'
+  ...
+# Subtest: QuestionBankService no longer produces legacy outbox writes
+ok 147 - QuestionBankService no longer produces legacy outbox writes
+  ---
+  duration_ms: 0.5552
+  type: 'test'
+  ...
+# Subtest: WrongQuestionService no longer produces legacy outbox writes
+ok 148 - WrongQuestionService no longer produces legacy outbox writes
+  ---
+  duration_ms: 0.4036
+  type: 'test'
+  ...
+# Subtest: normal business write paths go through CloudQuestionRepository
+ok 149 - normal business write paths go through CloudQuestionRepository
+  ---
+  duration_ms: 2.0956
+  type: 'test'
+  ...
+# Subtest: rollback cloud pages remain intact but the formal PDF flow is client AI only
+ok 150 - rollback cloud pages remain intact but the formal PDF flow is client AI only
+  ---
+  duration_ms: 2.0898
+  type: 'test'
+  ...
+# Subtest: formal entry prohibitions are scoped to the AI flow and leave rollback files available
+ok 151 - formal entry prohibitions are scoped to the AI flow and leave rollback files available
+  ---
+  duration_ms: 1.4473
+  type: 'test'
+  ...
+# Subtest: AppBootstrap integrates LegacyCloudMigrationService without legacy backfill
+ok 152 - AppBootstrap integrates LegacyCloudMigrationService without legacy backfill
+  ---
+  duration_ms: 0.4832
+  type: 'test'
+  ...
+# Subtest: legacy migration gate blocks retirement until all three conditions hold
+ok 153 - legacy migration gate blocks retirement until all three conditions hold
+  ---
+  duration_ms: 0.838
+  type: 'test'
+  ...
+# Subtest: legacy v5 schema and sync_outbox remain for recovery
+ok 154 - legacy v5 schema and sync_outbox remain for recovery
+  ---
+  duration_ms: 0.4192
+  type: 'test'
+  ...
+# Subtest: no destructive legacy cleanup exists in production startup or sync paths
+ok 155 - no destructive legacy cleanup exists in production startup or sync paths
+  ---
+  duration_ms: 1.2202
+  type: 'test'
+  ...
+# Subtest: server directory has zero uncommitted changes
+not ok 156 - server directory has zero uncommitted changes
+  ---
+  duration_ms: 171.4461
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\CloudCutoverContracts.test.cjs:196:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    server/ must remain untouched by the cutover task
+    + actual - expected
+    
+    + 'M server/package.json\n' +
+    +   ' M server/worker/pdf_pipeline.py\n' +
+    +   ' M server/worker/question_parser.py\n' +
+    +   ' M server/worker/tests/test_pdf_pipeline.py\n' +
+    +   ' M server/worker/tests/test_question_parser.py\n' +
+    +   '?? server/.codex-worker-test-4/\n' +
+    +   '?? server/.pytest-ai-import-audit/\n' +
+    +   '?? server/scripts/math-pdf-import-e2e.cjs\n' +
+    +   '?? server/scripts/tests/\n' +
+    +   '?? server/worker/layout_debug.py\n' +
+    +   '?? server/worker/math_layout.py\n' +
+    +   '?? server/worker/tests/test_layout_debug.py\n' +
+    +   '?? server/worker/text_layer.py'
+    - ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: |-
+    M server/package.json
+     M server/worker/pdf_pipeline.py
+     M server/worker/question_parser.py
+     M server/worker/tests/test_pdf_pipeline.py
+     M server/worker/tests/test_question_parser.py
+    ?? server/.codex-worker-test-4/
+    ?? server/.pytest-ai-import-audit/
+    ?? server/scripts/math-pdf-import-e2e.cjs
+    ?? server/scripts/tests/
+    ?? server/worker/layout_debug.py
+    ?? server/worker/math_layout.py
+    ?? server/worker/tests/test_layout_debug.py
+    ?? server/worker/text_layer.py
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\CloudCutoverContracts.test.cjs:217:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Cloud import API contracts passed
+# Subtest: entry\\src\\test\\CloudImportApiContracts.test.cjs
+ok 13 - entry\\src\\test\\CloudImportApiContracts.test.cjs
+  ---
+  duration_ms: 300.1717
+  type: 'test'
+  ...
+# (node:46440) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: setup performs signed-in online PDF preflight and creates a cloud job
+ok 158 - setup performs signed-in online PDF preflight and creates a cloud job
+  ---
+  duration_ms: 1.9418
+  type: 'test'
+  ...
+# Subtest: progress resumes upload and polls cloud jobs with bounded backoff
+ok 159 - progress resumes upload and polls cloud jobs with bounded backoff
+  ---
+  duration_ms: 2.0858
+  type: 'test'
+  ...
+# Subtest: inactive progress page stops polling without cancelling the server job
+ok 160 - inactive progress page stops polling without cancelling the server job
+  ---
+  duration_ms: 1.2994
+  type: 'test'
+  ...
+# Subtest: cloud import status card exposes unified progress error and retry state
+ok 161 - cloud import status card exposes unified progress error and retry state
+  ---
+  duration_ms: 0.5861
+  type: 'test'
+  ...
+# Subtest: review reads and edits the server draft before confirmation
+ok 162 - review reads and edits the server draft before confirmation
+  ---
+  duration_ms: 1.7768
+  type: 'test'
+  ...
+# Subtest: review downloads verified artifacts before acknowledging only stored IDs
+ok 163 - review downloads verified artifacts before acknowledging only stored IDs
+  ---
+  duration_ms: 6.5002
+  type: 'test'
+  ...
+# Subtest: review keeps confirmed text when an artifact has expired
+ok 164 - review keeps confirmed text when an artifact has expired
+  ---
+  duration_ms: 1.7474
+  type: 'test'
+  ...
+# Subtest: explicit Cloud abandonment removes only its exact staged PDF before clearing state
+ok 165 - explicit Cloud abandonment removes only its exact staged PDF before clearing state
+  ---
+  duration_ms: 1.4724
+  type: 'test'
+  ...
+# Subtest: Cloud adapter preserves nullable protocol fields and makes independent round-trip copies
+ok 166 - Cloud adapter preserves nullable protocol fields and makes independent round-trip copies
+  ---
+  duration_ms: 114.0993
+  type: 'test'
+  ...
+# Subtest: Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering
+ok 167 - Cloud adapter resumes confirmed text with verified IDs and preserves account/ACK ordering
+  ---
+  duration_ms: 18.6106
+  type: 'test'
+  ...
+# Subtest: PDF import state retains cloud job metadata progress and review state
+ok 168 - PDF import state retains cloud job metadata progress and review state
+  ---
+  duration_ms: 1.5585
+  type: 'test'
+  ...
+# Subtest: import bank stages an AI PDF selection and opens only the AI setup page
+ok 169 - import bank stages an AI PDF selection and opens only the AI setup page
+  ---
+  duration_ms: 1.7347
+  type: 'test'
+  ...
+# Subtest: SyncPayloadData mirrors the server contract and allows explicit null optionals
+ok 170 - SyncPayloadData mirrors the server contract and allows explicit null optionals
+  ---
+  duration_ms: 1.5501
+  type: 'test'
+  ...
+# Subtest: applyQuestion normalizes null question payloads into strict cache values
+ok 171 - applyQuestion normalizes null question payloads into strict cache values
+  ---
+  duration_ms: 1.154
+  type: 'test'
+  ...
+# Subtest: applyBank and applyWrongQuestion normalize null optionals as well
+ok 172 - applyBank and applyWrongQuestion normalize null optionals as well
+  ---
+  duration_ms: 1.7347
+  type: 'test'
+  ...
+# Subtest: legacy remote applier is null-safe so it still compiles against the aligned model
+ok 173 - legacy remote applier is null-safe so it still compiles against the aligned model
+  ---
+  duration_ms: 0.5625
+  type: 'test'
+  ...
+# Subtest: only real network failures mark pages offline; other refresh errors show sync failure
+ok 174 - only real network failures mark pages offline; other refresh errors show sync failure
+  ---
+  duration_ms: 2.7515
+  type: 'test'
+  ...
+# Subtest: cloud sync stays local when signed out and serializes concurrent requests
+ok 175 - cloud sync stays local when signed out and serializes concurrent requests
+  ---
+  duration_ms: 2.2853
+  type: 'test'
+  ...
+# Subtest: signed-in sync refreshes the server-first cache and retires the legacy outbox drain
+ok 176 - signed-in sync refreshes the server-first cache and retires the legacy outbox drain
+  ---
+  duration_ms: 0.5352
+  type: 'test'
+  ...
+# Subtest: legacy outbox and remote applier remain intact as recovery-only services
+ok 177 - legacy outbox and remote applier remain intact as recovery-only services
+  ---
+  duration_ms: 0.4457
+  type: 'test'
+  ...
+# Dark mode contracts passed
+# Subtest: entry\\src\\test\\DarkModeContracts.test.cjs
+ok 17 - entry\\src\\test\\DarkModeContracts.test.cjs
+  ---
+  duration_ms: 257.6477
+  type: 'test'
+  ...
+# Subtest: renders the complete developer section only behind BuildProfile.DEBUG
+ok 179 - renders the complete developer section only behind BuildProfile.DEBUG
+  ---
+  duration_ms: 1.5184
+  type: 'test'
+  ...
+# Subtest: checks login, reuses accessToken refresh, and reports every result
+ok 180 - checks login, reuses accessToken refresh, and reports every result
+  ---
+  duration_ms: 0.946
+  type: 'test'
+  ...
+# Subtest: never exposes or persists either token from the Mine-page feature
+ok 181 - never exposes or persists either token from the Mine-page feature
+  ---
+  duration_ms: 0.7151
+  type: 'test'
+  ...
+# EasyGo parallel view contracts passed
+# Subtest: entry\\src\\test\\EasyGoContracts.test.cjs
+ok 19 - entry\\src\\test\\EasyGoContracts.test.cjs
+  ---
+  duration_ms: 248.1074
+  type: 'test'
+  ...
+# Editorial UI contracts passed
+# Subtest: entry\\src\\test\\EditorialUiContracts.test.cjs
+ok 20 - entry\\src\\test\\EditorialUiContracts.test.cjs
+  ---
+  duration_ms: 294.758
+  type: 'test'
+  ...
+# Home dashboard contracts passed
+# Subtest: entry\\src\\test\\HomeDashboardContracts.test.cjs
+ok 21 - entry\\src\\test\\HomeDashboardContracts.test.cjs
+  ---
+  duration_ms: 234.5471
+  type: 'test'
+  ...
+# Home page contracts passed
+# Subtest: entry\\src\\test\\HomePageContracts.test.cjs
+ok 22 - entry\\src\\test\\HomePageContracts.test.cjs
+  ---
+  duration_ms: 304.954
+  type: 'test'
+  ...
+# Huawei login contracts passed
+# Subtest: entry\\src\\test\\HuaweiLoginContracts.test.cjs
+ok 23 - entry\\src\\test\\HuaweiLoginContracts.test.cjs
+  ---
+  duration_ms: 338.8892
+  type: 'test'
+  ...
+# Subtest: migration model covers the five stages with strict ArkTS types
+ok 187 - migration model covers the five stages with strict ArkTS types
+  ---
+  duration_ms: 2.7522
+  type: 'test'
+  ...
+# Subtest: MigrationPolicy binds accounts and retires only on all three conditions
+ok 188 - MigrationPolicy binds accounts and retires only on all three conditions
+  ---
+  duration_ms: 2.1007
+  type: 'test'
+  ...
+# Subtest: text normalization is deterministic, UUID ordered, and server-trim aware
+ok 189 - text normalization is deterministic, UUID ordered, and server-trim aware
+  ---
+  duration_ms: 0.8708
+  type: 'test'
+  ...
+# Subtest: migration state lives outside sync_outbox and never writes it
+ok 190 - migration state lives outside sync_outbox and never writes it
+  ---
+  duration_ms: 0.703
+  type: 'test'
+  ...
+# Subtest: legacy scan excludes sample data and reads stable identities
+ok 191 - legacy scan excludes sample data and reads stable identities
+  ---
+  duration_ms: 0.9804
+  type: 'test'
+  ...
+# Subtest: upload reuses the server sync API with stable UUIDs in bounded batches
+ok 192 - upload reuses the server sync API with stable UUIDs in bounded batches
+  ---
+  duration_ms: 0.842
+  type: 'test'
+  ...
+# Subtest: server ACK is required before the verifying stage
+ok 193 - server ACK is required before the verifying stage
+  ---
+  duration_ms: 1.3752
+  type: 'test'
+  ...
+# Subtest: verification pulls the authoritative snapshot and fails on count mismatch
+ok 194 - verification pulls the authoritative snapshot and fails on count mismatch
+  ---
+  duration_ms: 1.9812
+  type: 'test'
+  ...
+# Subtest: SHA-256 digest mismatch blocks cacheVerified and completion
+ok 195 - SHA-256 digest mismatch blocks cacheVerified and completion
+  ---
+  duration_ms: 0.711
+  type: 'test'
+  ...
+# Subtest: cloud cache is written only after every bank verified
+ok 196 - cloud cache is written only after every bank verified
+  ---
+  duration_ms: 0.8498
+  type: 'test'
+  ...
+# Subtest: completion requires all three conditions and never deletes legacy data
+ok 197 - completion requires all three conditions and never deletes legacy data
+  ---
+  duration_ms: 0.7375
+  type: 'test'
+  ...
+# Subtest: image rebinding keeps device images private and preserves the originals
+ok 198 - image rebinding keeps device images private and preserves the originals
+  ---
+  duration_ms: 2.1238
+  type: 'test'
+  ...
+# Subtest: failure states allow retry and resume from acknowledged banks
+ok 199 - failure states allow retry and resume from acknowledged banks
+  ---
+  duration_ms: 1.0005
+  type: 'test'
+  ...
+# Subtest: legacy OCR and PDF fallback services are retired and unreferenced by migration
+ok 200 - legacy OCR and PDF fallback services are retired and unreferenced by migration
+  ---
+  duration_ms: 0.7304
+  type: 'test'
+  ...
+# Subtest: bootstrap restores migration state without auto claiming an account
+ok 201 - bootstrap restores migration state without auto claiming an account
+  ---
+  duration_ms: 0.3587
+  type: 'test'
+  ...
+# Subtest: migration card shows all five states, counts, and a retry action
+ok 202 - migration card shows all five states, counts, and a retry action
+  ---
+  duration_ms: 0.411
+  type: 'test'
+  ...
+# Subtest: mine page requires login and explicit confirmation before migrating
+ok 203 - mine page requires login and explicit confirmation before migrating
+  ---
+  duration_ms: 0.4849
+  type: 'test'
+  ...
+# Main navigation contracts passed
+# Subtest: entry\\src\\test\\MainNavigationContracts.test.cjs
+ok 25 - entry\\src\\test\\MainNavigationContracts.test.cjs
+  ---
+  duration_ms: 278.8168
+  type: 'test'
+  ...
+# Math content contracts passed
+# Subtest: entry\\src\\test\\MathContentContracts.test.cjs
+ok 26 - entry\\src\\test\\MathContentContracts.test.cjs
+  ---
+  duration_ms: 289.1802
+  type: 'test'
+  ...
+# Native navigation contracts passed
+# Subtest: entry\\src\\test\\NativeNavigationContracts.test.cjs
+ok 27 - entry\\src\\test\\NativeNavigationContracts.test.cjs
+  ---
+  duration_ms: 266.2233
+  type: 'test'
+  ...
+# Network security contracts passed
+# Subtest: entry\\src\\test\\NetworkSecurityContracts.test.cjs
+ok 28 - entry\\src\\test\\NetworkSecurityContracts.test.cjs
+  ---
+  duration_ms: 243.9914
+  type: 'test'
+  ...
+# (node:29684) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: current schema contains question image storage and durable cleanup debt
+ok 208 - current schema contains question image storage and durable cleanup debt
+  ---
+  duration_ms: 3.873
+  type: 'test'
+  ...
+# Subtest: version one migration probes columns and conditionally repairs partial migrations
+ok 209 - version one migration probes columns and conditionally repairs partial migrations
+  ---
+  duration_ms: 1.8863
+  type: 'test'
+  ...
+# Subtest: import persistence snapshots inputs before awaiting and separates commit from object mutation
+ok 210 - import persistence snapshots inputs before awaiting and separates commit from object mutation
+  ---
+  duration_ms: 2.6333
+  type: 'test'
+  ...
+# Subtest: question image reads are ordered, mapped, and closed in method scope
+ok 211 - question image reads are ordered, mapped, and closed in method scope
+  ---
+  duration_ms: 0.765
+  type: 'test'
+  ...
+# Subtest: update and delete methods keep their exact storage boundaries
+ok 212 - update and delete methods keep their exact storage boundaries
+  ---
+  duration_ms: 2.4508
+  type: 'test'
+  ...
+# Subtest: pdf selection stages one validated file through bounded streaming io
+ok 213 - pdf selection stages one validated file through bounded streaming io
+  ---
+  duration_ms: 2.3766
+  type: 'test'
+  ...
+# Subtest: temporary pdf cleanup requires exact staged ownership and unregisters only after safe outcomes
+ok 214 - temporary pdf cleanup requires exact staged ownership and unregisters only after safe outcomes
+  ---
+  duration_ms: 1.4139
+  type: 'test'
+  ...
+# Subtest: pdf selection serializes picker work and removes only direct unregistered stale cache files
+ok 215 - pdf selection serializes picker work and removes only direct unregistered stale cache files
+  ---
+  duration_ms: 1.5039
+  type: 'test'
+  ...
+# Subtest: question crop converts coordinates directly and owns every file and image resource
+ok 216 - question crop converts coordinates directly and owns every file and image resource
+  ---
+  duration_ms: 1.146
+  type: 'test'
+  ...
+# Subtest: PDF import device pipeline stays offline even with app-level INTERNET permission
+ok 217 - PDF import device pipeline stays offline even with app-level INTERNET permission
+  ---
+  duration_ms: 1.4241
+  type: 'test'
+  ...
+# Subtest: device OCR and PDF coordinator services are retired after the cloud cutover
+ok 218 - device OCR and PDF coordinator services are retired after the cloud cutover
+  ---
+  duration_ms: 0.9914
+  type: 'test'
+  ...
+# Subtest: PDF import routes keep rollback pages and register the formal AI flow
+ok 219 - PDF import routes keep rollback pages and register the formal AI flow
+  ---
+  duration_ms: 0.711
+  type: 'test'
+  ...
+# Subtest: formal PDF selection enters only the client AI setup
+ok 220 - formal PDF selection enters only the client AI setup
+  ---
+  duration_ms: 0.648
+  type: 'test'
+  ...
+# Subtest: formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path
+ok 221 - formal AI PDF entry has no Cloud, OCR, endpoint, or fallback path
+  ---
+  duration_ms: 1.1899
+  type: 'test'
+  ...
+# Subtest: formal PDF selection preserves exactly one reachable owner across replacement and route failures
+ok 222 - formal PDF selection preserves exactly one reachable owner across replacement and route failures
+  ---
+  duration_ms: 90.6852
+  type: 'test'
+  ...
+# Subtest: PDF setup validates cloud metadata and page range before progress routing
+ok 223 - PDF setup validates cloud metadata and page range before progress routing
+  ---
+  duration_ms: 2.6743
+  type: 'test'
+  ...
+# Subtest: resource route registry contains each AI page exactly once
+ok 224 - resource route registry contains each AI page exactly once
+  ---
+  duration_ms: 2.5986
+  type: 'test'
+  ...
+# Subtest: import entry serializes JSON and AI PDF selection, blocks back, and grows errors
+ok 225 - import entry serializes JSON and AI PDF selection, blocks back, and grows errors
+  ---
+  duration_ms: 0.4929
+  type: 'test'
+  ...
+# Subtest: question image cleanup debt is idempotent and retry retains only failed paths
+ok 226 - question image cleanup debt is idempotent and retry retains only failed paths
+  ---
+  duration_ms: 1.1185
+  type: 'test'
+  ...
+# Subtest: temporary PDF abandonment moves only exact active ownership to retryable orphan storage
+ok 227 - temporary PDF abandonment moves only exact active ownership to retryable orphan storage
+  ---
+  duration_ms: 0.6434
+  type: 'test'
+  ...
+# Subtest: failed candidate deletion atomically transfers exact ownership to orphan cleanup
+ok 228 - failed candidate deletion atomically transfers exact ownership to orphan cleanup
+  ---
+  duration_ms: 0.7028
+  type: 'test'
+  ...
+# Subtest: saveCrop registers only an owned temporary residue when immediate cleanup fails
+ok 229 - saveCrop registers only an owned temporary residue when immediate cleanup fails
+  ---
+  duration_ms: 0.5751
+  type: 'test'
+  ...
+# Subtest: question image debt retry shares one transition and recovers strict direct cache files after restart
+ok 230 - question image debt retry shares one transition and recovers strict direct cache files after restart
+  ---
+  duration_ms: 1.3513
+  type: 'test'
+  ...
+# Subtest: PDF stale cleanup isolates per-file failures so picker construction remains reachable
+ok 231 - PDF stale cleanup isolates per-file failures so picker construction remains reachable
+  ---
+  duration_ms: 1.631
+  type: 'test'
+  ...
+# Subtest: savePdfBank keeps bank questions and images in one transaction without changing JSON import API
+ok 232 - savePdfBank keeps bank questions and images in one transaction without changing JSON import API
+  ---
+  duration_ms: 0.8034
+  type: 'test'
+  ...
+# Subtest: committed PDF image rollback is path-owned idempotent and reports recoverable cleanup state
+ok 233 - committed PDF image rollback is path-owned idempotent and reports recoverable cleanup state
+  ---
+  duration_ms: 0.7974
+  type: 'test'
+  ...
+# Subtest: partial image commit rollback failure preserves structured recoverable ownership
+ok 234 - partial image commit rollback failure preserves structured recoverable ownership
+  ---
+  duration_ms: 1.4421
+  type: 'test'
+  ...
+# Subtest: uncertain PDF bank save exports exact three-state verification
+ok 235 - uncertain PDF bank save exports exact three-state verification
+  ---
+  duration_ms: 1.2644
+  type: 'test'
+  ...
+# Subtest: saved question source images render only when present and use stable image identifiers
+ok 236 - saved question source images render only when present and use stable image identifiers
+  ---
+  duration_ms: 0.4662
+  type: 'test'
+  ...
+# Subtest: question detail reloads on page show, renders source before question content, and opens editing for selected question
+ok 237 - question detail reloads on page show, renders source before question content, and opens editing for selected question
+  ---
+  duration_ms: 0.524
+  type: 'test'
+  ...
+# Subtest: question list cards show pending review only for questions that need review
+ok 238 - question list cards show pending review only for questions that need review
+  ---
+  duration_ms: 2.8397
+  type: 'test'
+  ...
+# Subtest: saved question editor clones all editable fields but preserves source image ownership
+ok 239 - saved question editor clones all editable fields but preserves source image ownership
+  ---
+  duration_ms: 0.5285
+  type: 'test'
+  ...
+# Subtest: bank deletion is server-first and refreshes the cache only after server success
+ok 240 - bank deletion is server-first and refreshes the cache only after server success
+  ---
+  duration_ms: 0.7963
+  type: 'test'
+  ...
+# Subtest: question list reloads the active query on page show and lazily renders a fully notified data source
+ok 241 - question list reloads the active query on page show and lazily renders a fully notified data source
+  ---
+  duration_ms: 0.5217
+  type: 'test'
+  ...
+# Subtest: list and search queries do not serially hydrate source images while detail still does
+ok 242 - list and search queries do not serially hydrate source images while detail still does
+  ---
+  duration_ms: 0.9632
+  type: 'test'
+  ...
+# Subtest: bank deletion durably records exact image debt inside the same transaction before deleting rows
+ok 243 - bank deletion durably records exact image debt inside the same transaction before deleting rows
+  ---
+  duration_ms: 1.5747
+  type: 'test'
+  ...
+# Subtest: cleanup retry merges exact durable debt, protects live references, and clears debt only after safe cleanup
+ok 244 - cleanup retry merges exact durable debt, protects live references, and clears debt only after safe cleanup
+  ---
+  duration_ms: 0.9547
+  type: 'test'
+  ...
+# Subtest: direct image deletion clears durable debt after safe absence or unlink and retries empty bank directory cleanup
+ok 245 - direct image deletion clears durable debt after safe absence or unlink and retries empty bank directory cleanup
+  ---
+  duration_ms: 1.5943
+  type: 'test'
+  ...
+# Subtest: PDF import manifest allows INTERNET but device pipeline contains no network client
+ok 246 - PDF import manifest allows INTERNET but device pipeline contains no network client
+  ---
+  duration_ms: 0.9486
+  type: 'test'
+  ...
+# Subtest: temporary PDF deletion is an idempotent direct-child operation under its registered cache root
+ok 247 - temporary PDF deletion is an idempotent direct-child operation under its registered cache root
+  ---
+  duration_ms: 0.4987
+  type: 'test'
+  ...
+# Subtest: read-only temporary PDF absence proof accepts only a missing strict direct child
+ok 248 - read-only temporary PDF absence proof accepts only a missing strict direct child
+  ---
+  duration_ms: 23.8268
+  type: 'test'
+  ...
+# Subtest: temporary PDF absence proof rejects malformed and cross-root paths without deletion
+ok 249 - temporary PDF absence proof rejects malformed and cross-root paths without deletion
+  ---
+  duration_ms: 13.1165
+  type: 'test'
+  ...
+# Subtest: temporary PDF absence proof is read-only and validates path then cache then lstat absence
+ok 250 - temporary PDF absence proof is read-only and validates path then cache then lstat absence
+  ---
+  duration_ms: 0.4363
+  type: 'test'
+  ...
+# Subtest: question image deletion accepts only exact service cache files or exact bank image hierarchy
+ok 251 - question image deletion accepts only exact service cache files or exact bank image hierarchy
+  ---
+  duration_ms: 0.6193
+  type: 'test'
+  ...
+# Subtest: unknown or malformed PDF ownership throws and only strict registered staged files can be abandoned
+ok 252 - unknown or malformed PDF ownership throws and only strict registered staged files can be abandoned
+  ---
+  duration_ms: 0.5537
+  type: 'test'
+  ...
+# Subtest: current schema durably records exact rollback mappings and retry restores mappings without committed scans
+ok 253 - current schema durably records exact rollback mappings and retry restores mappings without committed scans
+  ---
+  duration_ms: 0.7842
+  type: 'test'
+  ...
+# Subtest: structured PDF storage errors are preserved by retained local services
+ok 254 - structured PDF storage errors are preserved by retained local services
+  ---
+  duration_ms: 0.701
+  type: 'test'
+  ...
+# Subtest: PDF page error cards use supported constraint sizing
+ok 255 - PDF page error cards use supported constraint sizing
+  ---
+  duration_ms: 0.6056
+  type: 'test'
+  ...
+# Subtest: ConnectivityPolicy allows mutation only when signed in and online
+ok 256 - ConnectivityPolicy allows mutation only when signed in and online
+  ---
+  duration_ms: 1.8443
+  type: 'test'
+  ...
+# Subtest: every data page shows the offline read-only state and uses the cloud repository
+ok 257 - every data page shows the offline read-only state and uses the cloud repository
+  ---
+  duration_ms: 17.6075
+  type: 'test'
+  ...
+# Subtest: pages never call the old local-first mutation services
+ok 258 - pages never call the old local-first mutation services
+  ---
+  duration_ms: 5.3644
+  type: 'test'
+  ...
+# Subtest: mutation buttons are disabled or guarded when offline or signed out
+ok 259 - mutation buttons are disabled or guarded when offline or signed out
+  ---
+  duration_ms: 1.8737
+  type: 'test'
+  ...
+# Subtest: CloudQuestionRepository exposes the required server-first API
+ok 260 - CloudQuestionRepository exposes the required server-first API
+  ---
+  duration_ms: 0.7332
+  type: 'test'
+  ...
+# Subtest: mutation order is server request then server success then cache update
+ok 261 - mutation order is server request then server success then cache update
+  ---
+  duration_ms: 0.946
+  type: 'test'
+  ...
+# Subtest: refresh failure preserves the existing cloud cache
+ok 262 - refresh failure preserves the existing cloud cache
+  ---
+  duration_ms: 1.8406
+  type: 'test'
+  ...
+# Subtest: mutation success reflects in cache before the page refreshes
+ok 263 - mutation success reflects in cache before the page refreshes
+  ---
+  duration_ms: 0.8933
+  type: 'test'
+  ...
+# Subtest: legacy backfill stays recovery-only and is not wired into production startup
+ok 264 - legacy backfill stays recovery-only and is not wired into production startup
+  ---
+  duration_ms: 2.1334
+  type: 'test'
+  ...
+# Subtest: built-in sample imports remain device-only after the outbox cutover
+ok 265 - built-in sample imports remain device-only after the outbox cutover
+  ---
+  duration_ms: 1.2851
+  type: 'test'
+  ...
+# Subtest: question bank writes no longer enqueue legacy outbox operations
+ok 266 - question bank writes no longer enqueue legacy outbox operations
+  ---
+  duration_ms: 4.2915
+  type: 'test'
+  ...
+# Subtest: wrong question mutations no longer enqueue legacy outbox operations
+ok 267 - wrong question mutations no longer enqueue legacy outbox operations
+  ---
+  duration_ms: 1.1642
+  type: 'test'
+  ...
+# Subtest: online mutations are server-first through CloudQuestionRepository
+ok 268 - online mutations are server-first through CloudQuestionRepository
+  ---
+  duration_ms: 2.3387
+  type: 'test'
+  ...
+# Subtest: remote apply never echoes changes into outbox
+ok 269 - remote apply never echoes changes into outbox
+  ---
+  duration_ms: 0.4851
+  type: 'test'
+  ...
+# Subtest: sync payload factory includes text only and excludes device image data
+ok 270 - sync payload factory includes text only and excludes device image data
+  ---
+  duration_ms: 0.8748
+  type: 'test'
+  ...
+# Subtest: database schema version six retains sync identity, outbox and cursor tables
+ok 271 - database schema version six retains sync identity, outbox and cursor tables
+  ---
+  duration_ms: 6.277
+  type: 'test'
+  ...
+# Subtest: version four migration is transactional and advances only after success
+ok 272 - version four migration is transactional and advances only after success
+  ---
+  duration_ms: 2.2937
+  type: 'test'
+  ...
+# Subtest: sync identity service creates stable server-compatible UUID mappings
+ok 273 - sync identity service creates stable server-compatible UUID mappings
+  ---
+  duration_ms: 0.4447
+  type: 'test'
+  ...
+# Subtest: outbox compacts pending mutations without removing them on sign out
+ok 274 - outbox compacts pending mutations without removing them on sign out
+  ---
+  duration_ms: 2.2314
+  type: 'test'
+  ...
+# Task 6 page contracts passed
+# Subtest: entry\\src\\test\\Task6PageContracts.test.cjs
+ok 34 - entry\\src\\test\\Task6PageContracts.test.cjs
+  ---
+  duration_ms: 172.5666
+  type: 'test'
+  ...
+# Task 7 page contracts passed
+# Subtest: entry\\src\\test\\Task7PageContracts.test.cjs
+ok 35 - entry\\src\\test\\Task7PageContracts.test.cjs
+  ---
+  duration_ms: 143.5909
+  type: 'test'
+  ...
+# Task 8 page contracts passed
+# Subtest: entry\\src\\test\\Task8PageContracts.test.cjs
+ok 36 - entry\\src\\test\\Task8PageContracts.test.cjs
+  ---
+  duration_ms: 134.4185
+  type: 'test'
+  ...
+# Task 9 resource contracts passed
+# Subtest: entry\\src\\test\\Task9ResourceContracts.test.cjs
+ok 37 - entry\\src\\test\\Task9ResourceContracts.test.cjs
+  ---
+  duration_ms: 125.0389
+  type: 'test'
+  ...
+# (node:54492) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: primary and selected controls use readable light and dark color pairs
+ok 279 - primary and selected controls use readable light and dark color pairs
+  ---
+  duration_ms: 42.2768
+  type: 'test'
+  ...
+# Subtest: import leads with PDF and keeps JSON format and mutually exclusive handlers
+ok 280 - import leads with PDF and keeps JSON format and mutually exclusive handlers
+  ---
+  duration_ms: 0.4741
+  type: 'test'
+  ...
+# Subtest: settings group Model with service and expose status outside the scrolling form
+ok 281 - settings group Model with service and expose status outside the scrolling form
+  ---
+  duration_ms: 1.0728
+  type: 'test'
+  ...
+# Subtest: three page shells consume four insets and constrain readable content and touch targets
+ok 282 - three page shells consume four insets and constrain readable content and touch targets
+  ---
+  duration_ms: 2.1684
+  type: 'test'
+  ...
+# Subtest: picker clears both filters, restores actual catalog and still selects only the platform id
+ok 283 - picker clears both filters, restores actual catalog and still selects only the platform id
+  ---
+  duration_ms: 14.2241
+  type: 'test'
+  ...
+1..283
+# tests 283
+# suites 0
+# pass 282
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 966.598

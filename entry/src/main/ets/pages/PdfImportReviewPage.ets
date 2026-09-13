@@ -1,8 +1,7 @@
 import { Context } from '@kit.AbilityKit'
 import { router } from '@kit.ArkUI'
-import { BusinessError } from '@kit.BasicServicesKit'
-import { hash } from '@kit.CoreFileKit'
-import fs from '@ohos.file.fs'
+import { util } from '@kit.ArkTS'
+import { MathContentView } from '../components/MathContentView'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
@@ -11,62 +10,67 @@ import {
   SUBTITLE_FONT_SIZE,
   themePalette
 } from '../constants/AppTheme'
-import { AccountSessionState } from '../models/AccountSession'
-import { ApiHttpError } from '../models/ApiModels'
-import { DeviceQuestionImage } from '../models/CloudCacheModels'
-import {
-  CloudImportDraft,
-  CloudImportDraftQuestion,
-  CloudImportQuestionType,
-  CloudImportStatus,
-  ConfirmCloudImportQuestion,
-  ConfirmCloudImportRequest,
-  ConfirmedImportArtifact,
-  ConfirmImportQuestionResult,
-  ConfirmImportResult
-} from '../models/CloudImportModels'
-import { AccountSessionService } from '../services/AccountSessionService'
-import { CloudImportService } from '../services/CloudImportService'
-import { DeviceImageScope, DeviceImageStore } from '../services/DeviceImageStore'
+import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
+import { UiStyle } from '../constants/UiStyle'
 import { AppColors } from '../theme/AppColors'
 import { PdfImportState } from '../utils/PdfImportState'
+import { MathContentUtils } from '../utils/MathContentUtils'
 import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+
+import { AiQuestionType } from '../models/ai/AiImportModels'
+import { AiImportError, AiImportErrorMessages } from '../models/ai/AiProviderConfig'
+import { PdfReviewAdapter, PdfReviewSession, PdfReviewQuestion, PdfReviewOption,
+  PdfReviewImage, PdfReviewFailure, PdfReviewSource, PdfReviewSaveStage,
+  PdfReviewSavePolicy } from '../services/review/PdfReviewModels'
+import { PdfReviewSessionStore } from '../services/review/PdfReviewSession'
+import { CloudPdfReviewAdapter } from '../services/review/CloudPdfReviewAdapter'
+import { AiPdfReviewAdapter } from '../services/review/AiPdfReviewAdapter'
 
 @Entry
 @Component
 struct PdfImportReviewPage {
-  @State draftQuestions: Array<CloudImportDraftQuestion> = new Array<CloudImportDraftQuestion>()
+  @State session: PdfReviewSession | null = null
+  @State draftQuestions: Array<PdfReviewQuestion> = new Array<PdfReviewQuestion>()
+  @State failures: Array<PdfReviewFailure> = new Array<PdfReviewFailure>()
+  @State previewDraftQuestionId: string = ''
   @State bankName: string = ''
   @State subject: string = ''
   @State loading: boolean = true
   @State pending: boolean = false
+  @State authoritativeStatePending: boolean = false
   @State navigationPending: boolean = false
   @State confirmationComplete: boolean = false
   @State artifactExpired: boolean = false
   @State errorMessage: string = ''
+  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
   @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
     top: 0, left: 0, right: 0, bottom: 0
   }
   @StorageProp('darkMode') darkMode: boolean = false
   private initialized: boolean = false
-  private jobId: string = ''
-  private accountId: string = ''
   private confirmedBankId: string = ''
-  private requiredArtifactCount: number = 0
-  private unavailableArtifactCount: number = 0
-  private draftStatus: CloudImportStatus = CloudImportStatus.REVIEW
-  private draftExpiresAt: string = ''
+  private adapter: PdfReviewAdapter | null = null
+  private sizeObserver?: WindowSizeObserver
 
   private colors(): AppColors {
     return themePalette(this.darkMode)
   }
 
   aboutToAppear(): void {
-    if (this.initialized) {
-      return
-    }
+    this.startWindowObserver()
+    if (this.initialized) return
     this.initialized = true
+    this.adapter = PdfImportState.shared().getReviewSessionId().length > 0 ?
+      new AiPdfReviewAdapter() : new CloudPdfReviewAdapter()
     this.loadDraft()
+  }
+
+  onPageShow(): void {
+    this.startWindowObserver()
+  }
+
+  onPageHide(): void {
+    this.stopWindowObserver()
   }
 
   onBackPress(): boolean {
@@ -75,112 +79,79 @@ struct PdfImportReviewPage {
   }
 
   private async loadDraft(): Promise<void> {
-    if (this.pending) {
-      return
-    }
-    const state: PdfImportState = PdfImportState.shared()
-    const jobId: string = state.getCloudJobId()
-    const accountId: string = state.getCloudAccountId()
+    if (this.pending || this.navigationPending || this.adapter === null) return
     this.loading = true
     this.errorMessage = ''
     try {
-      if (jobId.length === 0 || accountId.length === 0) {
-        throw new Error('云端导入任务信息已失效，请返回重新导入')
-      }
-      const context: Context = getContext(this)
-      await this.requireAccount(context, accountId)
-      const confirmedResult: ConfirmImportResult | null = state.getConfirmResult()
-      if (confirmedResult !== null) {
-        const cachedDraft: CloudImportDraft | null = state.getCloudReviewDraft()
-        this.jobId = jobId
-        this.accountId = accountId
-        this.confirmedBankId = confirmedResult.bankId
-        this.artifactExpired = state.getCloudArtifactExpired()
-        this.bankName = state.getCloudBankName()
-        this.subject = state.getCloudSubject()
-        if (state.getCloudStatus() === CloudImportStatus.CONFIRMED) {
-          this.confirmationComplete = true
-          return
-        }
-        if (cachedDraft !== null && cachedDraft.jobId === jobId) {
-          this.applyDraft(cachedDraft, accountId)
-        } else {
-          this.errorMessage = '题目文字已确认，可继续重试保存原题图片'
-        }
-        return
-      }
-      const draft: CloudImportDraft = await CloudImportService.getDraft(context, jobId)
-      this.applyDraft(draft, accountId)
-      state.setCloudReviewDraft(draft)
-      if (draft.status === CloudImportStatus.EXPIRED) {
-        this.markArtifactExpired()
-      }
-    } catch (err) {
-      if (this.isExpiredHttpError(err)) {
-        const cachedDraft: CloudImportDraft | null = state.getCloudReviewDraft()
-        if (cachedDraft !== null) {
-          this.applyDraft(cachedDraft, accountId)
-          this.markArtifactExpired()
-        } else {
-          this.errorMessage = '云端识别草稿已过期，请返回重新导入'
-        }
-      } else {
-        this.errorMessage = this.errorText(err, '云端识别草稿加载失败，请重试')
-      }
+      const session: PdfReviewSession = await this.adapter.load(getContext(this))
+      this.applySession(session)
+      this.authoritativeStatePending = false
+    } catch {
+      this.authoritativeStatePending = true
+      this.errorMessage = '审核状态暂时无法确认，请切回导入账号后重新加载'
     } finally {
       this.loading = false
     }
   }
 
-  private applyDraft(draft: CloudImportDraft, accountId: string): void {
-    const copies: Array<CloudImportDraftQuestion> = new Array<CloudImportDraftQuestion>()
-    for (let index: number = 0; index < draft.questions.length; index++) {
-      copies.push(this.copyQuestion(draft.questions[index]))
-    }
-    this.jobId = draft.jobId
-    this.accountId = accountId
-    this.bankName = draft.bankName
-    this.subject = draft.subject
-    this.draftStatus = draft.status
-    this.draftExpiresAt = draft.expiresAt
-    this.draftQuestions = copies
-    if (copies.length === 0) {
-      this.errorMessage = '服务器没有返回可审核的题目'
+  private applySession(session: PdfReviewSession): void {
+    const snapshot: PdfReviewSession = PdfReviewSessionStore.copyOf(session)
+    this.session = snapshot
+    this.draftQuestions = snapshot.questions
+    this.failures = snapshot.failures
+    this.bankName = snapshot.bankName
+    this.subject = snapshot.subject
+    this.confirmedBankId = snapshot.bankUuid
+    this.confirmationComplete = snapshot.saveStage === PdfReviewSaveStage.COMPLETE
+    this.artifactExpired = snapshot.source === PdfReviewSource.CLOUD &&
+      PdfImportState.shared().getCloudArtifactExpired()
+  }
+
+  private canEdit(): boolean {
+    return !this.loading && !this.pending && !this.navigationPending &&
+      !this.authoritativeStatePending && this.session !== null &&
+      PdfReviewSavePolicy.canEdit(this.session.saveStage)
+  }
+
+  private isAiReview(): boolean {
+    return this.session !== null && this.session.source === PdfReviewSource.AI
+  }
+
+  private textSaveStarted(): boolean {
+    return this.session !== null && this.session.saveStage !== PdfReviewSaveStage.DRAFT
+  }
+
+  private persistEdits(snapshot: PdfReviewSession): void {
+    if (this.adapter === null) return
+    this.adapter.persist(PdfReviewSessionStore.copyOf(snapshot))
+    this.applySession(snapshot)
+  }
+
+  private replaceQuestion(draftQuestionId: string, type: AiQuestionType, questionText: string,
+    options: Array<PdfReviewOption>, answer: string, analysis: string): void {
+    if (!this.canEdit() || this.session === null) return
+    const snapshot: PdfReviewSession = PdfReviewSessionStore.copyOf(this.session)
+    const index: number = this.findQuestionIndex(draftQuestionId)
+    if (index < 0) return
+    const replacement: PdfReviewQuestion = snapshot.questions[index]
+    replacement.type = type
+    replacement.question = questionText
+    replacement.options = options.map((option: PdfReviewOption): PdfReviewOption =>
+      new PdfReviewOption(option.key, option.value))
+    replacement.answer = answer
+    replacement.analysis = analysis
+    this.persistEdits(snapshot)
+    if (this.previewDraftQuestionId === draftQuestionId && !this.hasMathContent(replacement)) {
+      this.previewDraftQuestionId = ''
     }
   }
 
-  private copyQuestion(source: CloudImportDraftQuestion): CloudImportDraftQuestion {
-    return new CloudImportDraftQuestion(source.draftQuestionId, source.type, source.question,
-      source.options, source.answer, source.analysis, source.pageStart, source.pageEnd,
-      source.confidence, source.reviewRequired, source.images.slice())
-  }
-
-  private replaceQuestion(draftQuestionId: string, type: string, questionText: string,
-    options: Record<string, string> | null, answer: string | null,
-    analysis: string | null): void {
+  private updateType(draftQuestionId: string, value: AiQuestionType): void {
     const index: number = this.findQuestionIndex(draftQuestionId)
     if (index < 0) {
       return
     }
-    const source: CloudImportDraftQuestion = this.draftQuestions[index]
-    const replacement: CloudImportDraftQuestion = new CloudImportDraftQuestion(
-      source.draftQuestionId, type, questionText, options, answer, analysis,
-      source.pageStart, source.pageEnd, source.confidence, source.reviewRequired,
-      source.images.slice())
-    const nextQuestions: Array<CloudImportDraftQuestion> = this.draftQuestions.slice()
-    nextQuestions.splice(index, 1, replacement)
-    this.draftQuestions = nextQuestions
-    const draft: CloudImportDraft = new CloudImportDraft(this.jobId, this.draftStatus,
-      this.bankName, this.subject, this.draftExpiresAt, nextQuestions)
-    PdfImportState.shared().setCloudReviewDraft(draft)
-  }
-
-  private updateType(draftQuestionId: string, value: string): void {
-    const index: number = this.findQuestionIndex(draftQuestionId)
-    if (index < 0) {
-      return
-    }
-    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    const source: PdfReviewQuestion = this.draftQuestions[index]
     this.replaceQuestion(draftQuestionId, value, source.question, source.options,
       source.answer, source.analysis)
   }
@@ -190,7 +161,7 @@ struct PdfImportReviewPage {
     if (index < 0) {
       return
     }
-    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    const source: PdfReviewQuestion = this.draftQuestions[index]
     this.replaceQuestion(draftQuestionId, source.type, value, source.options,
       source.answer, source.analysis)
   }
@@ -200,12 +171,10 @@ struct PdfImportReviewPage {
     if (index < 0) {
       return
     }
-    const source: CloudImportDraftQuestion = this.draftQuestions[index]
-    const options: Record<string, string> | null = source.options
-    if (options === null || Object.keys(options).indexOf(optionKey) < 0) {
-      return
-    }
-    options[optionKey] = value
+    const source: PdfReviewQuestion = this.draftQuestions[index]
+    const options: Array<PdfReviewOption> = source.options.map(
+      (option: PdfReviewOption): PdfReviewOption =>
+        new PdfReviewOption(option.key, option.key === optionKey ? value : option.value))
     this.replaceQuestion(draftQuestionId, source.type, source.question, options,
       source.answer, source.analysis)
   }
@@ -215,7 +184,7 @@ struct PdfImportReviewPage {
     if (index < 0) {
       return
     }
-    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    const source: PdfReviewQuestion = this.draftQuestions[index]
     this.replaceQuestion(draftQuestionId, source.type, source.question, source.options,
       value, source.analysis)
   }
@@ -225,7 +194,7 @@ struct PdfImportReviewPage {
     if (index < 0) {
       return
     }
-    const source: CloudImportDraftQuestion = this.draftQuestions[index]
+    const source: PdfReviewQuestion = this.draftQuestions[index]
     this.replaceQuestion(draftQuestionId, source.type, source.question, source.options,
       source.answer, value)
   }
@@ -251,431 +220,113 @@ struct PdfImportReviewPage {
     return ''
   }
 
-  private buildConfirmQuestions(): Array<ConfirmCloudImportQuestion> {
-    const questions: Array<ConfirmCloudImportQuestion> = new Array<ConfirmCloudImportQuestion>()
-    for (let index: number = 0; index < this.draftQuestions.length; index++) {
-      const source: CloudImportDraftQuestion = this.draftQuestions[index]
-      questions.push(new ConfirmCloudImportQuestion(source.draftQuestionId,
-        this.questionType(source.type), source.question.trim(), source.options,
-        source.answer, source.analysis, true))
-    }
-    return questions
-  }
-
-  private questionType(value: string): CloudImportQuestionType {
-    if (value === 'single_choice') {
-      return CloudImportQuestionType.SINGLE_CHOICE
-    }
-    if (value === 'blank') {
-      return CloudImportQuestionType.BLANK
-    }
-    if (value === 'short_answer') {
-      return CloudImportQuestionType.SHORT_ANSWER
-    }
-    return CloudImportQuestionType.UNKNOWN
-  }
-
-  private async confirmDraft(): Promise<void> {
-    if (this.pending || this.loading || this.navigationPending || this.confirmationComplete) {
-      return
-    }
-    const state: PdfImportState = PdfImportState.shared()
-    const existingResult: ConfirmImportResult | null = state.getConfirmResult()
-    if (existingResult === null) {
-      const validationMessage: string = this.validateDraft()
-      if (validationMessage.length > 0) {
-        this.errorMessage = validationMessage
+  private async saveReview(): Promise<void> {
+    if (this.pending || this.loading || this.navigationPending || this.authoritativeStatePending ||
+      this.session === null || this.adapter === null) return
+    if (PdfReviewSavePolicy.canEdit(this.session.saveStage)) {
+      const message: string = this.validateDraft()
+      if (message.length > 0) {
+        this.errorMessage = message
         return
       }
     }
-    const jobId: string = state.getCloudJobId()
-    const accountId: string = state.getCloudAccountId()
-    if (jobId.length === 0 || accountId.length === 0) {
-      this.errorMessage = '云端导入任务信息已失效，请返回重新导入'
-      return
+    const working: PdfReviewSession = PdfReviewSessionStore.copyOf(this.session)
+    this.pending = true
+    this.errorMessage = ''
+    let success: boolean = false
+    try {
+      this.adapter.persist(working)
+      const saved: PdfReviewSession = await this.adapter.save(getContext(this), working)
+      this.applySession(saved)
+      success = saved.saveStage === PdfReviewSaveStage.COMPLETE
+      if (!success) this.errorMessage = '题目保存已开始，请重试完成文字和原题图片保存'
+    } catch {
+      if (working.source === PdfReviewSource.AI) {
+        if (!await this.reconcileReviewState()) return
+      } else {
+        this.applySession(working)
+      }
+      this.errorMessage = this.textSaveStarted() ?
+        '题目保存已开始，原题图片或保存收尾未完成，请重试' : '题目保存失败，请重试'
+    } finally {
+      this.pending = false
     }
+    if (success) {
+      this.showToast('题目已保存')
+      await this.navigateToImportPage()
+    }
+  }
+
+  private async reconcileReviewState(): Promise<boolean> {
+    this.authoritativeStatePending = true
+    try {
+      if (this.adapter !== null) {
+        const authoritative: PdfReviewSession = await this.adapter.load(getContext(this))
+        this.applySession(authoritative)
+        this.authoritativeStatePending = false
+        return true
+      }
+    } catch {
+    }
+    this.errorMessage = '审核状态暂时无法确认，请切回导入账号后重新加载'
+    return false
+  }
+
+  private async retryFailure(pageNumber: number): Promise<void> {
+    if (!this.canEdit() || !this.isAiReview() || this.session === null || this.adapter === null) return
     this.pending = true
     this.errorMessage = ''
     try {
-      const context: Context = getContext(this)
-      await this.requireAccount(context, accountId)
-      let result: ConfirmImportResult | null = existingResult
-      if (result === null) {
-        const request: ConfirmCloudImportRequest = new ConfirmCloudImportRequest(
-          this.bankName.trim(), this.subject.trim(), this.buildConfirmQuestions())
-        result = await CloudImportService.confirm(context, jobId, request)
-        state.setConfirmResult(result)
-      }
-      const savedArtifactIds: Array<string> = await this.downloadArtifacts(
-        context, jobId, accountId, result)
-      await this.requireAccount(context, accountId)
-      if (this.unavailableArtifactCount > 0) {
-        this.markArtifactExpired()
-      } else {
-        if (savedArtifactIds.length !== this.requiredArtifactCount) {
-          throw new Error('原题图片保存数量不完整')
-        }
-        try {
-          await CloudImportService.acknowledgeArtifacts(context, jobId, savedArtifactIds)
-        } catch (err) {
-          if (await this.isArtifactUnavailable(context, jobId, err)) {
-            this.markArtifactExpired()
-          } else if (err instanceof Error) {
-            throw err
-          } else {
-            throw new Error('云端图片确认失败')
-          }
-        }
-      }
-      this.confirmedBankId = result.bankId
-      this.confirmationComplete = true
-      state.setCloudArtifactExpired(this.artifactExpired)
-      state.setCloudStatus(CloudImportStatus.CONFIRMED)
-      this.showToast('题目文字已在服务器确认')
+      const snapshot: PdfReviewSession = PdfReviewSessionStore.copyOf(this.session)
+      this.adapter.persist(snapshot)
+      const updated: PdfReviewSession = await this.adapter.retryPage(getContext(this), snapshot, pageNumber)
+      this.applySession(updated)
+      this.previewDraftQuestionId = ''
     } catch (err) {
-      if (state.getConfirmResult() !== null) {
-        this.errorMessage = '题目文字已确认，图片下载或保存失败，请重试'
-      } else {
-        this.errorMessage = this.errorText(err, '云端草稿确认失败，请重试')
-      }
+      if (!await this.reconcileReviewState()) return
+      this.errorMessage = err instanceof AiImportError ?
+        AiImportErrorMessages.forCode(err.code) : '本页重试失败'
     } finally {
       this.pending = false
     }
   }
 
-  private async downloadArtifacts(context: Context, jobId: string, accountId: string,
-    result: ConfirmImportResult): Promise<Array<string>> {
-    const accountDirectory: string = DeviceImageScope.accountDirectory(context.filesDir, accountId)
-    const preparedDirectory: string = await this.ensureAccountDirectory(context.filesDir, accountId)
-    if (preparedDirectory !== accountDirectory) {
-      throw new Error('账号隔离图片目录校验失败')
+  private async addManualQuestion(failure: PdfReviewFailure): Promise<void> {
+    if (!this.canEdit() || !this.isAiReview() || this.session === null) return
+    const id: string = util.generateRandomUUID()
+    const images: Array<PdfReviewImage> = new Array<PdfReviewImage>()
+    if (failure.evidencePath.length > 0) {
+      images.push(new PdfReviewImage('', failure.evidencePath, '', 0, 'image/jpeg', 0))
     }
-    const savedArtifactIds: Array<string> = new Array<string>()
-    this.requiredArtifactCount = 0
-    this.unavailableArtifactCount = 0
-    for (let questionIndex: number = 0; questionIndex < result.questions.length; questionIndex++) {
-      const question: ConfirmImportQuestionResult = result.questions[questionIndex]
-      for (let imageIndex: number = 0; imageIndex < question.images.length; imageIndex++) {
-        const image: ConfirmedImportArtifact = question.images[imageIndex]
-        this.requiredArtifactCount++
-        if (!/^[a-f0-9]{64}$/.test(image.sha256) || !Number.isSafeInteger(image.size) ||
-          image.size <= 0) {
-          throw new Error('原题图片元数据校验失败')
-        }
-        const fileStem: string = this.artifactFileStem(image.artifactId, image.sha256)
-        const tempPath: string = accountDirectory + '/' + fileStem + '.partial'
-        const finalPath: string = accountDirectory + '/' + fileStem + '.jpg'
-        await this.validateDirectoryChain(context.filesDir, accountDirectory)
-        await this.validateFinalTarget(accountDirectory, finalPath)
-        if (await this.reuseStoredArtifact(context, accountDirectory, finalPath, accountId,
-          question.questionId, image, imageIndex)) {
-          if (savedArtifactIds.indexOf(image.artifactId) < 0) {
-            savedArtifactIds.push(image.artifactId)
-          }
-          continue
-        }
-        let content: ArrayBuffer
-        try {
-          content = await CloudImportService.downloadArtifact(context, jobId, image.artifactId,
-            image.size, image.sha256)
-        } catch (err) {
-          if (await this.isArtifactUnavailable(context, jobId, err)) {
-            this.markArtifactExpired()
-            this.unavailableArtifactCount++
-            continue
-          }
-          if (err instanceof Error) {
-            throw err
-          }
-          throw new Error('原题图片下载失败')
-        }
-        if (content.byteLength !== image.size) {
-          throw new Error('原题图片元数据校验失败')
-        }
-        await this.validateDirectoryChain(context.filesDir, accountDirectory)
-        await this.prepareTemporaryFile(context.filesDir, accountDirectory, tempPath)
-        let moved: boolean = false
-        try {
-          await this.writeArtifact(tempPath, content)
-          await this.verifyArtifactFile(tempPath, image.size, image.sha256)
-          await this.validateFinalTarget(accountDirectory, finalPath)
-          await fs.moveFile(tempPath, finalPath, 0)
-          moved = true
-          await this.validateDirectoryChain(context.filesDir, accountDirectory)
-          await this.verifyArtifactFile(finalPath, image.size, image.sha256)
-          try {
-            await DeviceImageStore.save(context, new DeviceQuestionImage(
-              accountId, question.questionId, finalPath, image.sha256, imageIndex))
-          } catch (err) {
-            await this.tryRemoveOwnedFile(context.filesDir, accountDirectory, finalPath)
-            if (err instanceof Error) {
-              throw err
-            }
-            throw new Error('本地图片映射保存失败')
-          }
-          if (savedArtifactIds.indexOf(image.artifactId) < 0) {
-            savedArtifactIds.push(image.artifactId)
-          }
-        } catch (err) {
-          if (moved) {
-            await this.tryRemoveOwnedFile(context.filesDir, accountDirectory, finalPath)
-          }
-          if (err instanceof Error) {
-            throw err
-          }
-          throw new Error('原题图片保存失败')
-        } finally {
-          await this.tryRemoveOwnedFile(context.filesDir, accountDirectory, tempPath)
-        }
-      }
-    }
-    return savedArtifactIds
+    const question: PdfReviewQuestion = new PdfReviewQuestion(id, id, '', AiQuestionType.UNKNOWN, '',
+      new Array<PdfReviewOption>(), '', '', failure.pageNumber, failure.pageNumber, 0, true, images)
+    await this.resolveFailure(failure.pageNumber, question)
   }
 
-  private async reuseStoredArtifact(context: Context, accountDirectory: string, finalPath: string,
-    accountId: string, questionId: string, image: ConfirmedImportArtifact,
-    sortOrder: number): Promise<boolean> {
-    const info: fs.Stat | null = await this.lstatIfPresent(finalPath)
-    if (info === null) {
-      return false
-    }
+  private async discardFailure(pageNumber: number): Promise<void> {
+    await this.resolveFailure(pageNumber, null)
+  }
+
+  private async resolveFailure(pageNumber: number, replacement: PdfReviewQuestion | null): Promise<void> {
+    if (!this.canEdit() || !this.isAiReview() || this.session === null || this.adapter === null) return
+    const snapshot: PdfReviewSession = PdfReviewSessionStore.copyOf(this.session)
+    this.pending = true
+    this.errorMessage = ''
     try {
-      await this.verifyArtifactFile(finalPath, image.size, image.sha256)
-    } catch {
-      return false
-    }
-    await DeviceImageStore.save(context, new DeviceQuestionImage(
-      accountId, questionId, finalPath, image.sha256, sortOrder))
-    return true
-  }
-
-  private artifactFileStem(artifactId: string, sha256: string): string {
-    const normalizedId: string = artifactId.toLowerCase()
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(
-      normalizedId)) {
-      throw new Error('原题图片标识无效')
-    }
-    return 'cloud_import_' + normalizedId + '_' + sha256
-  }
-
-  private async writeArtifact(tempPath: string, content: ArrayBuffer): Promise<void> {
-    const file: fs.File = await fs.open(tempPath,
-      fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE | fs.OpenMode.TRUNC | fs.OpenMode.NOFOLLOW)
-    let operationError: Error | null = null
-    try {
-      let written: number = 0
-      while (written < content.byteLength) {
-        const remaining: ArrayBuffer = content.slice(written)
-        const currentWrite: number = await fs.write(file.fd, remaining)
-        if (!Number.isInteger(currentWrite) || currentWrite <= 0 ||
-          currentWrite > remaining.byteLength) {
-          throw new Error('原题图片临时文件写入失败')
-        }
-        written += currentWrite
-      }
-      await fs.fsync(file.fd)
+      const updated: PdfReviewSession = await this.adapter.discardFailure(
+        getContext(this), snapshot, pageNumber, replacement)
+      this.applySession(updated)
     } catch (err) {
-      operationError = err instanceof Error ? err : new Error('原题图片临时文件写入失败')
+      if (!await this.reconcileReviewState()) return
+      this.errorMessage = err instanceof AiImportError ?
+        AiImportErrorMessages.forCode(err.code) : '本页处理失败，请重试'
     } finally {
-      try {
-        await fs.close(file)
-      } catch (err) {
-        if (operationError === null) {
-          operationError = err instanceof Error ? err : new Error('原题图片临时文件关闭失败')
-        }
-      }
+      this.pending = false
     }
-    if (operationError !== null) {
-      throw operationError
-    }
-  }
-
-  private async verifyArtifactFile(path: string, expectedSize: number,
-    expectedSha256: string): Promise<void> {
-    const linkInfo: fs.Stat = await fs.lstat(path)
-    const fileInfo: fs.Stat = await fs.stat(path)
-    if (linkInfo.isSymbolicLink() || !linkInfo.isFile() || !fileInfo.isFile() ||
-      linkInfo.size !== expectedSize || fileInfo.size !== expectedSize) {
-      throw new Error('原题图片大小校验失败')
-    }
-    const actualSha256: string = (await hash.hash(path, 'sha256')).toLowerCase()
-    if (actualSha256 !== expectedSha256) {
-      throw new Error('原题图片 SHA-256 校验失败')
-    }
-  }
-
-  private async ensureAccountDirectory(filesDir: string, accountId: string): Promise<string> {
-    await this.validateDirectory(filesDir)
-    const imageRoot: string = filesDir + '/question_images'
-    await this.ensureDirectDirectory(filesDir, imageRoot)
-    const accountDirectory: string = DeviceImageScope.accountDirectory(filesDir, accountId)
-    await this.ensureDirectDirectory(imageRoot, accountDirectory)
-    await this.validateDirectoryChain(filesDir, accountDirectory)
-    return accountDirectory
-  }
-
-  private async ensureDirectDirectory(parent: string, path: string): Promise<void> {
-    await this.validateDirectory(parent)
-    if (!this.isDirectChild(parent, path)) {
-      throw new Error('本地图片目录路径无效')
-    }
-    let info: fs.Stat | null = await this.lstatIfPresent(path)
-    if (info === null) {
-      await fs.mkdir(path)
-      info = await fs.lstat(path)
-    }
-    if (info.isSymbolicLink() || !info.isDirectory()) {
-      throw new Error('本地图片目录包含不安全节点')
-    }
-  }
-
-  private async validateDirectory(path: string): Promise<void> {
-    const info: fs.Stat | null = await this.lstatIfPresent(path)
-    if (info === null || info.isSymbolicLink() || !info.isDirectory()) {
-      throw new Error('受信目录不可用')
-    }
-  }
-
-  private async validateDirectoryChain(root: string, path: string): Promise<void> {
-    if (!this.isDescendant(root, path)) {
-      throw new Error('本地图片目录超出受信范围')
-    }
-    await this.validateDirectory(root)
-    const relative: string = path.substring(root.length + 1)
-    const parts: Array<string> = relative.split('/')
-    let currentPath: string = root
-    for (let index: number = 0; index < parts.length; index++) {
-      currentPath += '/' + parts[index]
-      const info: fs.Stat | null = await this.lstatIfPresent(currentPath)
-      if (info === null || info.isSymbolicLink() || !info.isDirectory()) {
-        throw new Error('本地图片目录包含不安全节点')
-      }
-    }
-  }
-
-  private async prepareTemporaryFile(filesDir: string, accountDirectory: string,
-    tempPath: string): Promise<void> {
-    if (!this.isDirectChild(accountDirectory, tempPath) || !tempPath.endsWith('.partial')) {
-      throw new Error('原题图片临时路径无效')
-    }
-    await this.validateDirectoryChain(filesDir, accountDirectory)
-    const info: fs.Stat | null = await this.lstatIfPresent(tempPath)
-    if (info === null) {
-      return
-    }
-    if (info.isSymbolicLink() || !info.isFile()) {
-      throw new Error('原题图片临时路径包含不安全节点')
-    }
-    await fs.unlink(tempPath)
-  }
-
-  private async validateFinalTarget(accountDirectory: string, finalPath: string): Promise<void> {
-    if (!this.isDirectChild(accountDirectory, finalPath) || !finalPath.endsWith('.jpg')) {
-      throw new Error('原题图片保存路径无效')
-    }
-    const info: fs.Stat | null = await this.lstatIfPresent(finalPath)
-    if (info !== null && (info.isSymbolicLink() || !info.isFile())) {
-      throw new Error('原题图片保存路径包含不安全节点')
-    }
-  }
-
-  private async tryRemoveOwnedFile(filesDir: string, accountDirectory: string,
-    path: string): Promise<void> {
-    try {
-      if (!this.isDirectChild(accountDirectory, path)) {
-        return
-      }
-      await this.validateDirectoryChain(filesDir, accountDirectory)
-      const info: fs.Stat | null = await this.lstatIfPresent(path)
-      if (info !== null && !info.isSymbolicLink() && info.isFile()) {
-        await fs.unlink(path)
-      }
-    } catch {
-    }
-  }
-
-  private async lstatIfPresent(path: string): Promise<fs.Stat | null> {
-    return new Promise<fs.Stat | null>((resolve, reject): void => {
-      fs.lstat(path, (err: BusinessError, info: fs.Stat): void => {
-        if (err) {
-          if (err.code === 13900002) {
-            resolve(null)
-            return
-          }
-          reject(new Error(err.message.length > 0 ? err.message : '文件状态读取失败'))
-          return
-        }
-        resolve(info)
-      })
-    })
-  }
-
-  private isDirectChild(parent: string, path: string): boolean {
-    if (!this.isDescendant(parent, path)) {
-      return false
-    }
-    return path.substring(parent.length + 1).indexOf('/') < 0
-  }
-
-  private isDescendant(root: string, path: string): boolean {
-    const prefix: string = root + '/'
-    if (!path.startsWith(prefix) || path.length <= prefix.length || path.indexOf('\\') >= 0 ||
-      path.indexOf(String.fromCharCode(0)) >= 0) {
-      return false
-    }
-    const relative: string = path.substring(prefix.length)
-    return !relative.startsWith('/') && !relative.endsWith('/') && relative.indexOf('//') < 0 &&
-      relative !== '.' && relative !== '..' && !relative.startsWith('../') &&
-      !relative.endsWith('/..') && relative.indexOf('/../') < 0 &&
-      !relative.startsWith('./') && !relative.endsWith('/.') && relative.indexOf('/./') < 0
-  }
-
-  private async requireAccount(context: Context, accountId: string): Promise<void> {
-    const session: AccountSessionState = await AccountSessionService.state(context)
-    if (!session.signedIn || session.userId.length === 0) {
-      throw new Error('请先登录华为账号')
-    }
-    if (session.userId !== accountId) {
-      throw new Error('当前华为账号与导入任务不一致')
-    }
-  }
-
-  private markArtifactExpired(): void {
-    this.artifactExpired = true
-    PdfImportState.shared().setCloudArtifactExpired(true)
-  }
-
-  private async isArtifactUnavailable(context: Context, jobId: string, err: Error): Promise<boolean> {
-    if (this.isExpiredHttpError(err)) {
-      return true
-    }
-    try {
-      return (await CloudImportService.getJob(context, jobId)).status === CloudImportStatus.EXPIRED
-    } catch {
-      return false
-    }
-  }
-
-  private isExpiredHttpError(err: Error): boolean {
-    return err instanceof ApiHttpError &&
-      (err.statusCode === 404 || err.statusCode === 410 || err.code === 'ARTIFACT_EXPIRED')
   }
 
   private nullableText(value: string | null): string {
     return value === null ? '' : value
-  }
-
-  private optionKeys(options: Record<string, string> | null): Array<string> {
-    if (options === null) {
-      return new Array<string>()
-    }
-    const keys: Array<string> = Object.keys(options)
-    keys.sort((left: string, right: string): number => left.localeCompare(right))
-    return keys
-  }
-
-  private optionValue(options: Record<string, string> | null, optionKey: string): string {
-    return options === null ? '' : options[optionKey]
   }
 
   private typeLabel(value: string): string {
@@ -691,8 +342,95 @@ struct PdfImportReviewPage {
     return '待确认'
   }
 
-  private errorText(err: Error, fallback: string): string {
-    return err instanceof Error && err.message.length > 0 ? err.message : fallback
+  private hasMathContent(question: PdfReviewQuestion): boolean {
+    if (MathContentUtils.containsMath(question.question)) {
+      return true
+    }
+    for (const option of question.options) {
+      if (MathContentUtils.containsMath(option.value)) return true
+    }
+    return MathContentUtils.containsMath(this.nullableText(question.answer)) ||
+      MathContentUtils.containsMath(this.nullableText(question.analysis))
+  }
+
+  private toggleMathPreview(draftQuestionId: string): void {
+    if (!this.canEdit()) return
+    this.previewDraftQuestionId = this.previewDraftQuestionId === draftQuestionId ? '' : draftQuestionId
+  }
+
+  private startWindowObserver(): void {
+    if (this.sizeObserver !== undefined) return
+    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+      this.applyWindowSizeClass(windowWidthVp)
+    })
+    this.sizeObserver.start(getContext(this))
+  }
+
+  private stopWindowObserver(): void {
+    if (this.sizeObserver === undefined) return
+    this.sizeObserver.stop()
+    this.sizeObserver = undefined
+  }
+
+  private applyWindowSizeClass(windowWidthVp: number): void {
+    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+    if (sizeClass !== this.windowSizeClass) this.windowSizeClass = sizeClass
+  }
+
+  private contentMaxWidth(): number {
+    return this.windowSizeClass === WindowSizeClass.EXPANDED ?
+      ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH : CONTENT_MAX_WIDTH
+  }
+
+  @Builder
+  private MathFieldPreview(label: string, content: string) {
+    if (MathContentUtils.containsMath(content)) {
+      Column({ space: 6 }) {
+        Text(label)
+          .width('100%')
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(this.colors().textCaption)
+
+        MathContentView({
+          content: content,
+          fontSize: BODY_FONT_SIZE,
+          fontWeight: 400,
+          textColor: this.colors().textPrimary,
+          lineHeight: 22
+        })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+      .padding(12)
+      .backgroundColor(this.colors().inputBackground)
+      .borderRadius(10)
+    }
+  }
+
+  @Builder
+  private DraftMathPreview(question: PdfReviewQuestion) {
+    Column({ space: 8 }) {
+      Text('公式预览')
+        .width('100%')
+        .fontSize(BODY_FONT_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.colors().textPrimary)
+
+      this.MathFieldPreview('题干', question.question)
+
+      ForEach(question.options, (option: PdfReviewOption) => {
+        this.MathFieldPreview('选项 ' + option.key, option.value)
+      }, (option: PdfReviewOption): string => question.draftQuestionId + '_preview_' + option.key)
+
+      this.MathFieldPreview('答案', this.nullableText(question.answer))
+      this.MathFieldPreview('解析', this.nullableText(question.analysis))
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(12)
+    .backgroundColor(this.colors().pageBackground)
+    .borderRadius(12)
   }
 
   private showToast(message: string): void {
@@ -702,14 +440,60 @@ struct PdfImportReviewPage {
     }
   }
 
-  private async returnToImportPage(): Promise<void> {
-    if (this.pending || this.navigationPending) {
+  private returnToImportPage(): void {
+    if (this.pending || this.loading || this.navigationPending) return
+    if (this.authoritativeStatePending) {
+      this.errorMessage = '审核状态暂时无法确认，请重新加载审核状态后再返回'
+      return
+    }
+    if (this.session === null || !PdfReviewSavePolicy.canAbandon(this.session.saveStage)) {
+      this.navigateToImportPage()
       return
     }
     this.navigationPending = true
-    const options: router.RouterOptions = {
-      url: 'pages/ImportBankPage'
+    try {
+      this.getUIContext().showAlertDialog({
+        title: '放弃本次导入？',
+        message: '放弃后将删除本次导入的本地草稿缓存。',
+        autoCancel: false,
+        primaryButton: {
+          value: '继续编辑',
+          action: (): void => { this.navigationPending = false }
+        },
+        secondaryButton: {
+          value: '放弃导入',
+          action: (): void => { this.abandonReview() }
+        },
+        cancel: (): void => { this.navigationPending = false }
+      })
+    } catch {
+      this.navigationPending = false
+      this.errorMessage = '退出确认暂不可用，请重试'
     }
+  }
+
+  private async abandonReview(): Promise<void> {
+    if (this.pending || this.loading || this.authoritativeStatePending ||
+      this.session === null || this.adapter === null ||
+      !PdfReviewSavePolicy.canAbandon(this.session.saveStage)) return
+    this.pending = true
+    try {
+      await this.adapter.abandon(getContext(this), PdfReviewSessionStore.copyOf(this.session))
+      this.session = null
+      this.pending = false
+      this.navigationPending = false
+      await this.navigateToImportPage()
+    } catch {
+      this.errorMessage = '放弃导入失败，请重试'
+      this.pending = false
+      this.navigationPending = false
+    }
+  }
+
+  private async navigateToImportPage(): Promise<void> {
+    if (this.pending || this.navigationPending) return
+    this.navigationPending = true
+    const options: router.RouterOptions = { url: 'pages/ImportBankPage' }
     try {
       await this.getUIContext().getRouter().replaceUrl(options)
     } catch {
@@ -718,313 +502,697 @@ struct PdfImportReviewPage {
     }
   }
 
-  build() {
-    Navigation() {
-      Column() {
-        if (this.artifactExpired) {
-        Text('原题图片已过期，文字仍可使用')
+  @Builder
+  private FieldLabel(label: string): void {
+    Text(label)
+      .width('100%')
+      .fontSize(UiStyle.DETAIL_SIZE)
+      .fontWeight(FontWeight.Medium)
+      .fontColor(this.colors().textSecondary)
+  }
+
+  @Builder
+  private BankSummary(): void {
+    Row({ space: 16 }) {
+      Column({ space: 6 }) {
+        Text(this.bankName)
           .width('100%')
-          .constraintSize({ minHeight: 48 })
-          .padding({ left: 16, right: 16, top: 13, bottom: 13 })
-          .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
-          .fontSize(BODY_FONT_SIZE)
-          .fontColor(this.colors().warningText)
-          .backgroundColor(this.colors().warning)
-          .borderRadius(14)
-      }
-
-      if (this.errorMessage.length > 0) {
-        Text(this.errorMessage)
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.colors().textPrimary)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Text('学科：' + this.subject)
           .width('100%')
-          .constraintSize({ minHeight: 48 })
-          .padding({ left: 16, right: 16, top: 13, bottom: 13 })
-          .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 10 })
           .fontSize(BODY_FONT_SIZE)
-          .fontColor(this.colors().error)
-          .backgroundColor(this.colors().errorSoft)
-          .borderRadius(14)
+          .fontColor(this.colors().textCaption)
       }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
 
-      if (this.loading) {
-        Column({ space: 16 }) {
-          LoadingProgress()
-            .width(42)
-            .height(42)
-            .color(this.colors().brand)
-          Text('正在读取服务器识别草稿')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textCaption)
-        }
-        .layoutWeight(1)
-        .width('100%')
-        .justifyContent(FlexAlign.Center)
-      } else if (this.confirmationComplete) {
-        Column({ space: 16 }) {
-          Text('云端题目已确认')
-            .fontSize(SUBTITLE_FONT_SIZE)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().brand)
-          Text('题库标识：' + this.confirmedBankId)
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textCaption)
-          Text('题目文字已由服务器保存，可返回导入页继续使用。')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textPrimary)
-          Button(this.navigationPending ? '正在返回…' : '返回导入页')
+      Column({ space: 4 }) {
+        Text(this.draftQuestions.length.toString())
+          .fontSize(22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(UiStyle.action(this.darkMode))
+        Text('待复核题目')
+          .fontSize(12)
+          .fontColor(this.colors().textCaption)
+      }
+      .alignItems(HorizontalAlign.End)
+    }
+    .width('100%')
+    .padding(18)
+    .backgroundColor(this.colors().cardBackground)
+    .border({ width: 1, color: this.colors().divider })
+    .borderRadius(CARD_RADIUS)
+  }
+
+  @Builder
+  private SourceEvidence(question: PdfReviewQuestion, questionIndex: number): void {
+    Column({ space: 10 }) {
+      this.FieldLabel('原题')
+      ForEach(question.images, (image: PdfReviewImage) => {
+        if (image.localPath.length > 0) {
+          Image('file://' + image.localPath)
             .width('100%')
-            .height(52)
-            .fontColor(this.colors().onBrand)
-            .backgroundColor(this.colors().brand)
-            .borderRadius(16)
-            .enabled(!this.navigationPending)
-            .onClick(() => {
-              this.returnToImportPage()
-            })
+            .height(this.windowSizeClass === WindowSizeClass.EXPANDED ? 300 : 220)
+            .objectFit(ImageFit.Contain)
+            .backgroundColor(this.colors().inputBackground)
+            .border({ width: 1, color: this.colors().divider })
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .accessibilityText('第 ' + (questionIndex + 1).toString() + ' 题原图')
         }
-        .layoutWeight(1)
-        .width('100%')
-        .padding(PAGE_PADDING)
-        .justifyContent(FlexAlign.Center)
-      } else if (this.draftQuestions.length === 0) {
-        Column({ space: 16 }) {
-          Text('暂时无法显示云端识别草稿')
+      }, (image: PdfReviewImage): string =>
+        question.draftQuestionId + '_image_' + image.sortOrder.toString())
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private TypeButton(question: PdfReviewQuestion, label: string, type: AiQuestionType): void {
+    Button(label)
+      .type(ButtonType.Normal)
+      .width(this.windowSizeClass === WindowSizeClass.COMPACT ? '48%' : '24%')
+      .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+      .margin({ bottom: 8 })
+      .fontSize(UiStyle.DETAIL_SIZE)
+      .fontWeight(FontWeight.Medium)
+      .fontColor(question.type === type ?
+        UiStyle.onAction(this.darkMode) : this.colors().textPrimary)
+      .backgroundColor(question.type === type ?
+        UiStyle.action(this.darkMode) : this.colors().chipBackground)
+      .border({ width: 1, color: question.type === type ?
+        UiStyle.action(this.darkMode) : this.colors().divider })
+      .borderRadius(UiStyle.CONTROL_RADIUS)
+      .enabled(this.canEdit())
+      .accessibilityText('题型：' + label)
+      .accessibilitySelected(question.type === type)
+      .onClick(() => { this.updateType(question.draftQuestionId, type) })
+  }
+
+  @Builder
+  private TypeSelector(question: PdfReviewQuestion): void {
+    Column({ space: 8 }) {
+      this.FieldLabel('题型')
+      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
+        this.TypeButton(question, '单选', AiQuestionType.SINGLE_CHOICE)
+        this.TypeButton(question, '填空', AiQuestionType.BLANK)
+        this.TypeButton(question, '解答', AiQuestionType.SHORT_ANSWER)
+        this.TypeButton(question, '待确认', AiQuestionType.UNKNOWN)
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private QuestionEditor(question: PdfReviewQuestion): void {
+    Column({ space: 14 }) {
+      this.TypeSelector(question)
+
+      Column({ space: 8 }) {
+        this.FieldLabel('题干')
+        TextArea({ placeholder: '请输入题干', text: question.question })
+          .width('100%')
+          .constraintSize({ minHeight: 120 })
+          .fontSize(UiStyle.BODY_SIZE)
+          .fontColor(this.colors().textPrimary)
+          .backgroundColor(this.colors().inputBackground)
+          .border({ width: 1, color: this.colors().divider })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onChange((value: string) => {
+            this.updateQuestionText(question.draftQuestionId, value)
+          })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      Column({ space: 8 }) {
+        this.FieldLabel('识别选项')
+        if (question.options.length === 0) {
+          Text('暂无选项')
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .padding({ left: 14, right: 14, top: 13, bottom: 13 })
             .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textPrimary)
-          Button(this.pending ? '正在重试…' : '重新读取草稿')
-            .width('100%')
-            .height(52)
-            .fontColor(this.colors().onBrand)
-            .backgroundColor(this.colors().brand)
-            .borderRadius(16)
-            .enabled(!this.pending)
-            .onClick(() => {
-              this.loadDraft()
-            })
-        }
-        .layoutWeight(1)
-        .width('100%')
-        .padding(PAGE_PADDING)
-        .justifyContent(FlexAlign.Center)
-      } else {
-        Column({ space: 8 }) {
-          Text(this.bankName)
-            .width('100%')
-            .fontSize(SUBTITLE_FONT_SIZE)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().textPrimary)
-          Text('学科：' + this.subject + ' · 共 ' + this.draftQuestions.length.toString() + ' 题')
-            .width('100%')
-            .fontSize(BODY_FONT_SIZE)
-            .fontColor(this.colors().textCaption)
-        }
-        .width('100%')
-        .padding(16)
-        .margin({ left: PAGE_PADDING, right: PAGE_PADDING, bottom: 12 })
-        .backgroundColor(this.colors().cardBackground)
-        .borderRadius(CARD_RADIUS)
-
-        List({ space: 14 }) {
-          ForEach(this.draftQuestions,
-            (draftQuestion: CloudImportDraftQuestion, questionIndex: number) => {
-              ListItem() {
-                Column({ space: 14 }) {
-                  Row() {
-                    Text('第 ' + (questionIndex + 1).toString() + ' 题')
-                      .fontSize(SUBTITLE_FONT_SIZE)
-                      .fontWeight(FontWeight.Bold)
-                      .fontColor(this.colors().textPrimary)
-                    Blank()
-                    Text(this.typeLabel(draftQuestion.type))
-                      .fontSize(12)
-                      .fontColor(draftQuestion.type === 'unknown' ?
-                        this.colors().error : this.colors().brand)
-                  }
-                  .width('100%')
-
-                  Text('页码 ' + draftQuestion.pageStart.toString() + '-' +
-                    draftQuestion.pageEnd.toString() + ' · 置信度 ' +
-                    Math.round(draftQuestion.confidence * 100).toString() + '%')
-                    .width('100%')
-                    .fontSize(12)
-                    .fontColor(this.colors().textSecondary)
-
-                  Row({ space: 6 }) {
-                    Button('单选')
-                      .layoutWeight(1)
-                      .height(38)
-                      .fontColor(draftQuestion.type === 'single_choice' ?
-                        this.colors().onBrand : this.colors().brand)
-                      .backgroundColor(draftQuestion.type === 'single_choice' ?
-                        this.colors().brand : this.colors().chipBackground)
-                      .enabled(!this.pending)
-                      .onClick(() => {
-                        this.updateType(draftQuestion.draftQuestionId, 'single_choice')
-                      })
-                    Button('填空')
-                      .layoutWeight(1)
-                      .height(38)
-                      .fontColor(draftQuestion.type === 'blank' ?
-                        this.colors().onBrand : this.colors().brand)
-                      .backgroundColor(draftQuestion.type === 'blank' ?
-                        this.colors().brand : this.colors().chipBackground)
-                      .enabled(!this.pending)
-                      .onClick(() => {
-                        this.updateType(draftQuestion.draftQuestionId, 'blank')
-                      })
-                    Button('解答')
-                      .layoutWeight(1)
-                      .height(38)
-                      .fontColor(draftQuestion.type === 'short_answer' ?
-                        this.colors().onBrand : this.colors().brand)
-                      .backgroundColor(draftQuestion.type === 'short_answer' ?
-                        this.colors().brand : this.colors().chipBackground)
-                      .enabled(!this.pending)
-                      .onClick(() => {
-                        this.updateType(draftQuestion.draftQuestionId, 'short_answer')
-                      })
-                    Button('待确认')
-                      .layoutWeight(1)
-                      .height(38)
-                      .fontColor(draftQuestion.type === 'unknown' ?
-                        this.colors().onBrand : this.colors().brand)
-                      .backgroundColor(draftQuestion.type === 'unknown' ?
-                        this.colors().brand : this.colors().chipBackground)
-                      .enabled(!this.pending)
-                      .onClick(() => {
-                        this.updateType(draftQuestion.draftQuestionId, 'unknown')
-                      })
-                  }
-                  .width('100%')
-
-                  TextArea({ placeholder: '请输入题干', text: draftQuestion.question })
-                    .width('100%')
-                    .height(108)
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                    .backgroundColor(this.colors().inputBackground)
-                    .enabled(!this.pending)
-                    .onChange((value: string) => {
-                      this.updateQuestionText(draftQuestion.draftQuestionId, value)
-                    })
-
-                  Column({ space: 6 }) {
-                    Text('识别选项')
-                      .width('100%')
-                      .fontSize(12)
-                      .fontWeight(FontWeight.Medium)
-                      .fontColor(this.colors().textCaption)
-                    if (this.optionKeys(draftQuestion.options).length === 0) {
-                      Text('暂无选项')
-                        .width('100%')
-                        .padding(12)
-                        .fontSize(BODY_FONT_SIZE)
-                        .fontColor(this.colors().textSecondary)
-                        .backgroundColor(this.colors().inputBackground)
-                        .borderRadius(10)
-                    } else {
-                      ForEach(this.optionKeys(draftQuestion.options), (optionKey: string) => {
-                        TextInput({
-                          placeholder: '选项 ' + optionKey,
-                          text: this.optionValue(draftQuestion.options, optionKey)
-                        })
-                          .width('100%')
-                          .height(46)
-                          .fontSize(BODY_FONT_SIZE)
-                          .fontColor(this.colors().textPrimary)
-                          .backgroundColor(this.colors().inputBackground)
-                          .enabled(!this.pending)
-                          .onChange((value: string) => {
-                            this.updateOption(draftQuestion.draftQuestionId, optionKey, value)
-                          })
-                      }, (optionKey: string): string =>
-                        draftQuestion.draftQuestionId + '_option_' + optionKey)
-                    }
-                  }
-                  .width('100%')
-
-                  TextInput({
-                    placeholder: '答案（选填）',
-                    text: this.nullableText(draftQuestion.answer)
-                  })
-                    .width('100%')
-                    .height(46)
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                    .backgroundColor(this.colors().inputBackground)
-                    .enabled(!this.pending)
-                    .onChange((value: string) => {
-                      this.updateAnswer(draftQuestion.draftQuestionId, value)
-                    })
-
-                  TextArea({
-                    placeholder: '解析（选填）',
-                    text: this.nullableText(draftQuestion.analysis)
-                  })
-                    .width('100%')
-                    .height(96)
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                    .backgroundColor(this.colors().inputBackground)
-                    .enabled(!this.pending)
-                    .onChange((value: string) => {
-                      this.updateAnalysis(draftQuestion.draftQuestionId, value)
-                    })
-
-                  if (draftQuestion.reviewRequired) {
-                    Text('服务器标记：需要人工复核')
-                      .width('100%')
-                      .fontSize(12)
-                      .fontColor(this.colors().error)
-                  }
-                }
-                .width('100%')
-                .padding(18)
-                .backgroundColor(this.colors().cardBackground)
-                .borderRadius(CARD_RADIUS)
-              }
-            },
-            (draftQuestion: CloudImportDraftQuestion): string => draftQuestion.draftQuestionId)
-        }
-        .layoutWeight(1)
-        .width('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
-        .padding({ left: PAGE_PADDING, right: PAGE_PADDING })
-        .scrollBar(BarState.Off)
-
-        Column({ space: 8 }) {
-          if (PdfImportState.shared().getConfirmResult() !== null) {
-            Text('题目文字已确认；重试只会重新下载和保存图片，不会再次确认文字。')
+            .fontColor(this.colors().textSecondary)
+            .backgroundColor(this.colors().inputBackground)
+            .border({ width: 1, color: this.colors().divider })
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+        } else {
+          ForEach(question.options, (option: PdfReviewOption) => {
+            TextInput({ placeholder: '选项 ' + option.key, text: option.value })
               .width('100%')
-              .fontSize(12)
-              .fontColor(this.colors().textCaption)
-          }
-          Button(this.pending ? '正在处理…' :
-            PdfImportState.shared().getConfirmResult() === null ? '确认题目并保存原图' : '重试保存原题图片')
-            .width('100%')
-            .height(52)
-            .fontColor(this.colors().onBrand)
-            .backgroundColor(this.colors().brand)
-            .borderRadius(16)
-            .enabled(!this.pending && !this.navigationPending)
-            .onClick(() => {
-              this.confirmDraft()
-            })
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(this.canEdit())
+              .accessibilityText('选项 ' + option.key)
+              .onChange((value: string) => {
+                this.updateOption(question.draftQuestionId, option.key, value)
+              })
+          }, (option: PdfReviewOption): string =>
+            question.draftQuestionId + '_option_' + option.key)
         }
-        .width('100%')
-        .constraintSize({ maxWidth: CONTENT_MAX_WIDTH })
-        .padding({
-          left: PAGE_PADDING,
-          right: PAGE_PADDING,
-          top: 12,
-          bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
-        })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      Column({ space: 8 }) {
+        this.FieldLabel('答案')
+        TextInput({ placeholder: '答案（选填）', text: this.nullableText(question.answer) })
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontSize(UiStyle.BODY_SIZE)
+          .fontColor(this.colors().textPrimary)
+          .backgroundColor(this.colors().inputBackground)
+          .border({ width: 1, color: this.colors().divider })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onChange((value: string) => {
+            this.updateAnswer(question.draftQuestionId, value)
+          })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      Column({ space: 8 }) {
+        this.FieldLabel('解析')
+        TextArea({ placeholder: '解析（选填）', text: this.nullableText(question.analysis) })
+          .width('100%')
+          .constraintSize({ minHeight: 104 })
+          .fontSize(UiStyle.BODY_SIZE)
+          .fontColor(this.colors().textPrimary)
+          .backgroundColor(this.colors().inputBackground)
+          .border({ width: 1, color: this.colors().divider })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onChange((value: string) => {
+            this.updateAnalysis(question.draftQuestionId, value)
+          })
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      if (this.hasMathContent(question)) {
+        Button(this.previewDraftQuestionId === question.draftQuestionId ?
+          '收起公式预览' : '预览公式')
+          .type(ButtonType.Normal)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontSize(UiStyle.DETAIL_SIZE)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(UiStyle.action(this.darkMode))
+          .backgroundColor(this.colors().chipBackground)
+          .border({ width: 1, color: this.colors().divider })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.toggleMathPreview(question.draftQuestionId) })
+
+        if (this.previewDraftQuestionId === question.draftQuestionId) {
+          this.DraftMathPreview(question)
+        }
       }
     }
     .width('100%')
-    .height('100%')
-    .backgroundColor(this.colors().pageBackground)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private QuestionCard(question: PdfReviewQuestion, questionIndex: number): void {
+    Column({ space: 14 }) {
+      Row({ space: 12 }) {
+        Column({ space: 4 }) {
+          Text('第 ' + (questionIndex + 1).toString() + ' 题')
+            .width('100%')
+            .fontSize(SUBTITLE_FONT_SIZE)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().textPrimary)
+          Text('页码 ' + question.pageStart.toString() + '–' +
+            question.pageEnd.toString() + ' · 置信度 ' +
+            Math.round(question.confidence * 100).toString() + '%')
+            .width('100%')
+            .fontSize(12)
+            .fontColor(this.colors().textSecondary)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Text(this.typeLabel(question.type))
+          .fontSize(12)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(question.type === 'unknown' ?
+            UiStyle.errorText(this.darkMode) : UiStyle.action(this.darkMode))
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+
+      if (this.windowSizeClass === WindowSizeClass.EXPANDED && question.images.length > 0) {
+        Row({ space: 20 }) {
+          Column() {
+            this.SourceEvidence(question, questionIndex)
+          }
+          .layoutWeight(4)
+          .alignItems(HorizontalAlign.Start)
+
+          Column() {
+            this.QuestionEditor(question)
+          }
+          .layoutWeight(6)
+          .alignItems(HorizontalAlign.Start)
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Top)
+      } else {
+        Column({ space: 14 }) {
+          if (question.images.length > 0) {
+            this.SourceEvidence(question, questionIndex)
+          }
+          this.QuestionEditor(question)
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
+      }
+
+      if (question.reviewRequired) {
+        Text('需要人工复核')
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .padding({ left: 14, right: 14, top: 13, bottom: 13 })
+          .fontSize(UiStyle.DETAIL_SIZE)
+          .fontColor(UiStyle.errorText(this.darkMode))
+          .backgroundColor(this.colors().errorSoft)
+          .border({ width: 1, color: UiStyle.errorText(this.darkMode) })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+      }
     }
-    .title('云端识别审核', {
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(18)
+    .backgroundColor(this.colors().cardBackground)
+    .border({ width: 1, color: this.colors().divider })
+    .borderRadius(CARD_RADIUS)
+  }
+
+  @Builder
+  private FailureActions(failure: PdfReviewFailure): void {
+    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+      Column({ space: 10 }) {
+        Button('重试识别')
+          .type(ButtonType.Normal)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.onAction(this.darkMode))
+          .backgroundColor(UiStyle.action(this.darkMode))
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.retryFailure(failure.pageNumber) })
+        Button('手动新增题目')
+          .type(ButtonType.Normal)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.action(this.darkMode))
+          .backgroundColor(this.colors().cardBackground)
+          .border({ width: 1, color: UiStyle.action(this.darkMode) })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.addManualQuestion(failure) })
+        Button('放弃本页')
+          .type(ButtonType.Normal)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.errorText(this.darkMode))
+          .backgroundColor(this.colors().cardBackground)
+          .border({ width: 1, color: UiStyle.errorText(this.darkMode) })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.discardFailure(failure.pageNumber) })
+      }
+      .width('100%')
+    } else {
+      Row({ space: 10 }) {
+        Button('重试识别')
+          .type(ButtonType.Normal)
+          .layoutWeight(1)
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.onAction(this.darkMode))
+          .backgroundColor(UiStyle.action(this.darkMode))
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.retryFailure(failure.pageNumber) })
+        Button('手动新增题目')
+          .type(ButtonType.Normal)
+          .layoutWeight(1)
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.action(this.darkMode))
+          .backgroundColor(this.colors().cardBackground)
+          .border({ width: 1, color: UiStyle.action(this.darkMode) })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.addManualQuestion(failure) })
+        Button('放弃本页')
+          .type(ButtonType.Normal)
+          .layoutWeight(1)
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.errorText(this.darkMode))
+          .backgroundColor(this.colors().cardBackground)
+          .border({ width: 1, color: UiStyle.errorText(this.darkMode) })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(this.canEdit())
+          .onClick(() => { this.discardFailure(failure.pageNumber) })
+      }
+      .width('100%')
+    }
+  }
+
+  @Builder
+  private FailureSummary(failure: PdfReviewFailure): void {
+    Column({ space: 8 }) {
+      Text('第 ' + failure.pageNumber.toString() + ' 页识别未完成')
+        .width('100%')
+        .fontSize(SUBTITLE_FONT_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(UiStyle.errorText(this.darkMode))
+      Text(AiImportErrorMessages.forCode(failure.code))
+        .width('100%')
+        .fontSize(BODY_FONT_SIZE)
+        .fontColor(this.colors().textSecondary)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  private FailureCard(failure: PdfReviewFailure): void {
+    Column({ space: 14 }) {
+      if (this.windowSizeClass === WindowSizeClass.EXPANDED && failure.evidencePath.length > 0) {
+        Row({ space: 18 }) {
+          Image('file://' + failure.evidencePath)
+            .width(240)
+            .height(200)
+            .objectFit(ImageFit.Contain)
+            .backgroundColor(this.colors().inputBackground)
+            .border({ width: 1, color: this.colors().divider })
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .accessibilityText('第 ' + failure.pageNumber.toString() + ' 页原图')
+
+          Column({ space: 14 }) {
+            this.FailureSummary(failure)
+            this.FailureActions(failure)
+          }
+          .layoutWeight(1)
+          .alignItems(HorizontalAlign.Start)
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Top)
+      } else {
+        this.FailureSummary(failure)
+        if (failure.evidencePath.length > 0) {
+          Image('file://' + failure.evidencePath)
+          .width('100%')
+          .height(180)
+          .objectFit(ImageFit.Contain)
+          .backgroundColor(this.colors().inputBackground)
+          .border({ width: 1, color: this.colors().divider })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .accessibilityText('第 ' + failure.pageNumber.toString() + ' 页原图')
+        }
+        this.FailureActions(failure)
+      }
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding(18)
+    .backgroundColor(this.colors().cardBackground)
+    .border({ width: 1, color: UiStyle.errorText(this.darkMode) })
+    .borderRadius(CARD_RADIUS)
+  }
+
+  @Builder
+  private ReviewSectionHeader(title: string, summary: string): void {
+    Row({ space: 12 }) {
+      Text(title)
+        .fontSize(SUBTITLE_FONT_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.colors().textPrimary)
+      Text(summary)
+        .layoutWeight(1)
+        .fontSize(UiStyle.DETAIL_SIZE)
+        .fontColor(this.colors().textCaption)
+        .textAlign(TextAlign.End)
+        .maxLines(2)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+    }
+    .width('100%')
+    .padding({ left: 4, right: 4, top: 4 })
+    .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
+  private LoadingState(): void {
+    Column({ space: 16 }) {
+      LoadingProgress()
+        .width(42)
+        .height(42)
+        .color(UiStyle.action(this.darkMode))
+      Text('正在读取识别草稿')
+        .fontSize(UiStyle.BODY_SIZE)
+        .fontColor(this.colors().textSecondary)
+    }
+    .layoutWeight(1)
+    .width('100%')
+    .justifyContent(FlexAlign.Center)
+  }
+
+  @Builder
+  private CompletedState(): void {
+    Column({ space: 12 }) {
+      Text('题目已保存')
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(UiStyle.action(this.darkMode))
+      Text('题库标识：' + this.confirmedBankId)
+        .fontSize(BODY_FONT_SIZE)
+        .fontColor(this.colors().textCaption)
+      Text('题目已保存，可返回导入页继续使用。')
+        .fontSize(UiStyle.BODY_SIZE)
+        .fontColor(this.colors().textPrimary)
+    }
+    .layoutWeight(1)
+    .width('100%')
+    .padding(PAGE_PADDING)
+    .justifyContent(FlexAlign.Center)
+  }
+
+  @Builder
+  private RecoveryState(): void {
+    Column({ space: 14 }) {
+      Text('审核状态需要重新确认')
+        .fontSize(SUBTITLE_FONT_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.colors().textPrimary)
+      Text('当前编辑与返回操作已锁定，重新加载后可继续处理。')
+        .fontSize(BODY_FONT_SIZE)
+        .fontColor(this.colors().textSecondary)
+        .textAlign(TextAlign.Center)
+      Button('重新加载审核状态')
+        .type(ButtonType.Normal)
+        .width('100%')
+        .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+        .fontColor(UiStyle.onAction(this.darkMode))
+        .backgroundColor(UiStyle.action(this.darkMode))
+        .borderRadius(UiStyle.CONTROL_RADIUS)
+        .enabled(!this.pending && !this.loading && !this.navigationPending)
+        .onClick(() => { this.loadDraft() })
+    }
+    .layoutWeight(1)
+    .width('100%')
+    .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+    .padding(PAGE_PADDING)
+    .justifyContent(FlexAlign.Center)
+  }
+
+  @Builder
+  private EmptyReviewState(): void {
+    Column({ space: 14 }) {
+      Text('暂时无法显示识别草稿')
+        .fontSize(SUBTITLE_FONT_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.colors().textPrimary)
+      Text('可以重新读取草稿；不会重新执行识别。')
+        .fontSize(BODY_FONT_SIZE)
+        .fontColor(this.colors().textSecondary)
+      Button(this.pending ? '正在重试…' : '重新读取草稿')
+        .type(ButtonType.Normal)
+        .width('100%')
+        .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+        .fontColor(UiStyle.onAction(this.darkMode))
+        .backgroundColor(UiStyle.action(this.darkMode))
+        .borderRadius(UiStyle.CONTROL_RADIUS)
+        .enabled(!this.pending && !this.loading && !this.navigationPending)
+        .onClick(() => { this.loadDraft() })
+    }
+    .layoutWeight(1)
+    .width('100%')
+    .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+    .padding(PAGE_PADDING)
+    .justifyContent(FlexAlign.Center)
+  }
+
+  @Builder
+  private ReviewContent(): void {
+    if (this.loading) {
+      this.LoadingState()
+    } else if (this.confirmationComplete) {
+      this.CompletedState()
+    } else if (this.authoritativeStatePending) {
+      this.RecoveryState()
+    } else if (this.draftQuestions.length === 0 && this.failures.length === 0 && !this.textSaveStarted()) {
+      this.EmptyReviewState()
+    } else {
+      Column({ space: 12 }) {
+        this.BankSummary()
+        List({ space: 14 }) {
+          if (this.isAiReview() && this.failures.length > 0) {
+            ListItem() {
+              this.ReviewSectionHeader('待处理页',
+                this.failures.length.toString() + ' 页需要人工处理')
+            }
+            ForEach(this.failures, (failure: PdfReviewFailure) => {
+              ListItem() {
+                this.FailureCard(failure)
+              }
+            }, (failure: PdfReviewFailure): string => failure.pageNumber.toString())
+          }
+          if (this.draftQuestions.length > 0) {
+            ListItem() {
+              this.ReviewSectionHeader('已识别题目',
+                this.draftQuestions.length.toString() + ' 题 · 请逐题核对')
+            }
+            ForEach(this.draftQuestions, (question: PdfReviewQuestion, questionIndex: number) => {
+              ListItem() {
+                this.QuestionCard(question, questionIndex)
+              }
+            }, (question: PdfReviewQuestion): string => question.draftQuestionId)
+          }
+        }
+        .layoutWeight(1)
+        .width('100%')
+        .scrollBar(BarState.Off)
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .constraintSize({ maxWidth: this.contentMaxWidth() })
+      .align(Alignment.Top)
+      .padding({ top: 12, left: PAGE_PADDING, right: PAGE_PADDING })
+    }
+  }
+
+  @Builder
+  private StatusNotices(): void {
+    Column({ space: 8 }) {
+      if (this.artifactExpired) {
+        Text('原题图片已过期，文字仍可使用')
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+          .fontSize(BODY_FONT_SIZE)
+          .fontColor(this.colors().warningText)
+          .backgroundColor(this.colors().warning)
+          .border({ width: 1, color: this.colors().warningText })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+      }
+      if (this.errorMessage.length > 0) {
+        Text(this.errorMessage)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+          .fontSize(BODY_FONT_SIZE)
+          .fontColor(UiStyle.errorText(this.darkMode))
+          .backgroundColor(this.colors().errorSoft)
+          .border({ width: 1, color: UiStyle.errorText(this.darkMode) })
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .accessibilityText('审核提示：' + this.errorMessage)
+      }
+    }
+    .width('100%')
+    .constraintSize({ maxWidth: this.contentMaxWidth() })
+    .padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 8 })
+  }
+
+  @Builder
+  private BottomAction(): void {
+    Column({ space: 8 }) {
+      if (this.confirmationComplete) {
+        if (this.errorMessage.length > 0) {
+          Button('重试完成保存')
+            .type(ButtonType.Normal)
+            .width('100%')
+            .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+            .fontColor(UiStyle.action(this.darkMode))
+            .backgroundColor(this.colors().cardBackground)
+            .border({ width: 1, color: UiStyle.action(this.darkMode) })
+            .borderRadius(UiStyle.CONTROL_RADIUS)
+            .enabled(!this.pending && !this.navigationPending && !this.authoritativeStatePending)
+            .onClick(() => { this.saveReview() })
+        }
+        Button(this.navigationPending ? '正在返回…' : '返回导入页')
+          .type(ButtonType.Normal)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontColor(UiStyle.onAction(this.darkMode))
+          .backgroundColor(UiStyle.action(this.darkMode))
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(!this.navigationPending)
+          .onClick(() => { this.returnToImportPage() })
+      } else if (!this.loading && !this.authoritativeStatePending &&
+        (this.draftQuestions.length > 0 || this.failures.length > 0 || this.textSaveStarted())) {
+        if (this.textSaveStarted()) {
+          Text('保存已开始；请重试完成文字和原题图片保存。')
+            .width('100%')
+            .fontSize(12)
+            .fontColor(this.colors().textCaption)
+        }
+        Button(this.pending ? '正在处理…' :
+          !this.textSaveStarted() ? '确认题目并保存原图' : '重试保存原题图片')
+          .type(ButtonType.Normal)
+          .width('100%')
+          .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+          .fontSize(UiStyle.BODY_SIZE)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(UiStyle.onAction(this.darkMode))
+          .backgroundColor(UiStyle.action(this.darkMode))
+          .borderRadius(UiStyle.CONTROL_RADIUS)
+          .enabled(!this.pending && !this.navigationPending && !this.authoritativeStatePending)
+          .accessibilityText(!this.textSaveStarted() ?
+            '确认全部题目并保存原图' : '重试保存原题图片')
+          .onClick(() => { this.saveReview() })
+      }
+    }
+    .width('100%')
+    .constraintSize({ maxWidth: this.contentMaxWidth() })
+    .padding({ left: PAGE_PADDING, right: PAGE_PADDING, top: 10, bottom: 12 })
+  }
+
+  build() {
+    Navigation() {
+      Column() {
+        this.ReviewContent()
+        this.StatusNotices()
+        this.BottomAction()
+      }
+      .width('100%')
+      .height('100%')
+      .backgroundColor(this.colors().pageBackground)
+    }
+    .title('题目识别复核', {
       barStyle: BarStyle.STANDARD
     })
     .titleMode(NavigationTitleMode.Mini)
@@ -1032,5 +1200,11 @@ struct PdfImportReviewPage {
     .mode(NavigationMode.Stack)
     .width('100%')
     .height('100%')
+    .padding({
+      top: SafeAreaUtils.top(this.safeAreaInsets),
+      bottom: SafeAreaUtils.bottom(this.safeAreaInsets),
+      left: SafeAreaUtils.left(this.safeAreaInsets),
+      right: SafeAreaUtils.right(this.safeAreaInsets)
+    })
   }
 }

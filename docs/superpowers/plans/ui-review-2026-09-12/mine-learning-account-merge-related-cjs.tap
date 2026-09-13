@@ -1,0 +1,189 @@
+TAP version 13
+# Auth session contracts passed
+# Subtest: entry\\src\\test\\AuthSessionContracts.test.cjs
+ok 1 - entry\\src\\test\\AuthSessionContracts.test.cjs
+  ---
+  duration_ms: 72.5893
+  type: 'test'
+  ...
+# Dark mode contracts passed
+# Subtest: entry\\src\\test\\DarkModeContracts.test.cjs
+ok 2 - entry\\src\\test\\DarkModeContracts.test.cjs
+  ---
+  duration_ms: 78.7803
+  type: 'test'
+  ...
+# Editorial UI contracts passed
+# Subtest: entry\\src\\test\\EditorialUiContracts.test.cjs
+ok 3 - entry\\src\\test\\EditorialUiContracts.test.cjs
+  ---
+  duration_ms: 64.0121
+  type: 'test'
+  ...
+# Huawei login contracts passed
+# Subtest: entry\\src\\test\\HuaweiLoginContracts.test.cjs
+ok 4 - entry\\src\\test\\HuaweiLoginContracts.test.cjs
+  ---
+  duration_ms: 63.7728
+  type: 'test'
+  ...
+# Subtest: migration model covers the five stages with strict ArkTS types
+ok 5 - migration model covers the five stages with strict ArkTS types
+  ---
+  duration_ms: 1.4612
+  type: 'test'
+  ...
+# Subtest: MigrationPolicy binds accounts and retires only on all three conditions
+ok 6 - MigrationPolicy binds accounts and retires only on all three conditions
+  ---
+  duration_ms: 1.2232
+  type: 'test'
+  ...
+# Subtest: text normalization is deterministic, UUID ordered, and server-trim aware
+ok 7 - text normalization is deterministic, UUID ordered, and server-trim aware
+  ---
+  duration_ms: 0.3453
+  type: 'test'
+  ...
+# Subtest: migration state lives outside sync_outbox and never writes it
+ok 8 - migration state lives outside sync_outbox and never writes it
+  ---
+  duration_ms: 0.3237
+  type: 'test'
+  ...
+# Subtest: legacy scan excludes sample data and reads stable identities
+ok 9 - legacy scan excludes sample data and reads stable identities
+  ---
+  duration_ms: 0.5812
+  type: 'test'
+  ...
+# Subtest: upload reuses the server sync API with stable UUIDs in bounded batches
+ok 10 - upload reuses the server sync API with stable UUIDs in bounded batches
+  ---
+  duration_ms: 0.459
+  type: 'test'
+  ...
+# Subtest: server ACK is required before the verifying stage
+ok 11 - server ACK is required before the verifying stage
+  ---
+  duration_ms: 0.7259
+  type: 'test'
+  ...
+# Subtest: verification pulls the authoritative snapshot and fails on count mismatch
+ok 12 - verification pulls the authoritative snapshot and fails on count mismatch
+  ---
+  duration_ms: 1.1029
+  type: 'test'
+  ...
+# Subtest: SHA-256 digest mismatch blocks cacheVerified and completion
+ok 13 - SHA-256 digest mismatch blocks cacheVerified and completion
+  ---
+  duration_ms: 0.2979
+  type: 'test'
+  ...
+# Subtest: cloud cache is written only after every bank verified
+ok 14 - cloud cache is written only after every bank verified
+  ---
+  duration_ms: 0.3401
+  type: 'test'
+  ...
+# Subtest: completion requires all three conditions and never deletes legacy data
+ok 15 - completion requires all three conditions and never deletes legacy data
+  ---
+  duration_ms: 0.3716
+  type: 'test'
+  ...
+# Subtest: image rebinding keeps device images private and preserves the originals
+ok 16 - image rebinding keeps device images private and preserves the originals
+  ---
+  duration_ms: 0.4527
+  type: 'test'
+  ...
+# Subtest: failure states allow retry and resume from acknowledged banks
+ok 17 - failure states allow retry and resume from acknowledged banks
+  ---
+  duration_ms: 0.3648
+  type: 'test'
+  ...
+# Subtest: legacy OCR and PDF fallback services are retired and unreferenced by migration
+ok 18 - legacy OCR and PDF fallback services are retired and unreferenced by migration
+  ---
+  duration_ms: 0.3829
+  type: 'test'
+  ...
+# Subtest: bootstrap restores migration state without auto claiming an account
+ok 19 - bootstrap restores migration state without auto claiming an account
+  ---
+  duration_ms: 0.4299
+  type: 'test'
+  ...
+# Subtest: migration card shows all five states, counts, and a retry action
+ok 20 - migration card shows all five states, counts, and a retry action
+  ---
+  duration_ms: 0.4737
+  type: 'test'
+  ...
+# Subtest: mine page requires login and explicit confirmation before migrating
+ok 21 - mine page requires login and explicit confirmation before migrating
+  ---
+  duration_ms: 0.4806
+  type: 'test'
+  ...
+# Task 8 page contracts passed
+# Subtest: entry\\src\\test\\Task8PageContracts.test.cjs
+ok 6 - entry\\src\\test\\Task8PageContracts.test.cjs
+  ---
+  duration_ms: 59.6157
+  type: 'test'
+  ...
+# Subtest: wrong-question subject filters provide a readable 48vp selected control
+ok 23 - wrong-question subject filters provide a readable 48vp selected control
+  ---
+  duration_ms: 1.2273
+  type: 'test'
+  ...
+# Subtest: shared empty state supports page and embedded layouts without a fixed wrong-page box
+ok 24 - shared empty state supports page and embedded layouts without a fixed wrong-page box
+  ---
+  duration_ms: 0.9196
+  type: 'test'
+  ...
+# Subtest: wrong-question and mine feeds include the live left and right safe-area insets
+ok 25 - wrong-question and mine feeds include the live left and right safe-area insets
+  ---
+  duration_ms: 1.1723
+  type: 'test'
+  ...
+# Subtest: mine separates ordinary settings from the confirmed destructive action
+ok 26 - mine separates ordinary settings from the confirmed destructive action
+  ---
+  duration_ms: 0.5596
+  type: 'test'
+  ...
+# Subtest: account and migration actions meet the 48vp touch-target floor
+ok 27 - account and migration actions meet the 48vp touch-target floor
+  ---
+  duration_ms: 0.6201
+  type: 'test'
+  ...
+# Subtest: wrong and mine own their top titles below the live status-bar inset
+ok 28 - wrong and mine own their top titles below the live status-bar inset
+  ---
+  duration_ms: 0.8953
+  type: 'test'
+  ...
+# Subtest: mine merges the learning-center identity into one account sheet
+ok 29 - mine merges the learning-center identity into one account sheet
+  ---
+  duration_ms: 1.4472
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150.9205

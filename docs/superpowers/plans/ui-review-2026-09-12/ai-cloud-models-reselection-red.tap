@@ -1,0 +1,73 @@
+TAP version 13
+# (node:62212) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: settings removes static recommendations and fetches after API key completion
+not ok 1 - settings removes static recommendations and fetches after API key completion
+  ---
+  duration_ms: 1.6211
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\AiModelCatalogContracts.test.cjs:42:1'
+  failureType: 'testCodeFailure'
+  error: 'typing a replacement key must invalidate the old model before cloud discovery'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    this.FieldLabel('API Key')
+            TextInput({ text: this.apiKey, placeholder: '输入新 API Key；留空保留已保存密钥' })
+              .width('100%')
+              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+              .type(this.showKey ? InputType.Normal : InputType.Password).showPasswordIcon(false)
+              .fontSize(UiStyle.BODY_SIZE)
+              .fontColor(this.colors().textPrimary)
+              .backgroundColor(this.colors().inputBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .borderRadius(UiStyle.CONTROL_RADIUS)
+              .enabled(!this.pending)
+              .onChange((value: string) => {
+                this.apiKey = value
+                this.availableModels = new Array<string>()
+              })
+              .onSubmit(() => { this.fetchCloudModels() })
+              .onBlur(() => {
+                if (this.apiKey.trim().length > 0 && this.availableModels.length === 0) {
+                  this.fetchCloudModels()
+                }
+              })
+    
+            
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:58:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: model list parser accepts the OpenAI envelope, deduplicates ids and rejects malformed payloads
+ok 2 - model list parser accepts the OpenAI envelope, deduplicates ids and rejects malformed payloads
+  ---
+  duration_ms: 50.4234
+  type: 'test'
+  ...
+# Subtest: typed key model fetch stays bounded, uses one GET endpoint and zeroes credential bytes
+ok 3 - typed key model fetch stays bounded, uses one GET endpoint and zeroes credential bytes
+  ---
+  duration_ms: 5.6618
+  type: 'test'
+  ...
+# Subtest: transport owns authenticated model GET with the same endpoint and response bounds
+ok 4 - transport owns authenticated model GET with the same endpoint and response bounds
+  ---
+  duration_ms: 0.8035
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 141.2726

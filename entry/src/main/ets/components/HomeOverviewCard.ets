@@ -1,9 +1,5 @@
-import {
-  BODY_FONT_SIZE,
-  CARD_RADIUS,
-  SUBTITLE_FONT_SIZE,
-  themePalette
-} from '../constants/AppTheme'
+import { themePalette } from '../constants/AppTheme'
+import { HAIRLINE, SHEET_RADIUS } from '../constants/EditorialStyle'
 import { AppColors } from '../theme/AppColors'
 
 @Component
@@ -25,36 +21,65 @@ export struct HomeOverviewCard {
     return themePalette(this.darkMode)
   }
 
-  @Builder
-  private StatItem(label: string, value: string) {
-    Column({ space: 6 }) {
-      Text(value)
-        .fontSize(22)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.colors().textPrimary)
+  private clampRate(): number {
+    if (this.masteryRate < 0) {
+      return 0
+    }
+    return this.masteryRate > 100 ? 100 : this.masteryRate
+  }
 
-      Text(label)
-        .fontSize(12)
-        .fontColor(this.colors().textCaption)
-        .maxLines(1)
+  // 小号间距字 + 细线，练习册的章节标题感。
+  @Builder
+  private StatItem(label: string, value: string, showRule: boolean) {
+    Row() {
+      if (showRule) {
+        Column()
+          .width(HAIRLINE)
+          .height(30)
+          .backgroundColor(this.colors().divider)
+          .margin({ right: 14 })
+      }
+
+      Column({ space: 4 }) {
+        Text(value)
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.colors().textPrimary)
+
+        Text(label)
+          .fontSize(12)
+          .fontColor(this.colors().textCaption)
+          .maxLines(1)
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
     }
     .layoutWeight(1)
-    .alignItems(HorizontalAlign.Start)
+    .alignItems(VerticalAlign.Center)
   }
 
   build() {
-    Column({ space: 20 }) {
+    Column() {
+      // 主数字区：待复习数量是最重要的信息，给它最大字号与唯一的强调色。
       Row() {
-        Column({ space: 6 }) {
+        Column({ space: 2 }) {
           Text(this.reviewLabel)
-            .fontSize(BODY_FONT_SIZE)
-            .fontWeight(FontWeight.Medium)
+            .fontSize(12)
+            .letterSpacing(1)
             .fontColor(this.colors().textCaption)
 
-          Text(this.pendingCount.toString())
-            .fontSize(42)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().error)
+          Row({ space: 4 }) {
+            Text(this.pendingCount.toString())
+              .fontSize(54)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.pendingCount > 0 ? this.colors().error : this.colors().successText)
+
+            Text('题')
+              .fontSize(14)
+              .fontColor(this.colors().textCaption)
+              .margin({ bottom: 8 })
+          }
+          .alignItems(VerticalAlign.Bottom)
 
           Text(this.pendingCount > 0 ? '今天再巩固一遍，记得会更牢' : '今天的复习任务已经完成')
             .fontSize(13)
@@ -66,36 +91,75 @@ export struct HomeOverviewCard {
 
         Button() {
           Text(this.reviewActionLabel)
-            .fontSize(SUBTITLE_FONT_SIZE)
+            .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.colors().onBrand)
+            .fontColor(this.pendingCount > 0 ? this.colors().onBrand : this.colors().textCaption)
         }
         .type(ButtonType.Normal)
-        .height(50)
+        .height(48)
         .padding({ left: 20, right: 20 })
-        .backgroundColor(this.colors().brand)
-        .borderRadius(25)
+        .backgroundColor(this.pendingCount > 0 ? this.colors().brand : this.colors().chipBackground)
+        .borderRadius(23)
         .enabled(this.pendingCount > 0)
-        .opacity(this.pendingCount > 0 ? 1 : 0.55)
         .onClick(() => {
           this.onStartReview()
         })
       }
       .width('100%')
+      .alignItems(VerticalAlign.Center)
 
-      Divider()
-        .color(this.colors().divider)
+      // 掌握进度：细轨道 + 品牌色填充，数字只在这里出现一次。
+      Column({ space: 8 }) {
+        Row() {
+          Text('掌握进度')
+            .fontSize(12)
+            .fontColor(this.colors().textCaption)
 
-      Row({ space: 12 }) {
-        this.StatItem(this.wrongLabel, this.wrongCount.toString())
-        this.StatItem(this.masteredLabel, this.masteredCount.toString())
-        this.StatItem(this.masteryLabel, this.masteryRate.toString() + '%')
+          Blank()
+
+          Text(this.clampRate().toString() + '%')
+            .fontSize(12)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.colors().brand)
+        }
+        .width('100%')
+
+        Stack({ alignContent: Alignment.Start }) {
+          Column()
+            .width('100%')
+            .height(6)
+            .backgroundColor(this.colors().divider)
+            .borderRadius(3)
+
+          Column()
+            .width(this.clampRate().toString() + '%')
+            .height(6)
+            .backgroundColor(this.colors().brand)
+            .borderRadius(3)
+        }
+        .width('100%')
+        .height(6)
       }
       .width('100%')
+      .margin({ top: 18 })
+
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+        .margin({ top: 18, bottom: 16 })
+
+      Row() {
+        this.StatItem(this.wrongLabel, this.wrongCount.toString(), false)
+        this.StatItem(this.masteredLabel, this.masteredCount.toString(), true)
+        this.StatItem(this.masteryLabel, this.clampRate().toString() + '%', true)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
     }
     .width('100%')
-    .padding(22)
-    .borderRadius(CARD_RADIUS + 6)
+    .padding({ left: 22, right: 22, top: 20, bottom: 18 })
+    .borderRadius(SHEET_RADIUS)
     .backgroundColor(this.colors().cardBackground)
+    .border({ width: HAIRLINE, color: this.colors().divider })
   }
 }

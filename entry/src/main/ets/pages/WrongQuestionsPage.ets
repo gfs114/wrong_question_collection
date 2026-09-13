@@ -1,16 +1,21 @@
 import { router } from '@kit.ArkUI'
 import { EmptyState } from '../components/EmptyState'
 import { SectionTitle } from '../components/SectionTitle'
-import { StatCard } from '../components/StatCard'
+import { StatRow, StatCell } from '../components/StatRow'
 import { WrongQuestionCard } from '../components/WrongQuestionCard'
 import {
   BODY_FONT_SIZE,
-  CARD_GAP,
   CONTENT_MAX_WIDTH,
   PAGE_PADDING,
   TAB_BAR_CLEARANCE,
   themePalette
 } from '../constants/AppTheme'
+import {
+  CHIP_RADIUS,
+  EDITORIAL_CARD_GAP,
+  HAIRLINE,
+  PAGE_TITLE_SIZE
+} from '../constants/EditorialStyle'
 import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
 import { AccountSessionState } from '../models/AccountSession'
 import { Statistics } from '../models/Statistics'
@@ -21,6 +26,9 @@ import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
 import { AppColors } from '../theme/AppColors'
 import { DateUtils } from '../utils/DateUtils'
 import { NavigationState } from '../utils/NavigationState'
+import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+
+const WRONG_FEED_TOP_GAP: number = 10
 
 class WrongCardRow {
   left: WrongQuestionSummary
@@ -37,6 +45,7 @@ export struct WrongQuestionsPage {
   @Prop @Watch('onActiveChanged') active: boolean = false
   @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
   @StorageProp('darkMode') darkMode: boolean = false
+  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }
   @State statistics: Statistics = new Statistics(0, 0, 0, 0)
   @State subjects: Array<string> = new Array<string>()
   @State selectedSubject: string = ''
@@ -87,18 +96,17 @@ export struct WrongQuestionsPage {
     return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
   }
 
-  private statColumnsTemplate(): string {
-    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
-      return '1fr 1fr'
-    }
-    return '1fr 1fr 1fr'
+  private pageTopGap(): number {
+    return SafeAreaUtils.top(this.safeAreaInsets) + WRONG_FEED_TOP_GAP
   }
 
-  private statGridHeight(): number {
-    if (this.windowSizeClass === WindowSizeClass.COMPACT) {
-      return 232
-    }
-    return 112
+  // 编辑风统计：一张纸张卡 + 竖细线分隔；error 只留给「待复习」这个唯一需要行动的数字。
+  private statCells(): Array<StatCell> {
+    const cells: Array<StatCell> = new Array<StatCell>()
+    cells.push(new StatCell('全部错题', this.statistics.wrongCount.toString(), this.colors().textPrimary))
+    cells.push(new StatCell('已掌握', this.statistics.masteredCount.toString(), this.colors().textPrimary))
+    cells.push(new StatCell('待复习', this.statistics.pendingCount.toString(), this.colors().error))
+    return cells
   }
 
   private wrongRows(): Array<WrongCardRow> {
@@ -279,6 +287,34 @@ export struct WrongQuestionsPage {
     })
   }
 
+  // 编辑风学科 chips：选中 = brandSoft + brand，未选中 = 纸底 + 细线描边（不再是实心胶囊）。
+  @Builder
+  private SubjectChip(label: string, value: string, selected: boolean) {
+    Button() {
+      Text(label)
+        .fontSize(13)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(selected ? this.colors().brand : this.colors().textSecondary)
+        .textAlign(TextAlign.Center)
+        .maxLines(2)
+    }
+    .type(ButtonType.Normal)
+    .constraintSize({ minHeight: 48 })
+    .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+    .backgroundColor(selected ? this.colors().brandSoft : this.colors().cardBackground)
+    .border({
+      width: HAIRLINE,
+      color: selected ? this.colors().brandSoft : this.colors().divider
+    })
+    .borderRadius(CHIP_RADIUS)
+    .enabled(!this.loading)
+    .accessibilityText('按学科筛选：' + label)
+    .accessibilitySelected(selected)
+    .onClick(() => {
+      this.selectSubject(value)
+    })
+  }
+
   @Builder
   private StatusBanner() {
     Row() {
@@ -305,8 +341,37 @@ export struct WrongQuestionsPage {
     })
   }
 
+  @Builder
+  private PageTitle() {
+    Column({ space: 12 }) {
+      Text('错题')
+        .fontSize(PAGE_TITLE_SIZE)
+        .fontWeight(FontWeight.Bold)
+        .letterSpacing(2)
+        .fontColor(this.colors().textPrimary)
+
+      Divider()
+        .strokeWidth(HAIRLINE)
+        .color(this.colors().divider)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .margin({ bottom: 6 })
+  }
+
   build() {
     Column() {
+      Column() {
+        this.PageTitle()
+      }
+      .width('100%')
+      .constraintSize({ maxWidth: this.contentMaxWidth() })
+      .padding({
+        top: this.pageTopGap(),
+        left: PAGE_PADDING + SafeAreaUtils.left(this.safeAreaInsets),
+        right: PAGE_PADDING + SafeAreaUtils.right(this.safeAreaInsets)
+      })
+
       if (this.loading) {
         Column() {
           if (this.bannerMessage().length > 0) {
@@ -328,7 +393,7 @@ export struct WrongQuestionsPage {
           .justifyContent(FlexAlign.Center)
         }
         .width('100%')
-        .height('100%')
+        .layoutWeight(1)
       } else if (this.errorMessage.length > 0) {
         Column() {
           if (this.bannerMessage().length > 0) {
@@ -348,9 +413,9 @@ export struct WrongQuestionsPage {
           .layoutWeight(1)
         }
         .width('100%')
-        .height('100%')
+        .layoutWeight(1)
       } else {
-        List({ space: CARD_GAP }) {
+        List({ space: EDITORIAL_CARD_GAP }) {
           if (this.bannerMessage().length > 0) {
             ListItem() {
               this.StatusBanner()
@@ -358,106 +423,16 @@ export struct WrongQuestionsPage {
           }
 
           ListItem() {
-            Grid() {
-              GridItem() {
-                StatCard({
-                  label: '全部错题',
-                  value: this.statistics.wrongCount,
-                  glyph: '全',
-                  accentColor: this.colors().brand
-                })
-              }
-
-              GridItem() {
-                StatCard({
-                  label: '已掌握',
-                  value: this.statistics.masteredCount,
-                  glyph: '✓',
-                  accentColor: this.colors().successText
-                })
-              }
-
-              GridItem() {
-                StatCard({
-                  label: '待复习',
-                  value: this.statistics.pendingCount,
-                  glyph: '复',
-                  accentColor: this.colors().error
-                })
-              }
-            }
-            .columnsTemplate(this.statColumnsTemplate())
-            .columnsGap(8)
-            .height(this.statGridHeight())
+            StatRow({ cells: this.statCells() })
           }
 
           ListItem() {
             Scroll() {
               Row({ space: 8 }) {
-                if (this.selectedSubject.length === 0) {
-                  Button() {
-                    Text('全部')
-                      .fontSize(14)
-                      .fontWeight(FontWeight.Medium)
-                      .fontColor(this.colors().onBrand)
-                  }
-                  .type(ButtonType.Normal)
-                  .height(40)
-                  .padding({ left: 18, right: 18 })
-                  .backgroundColor(this.colors().brand)
-                  .borderRadius(20)
-                  .onClick(() => {
-                    this.selectSubject('')
-                  })
-                } else {
-                  Button() {
-                    Text('全部')
-                      .fontSize(14)
-                      .fontWeight(FontWeight.Medium)
-                      .fontColor(this.colors().textCaption)
-                  }
-                  .type(ButtonType.Normal)
-                  .height(40)
-                  .padding({ left: 18, right: 18 })
-                  .backgroundColor(this.colors().cardBackground)
-                  .borderRadius(20)
-                  .onClick(() => {
-                    this.selectSubject('')
-                  })
-                }
+                this.SubjectChip('全部', '', this.selectedSubject.length === 0)
 
                 ForEach(this.subjects, (subject: string) => {
-                  if (this.selectedSubject === subject) {
-                    Button() {
-                      Text(subject)
-                        .fontSize(14)
-                        .fontWeight(FontWeight.Medium)
-                        .fontColor(this.colors().onBrand)
-                    }
-                    .type(ButtonType.Normal)
-                    .height(40)
-                    .padding({ left: 18, right: 18 })
-                    .backgroundColor(this.colors().brand)
-                    .borderRadius(20)
-                    .onClick(() => {
-                      this.selectSubject(subject)
-                    })
-                  } else {
-                    Button() {
-                      Text(subject)
-                        .fontSize(14)
-                        .fontWeight(FontWeight.Medium)
-                        .fontColor(this.colors().textCaption)
-                    }
-                    .type(ButtonType.Normal)
-                    .height(40)
-                    .padding({ left: 18, right: 18 })
-                    .backgroundColor(this.colors().cardBackground)
-                    .borderRadius(20)
-                    .onClick(() => {
-                      this.selectSubject(subject)
-                    })
-                  }
+                  this.SubjectChip(subject, subject, this.selectedSubject === subject)
                 }, (subject: string): string => subject)
               }
             }
@@ -476,20 +451,17 @@ export struct WrongQuestionsPage {
 
           if (this.items.length === 0) {
             ListItem() {
-              Column() {
-                EmptyState({
-                  glyph: '✓',
-                  title: '暂无错题',
-                  description: '做题时可以将不会的题加入错题本'
-                })
-              }
-              .width('100%')
-              .height(260)
+              EmptyState({
+                glyph: '✓',
+                title: '暂无错题',
+                description: '做题时可以将不会的题加入错题本',
+                fillAvailable: false
+              })
             }
           } else if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
             ForEach(this.wrongRows(), (row: WrongCardRow) => {
               ListItem() {
-                Row({ space: CARD_GAP }) {
+                Row({ space: EDITORIAL_CARD_GAP }) {
                   Column() {
                     this.WrongCard(row.left)
                   }
@@ -518,12 +490,12 @@ export struct WrongQuestionsPage {
           }
         }
         .width('100%')
-        .height('100%')
+        .layoutWeight(1)
         .constraintSize({ maxWidth: this.contentMaxWidth() })
         .contentEndOffset(TAB_BAR_CLEARANCE)
         .padding({
-          left: PAGE_PADDING,
-          right: PAGE_PADDING
+          left: PAGE_PADDING + SafeAreaUtils.left(this.safeAreaInsets),
+          right: PAGE_PADDING + SafeAreaUtils.right(this.safeAreaInsets)
         })
         .scrollBar(BarState.Off)
       }

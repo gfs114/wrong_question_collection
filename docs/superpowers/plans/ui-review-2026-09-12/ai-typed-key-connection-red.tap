@@ -1,0 +1,82 @@
+TAP version 13
+# (node:25596) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: AI recognition settings expose explicit credential controls and both routes
+ok 1 - AI recognition settings expose explicit credential controls and both routes
+  ---
+  duration_ms: 3.5095
+  type: 'test'
+  ...
+# Subtest: AI PDF setup validates durable provider state, account and key before progress
+ok 2 - AI PDF setup validates durable provider state, account and key before progress
+  ---
+  duration_ms: 0.4349
+  type: 'test'
+  ...
+# Subtest: AI PDF progress starts once and owns one cancellation cleanup path
+ok 3 - AI PDF progress starts once and owns one cancellation cleanup path
+  ---
+  duration_ms: 0.7023
+  type: 'test'
+  ...
+# Subtest: connection test sends one 1x1 JPEG with normalized form config and releases its request
+ok 4 - connection test sends one 1x1 JPEG with normalized form config and releases its request
+  ---
+  duration_ms: 47.9631
+  type: 'test'
+  ...
+# Subtest: connection response validation releases exactly once after extraction and accepts content without questions
+ok 5 - connection response validation releases exactly once after extraction and accepts content without questions
+  ---
+  duration_ms: 6.6323
+  type: 'test'
+  ...
+# Subtest: connection failure preserves stable codes, releases body, and never retries
+ok 6 - connection failure preserves stable codes, releases body, and never retries
+  ---
+  duration_ms: 5.1055
+  type: 'test'
+  ...
+# Subtest: connection invalid config and missing saved credential do not reach adapter or transport
+ok 7 - connection invalid config and missing saved credential do not reach adapter or transport
+  ---
+  duration_ms: 3.6324
+  type: 'test'
+  ...
+# Subtest: connection test accepts a typed key temporarily and zeroes its encoded bytes
+not ok 8 - connection test accepts a typed key temporarily and zeroes its encoded bytes
+  ---
+  duration_ms: 3.671
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\AiImportContracts.test.cjs:239:1'
+  failureType: 'testCodeFailure'
+  error: 'service.testWithApiKey is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiImportContracts.test.cjs:254:17)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: connection service keeps the entire transport await inside saved credential scope
+ok 9 - connection service keeps the entire transport await inside saved credential scope
+  ---
+  duration_ms: 5.3789
+  type: 'test'
+  ...
+# Subtest: settings load never fetches a key and save/clear erase typed key on success and failure
+ok 10 - settings load never fetches a key and save/clear erase typed key on success and failure
+  ---
+  duration_ms: 17.2268
+  type: 'test'
+  ...
+# Subtest: settings model discovery uses only the typed key and keeps persistence untouched until save
+ok 11 - settings model discovery uses only the typed key and keeps persistence untouched until save
+  ---
+  duration_ms: 6.0067
+  type: 'test'
+  ...

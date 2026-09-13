@@ -1,4 +1,5 @@
 import { EmptyState } from '../components/EmptyState'
+import { MathContentView } from '../components/MathContentView'
 import {
   BODY_FONT_SIZE,
   CARD_RADIUS,
@@ -335,12 +336,13 @@ struct WrongQuestionDetailPage {
               }
               .width('100%')
 
-              Text(this.detail.question)
-                .width('100%')
-                .fontSize(18)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(this.colors().textPrimary)
-                .lineHeight(28)
+              MathContentView({
+                content: this.detail.question,
+                fontSize: 18,
+                fontWeight: 700,
+                textColor: this.colors().textPrimary,
+                lineHeight: 28
+              })
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
@@ -361,11 +363,14 @@ struct WrongQuestionDetailPage {
                     .backgroundColor(this.colors().pageBackground)
                     .borderRadius(18)
 
-                  Text(option)
+                  MathContentView({
+                    content: option,
+                    fontSize: BODY_FONT_SIZE,
+                    fontWeight: 400,
+                    textColor: this.colors().textPrimary,
+                    lineHeight: 22
+                  })
                     .layoutWeight(1)
-                    .fontSize(BODY_FONT_SIZE)
-                    .fontColor(this.colors().textPrimary)
-                    .lineHeight(22)
                 }
                 .width('100%')
                 .padding({ left: 12, right: 14, top: 10, bottom: 10 })
@@ -381,10 +386,13 @@ struct WrongQuestionDetailPage {
                 .fontWeight(FontWeight.Bold)
                 .fontColor(this.colors().textPrimary)
 
-              Text(this.detail.answer)
-                .fontSize(20)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(this.colors().successText)
+              MathContentView({
+                content: this.detail.answer,
+                fontSize: 20,
+                fontWeight: 700,
+                textColor: this.colors().successText,
+                lineHeight: 28
+              })
 
               Text('题目解析')
                 .fontSize(SUBTITLE_FONT_SIZE)
@@ -392,11 +400,13 @@ struct WrongQuestionDetailPage {
                 .fontColor(this.colors().textPrimary)
                 .margin({ top: 8 })
 
-              Text(this.detail.analysis.length === 0 ? '暂无解析' : this.detail.analysis)
-                .width('100%')
-                .fontSize(BODY_FONT_SIZE)
-                .fontColor(this.colors().textCaption)
-                .lineHeight(23)
+              MathContentView({
+                content: this.detail.analysis.length === 0 ? '暂无解析' : this.detail.analysis,
+                fontSize: BODY_FONT_SIZE,
+                fontWeight: 400,
+                textColor: this.colors().textCaption,
+                lineHeight: 23
+              })
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)

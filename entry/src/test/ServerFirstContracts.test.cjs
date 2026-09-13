@@ -135,12 +135,12 @@ test('mutation order is server request then server success then cache update', (
 
 test('refresh failure preserves the existing cloud cache', () => {
   const source = read('services/CloudQuestionRepository.ets')
+  const refresh = extractMethod(source, 'static async refresh')
 
-  assert.doesNotMatch(source, /clearAccountTextCache/,
+  assert.doesNotMatch(refresh, /clearAccountTextCache/,
     'refresh must never clear the account cache')
   assert.doesNotMatch(source, /DELETE FROM cloud_/,
     'repository must never delete cache rows')
-  const refresh = extractMethod(source, 'static async refresh')
   assert.match(refresh, /while \(hasMore\)/)
   assert.match(refresh, /if \(operations\.length === 0\)[\s\S]*return/)
   assert.ok(refresh.indexOf('saveSnapshot') > refresh.indexOf('while (hasMore)'),

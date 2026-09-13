@@ -1,0 +1,443 @@
+(node:60236) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ AI recognition settings expose explicit credential controls and both routes (2.6232ms)
+✔ AI PDF setup validates durable provider state, account and key before progress (1.4743ms)
+✔ AI PDF progress starts once and owns one cancellation cleanup path (0.8731ms)
+✔ connection test sends one 1x1 JPEG with normalized form config and releases its request (46.0784ms)
+✔ connection response validation releases exactly once after extraction and accepts content without questions (5.6487ms)
+✔ connection failure preserves stable codes, releases body, and never retries (4.0547ms)
+✔ connection invalid config and missing saved credential do not reach adapter or transport (3.9618ms)
+✔ connection service keeps the entire transport await inside saved credential scope (3.5275ms)
+✔ settings load never fetches a key and save/clear erase typed key on success and failure (20.6215ms)
+✔ settings requires saving a new key and blocks mutations/back while a saved-config test runs (5.5604ms)
+✔ settings maps missing credential, invalid config, invalid responses, and unsafe connection failures locally (19.7964ms)
+✔ settings platform row applies catalog data without aliasing catalog arrays (4.3208ms)
+✔ settings onPageShow consumes a picker selection once only after the guard (3.4836ms)
+✔ preflight cancellation cleans the selected PDF at every await boundary (20.5153ms)
+✔ preflight cancellation retains identity and exposes retry after direct PDF cleanup failure (2.7073ms)
+✔ typed non-cancelled run cleanup debt blocks exit and converges through central retry (3.6955ms)
+✔ completed import disables cancellation, rechecks account and retries review navigation without rerun (3.5041ms)
+✔ post-run account mismatch discards before clearing state and returning to import (3.7105ms)
+✔ completed-session abandon retains request and review id until discard retry succeeds (3.1107ms)
+✔ credential update barrier persists across restart and ambiguous completion failure (17.1281ms)
+✔ HUKS failure after config save blocks old-key dispatch until replacement or clear repairs marker (7.4196ms)
+✔ config-only changes and unsaved test forms never reuse an existing key (15.1447ms)
+✔ failed marker begin and key clear leave dispatch blocked without updating public configuration (5.4669ms)
+✔ default coordinator checks persisted config and holds update barrier through credential dispatch (17.4135ms)
+✔ source-neutral review isolates providers and renders editable local evidence (1.183ms)
+✔ review retains committed retry state and exposes image retry without draft questions (0.6401ms)
+✔ AI adapter durable checkpoint overrides stale draft memory and locks retry/edit policy (11.165ms)
+✔ AI adapter propagates durable account/corruption failures instead of falling back to memory (20.7925ms)
+✔ review edits and manual failure conversion persist deep copies with stable evidence UUIDs (5.2087ms)
+✔ review serializes save and back and abandons only after explicit draft choice (6.4677ms)
+✔ review failed retry publishes committed session while hiding arbitrary provider errors (5.6197ms)
+✔ failure discard delegates cleanup and blocks duplicate clicks/save/back until it settles (5.8643ms)
+✔ review exposes an explicit authoritative-state reload action and gates mutation while uncertain (0.49ms)
+✔ checkpoint/account-switch reconciliation failure locks every mutation and prevents abandonment (5.1991ms)
+✔ initial review load failure keeps page ownership until authoritative reload succeeds (4.2435ms)
+✔ repeated authoritative reload failure remains locked until owner checkpoint reload succeeds (4.1339ms)
+✔ committed retry plus authoritative reload failure stays locked until explicit reload (5.0447ms)
+✔ committed discard or manual transfer plus reload failure locks until authoritative reload (8.4965ms)
+✔ AI provider config storage persists only normalized public configuration (0.5876ms)
+✔ provider validator accepts local http only for private hosts (2.0651ms)
+✔ endpoint guard allows https and private http but never public http (1.6815ms)
+✔ OpenAI-compatible adapter sends one page image through chat completions (0.271ms)
+✔ AI transport is bounded, non-redirecting, cancellable and independent (0.3967ms)
+✔ PDF encoder releases page pixels before returning network-ready text (0.8548ms)
+✔ PDF encoder uses bounded exclusive evidence and crop files with narrow cleanup ownership (0.8393ms)
+✔ PDF encoder defers close through active operation leases and preserves late failures (0.4435ms)
+✔ PDF encoder isolates retry artifacts by exact logical session and attempt ownership (0.3488ms)
+✔ PDF encoder deletes only an explicit cache-root session-owned evidence file (0.2514ms)
+✔ AI coordinator owns one sequential local-only page pipeline (0.3592ms)
+✔ AI coordinator keeps cancellation and request cleanup generation safe (0.2966ms)
+✔ AI coordinator retry is page-bounded, atomic and shares processPage (0.3225ms)
+✔ AI coordinator cleans only failed attempt artifacts and retains successful namespaces (0.2759ms)
+✔ AI coordinator retains initial page evidence but fully cleans failed retries (0.2434ms)
+✔ AI coordinator surfaces cleanup failure while retaining the primary error code (0.2424ms)
+✔ coordinator exposes cleanup debt only while the final exact cleanup still fails (2.5744ms)
+✔ AI coordinator guards credential-delayed transport dispatch by identity and generation (0.3027ms)
+✔ AI coordinator commits retry before narrowly deleting superseded failure evidence (0.2398ms)
+✔ AI coordinator discard always attempts both cleanups and retains first failure (0.2504ms)
+✔ default PDF cleanup remembers successful exact paths across discard retries (0.8089ms)
+✔ discard retry converges after image, PDF, or combined partial failure (2.9491ms)
+✔ AI review keeps an image even when bbox is unusable (0.9184ms)
+✔ unusable bbox skips cropping and keeps whole-page evidence as the question image (5.2918ms)
+✔ usable bbox crops per question and discards the unused whole-page evidence (4.8731ms)
+✔ automated tests use fakes and cannot call an external provider (2.1155ms)
+✔ test-only network helpers reject real provider URLs and production network APIs (1.0496ms)
+✔ provider config store keeps catalog platform ids and tolerates unknown ids (0.293ms)
+✔ provider config store preserves catalog and unknown provider ids at runtime (8.4771ms)
+✔ platform picker page is registered once and reachable from the settings page (0.724ms)
+✖ settings removes static recommendations and fetches after API key completion (2.4597ms)
+✖ model list parser accepts the OpenAI envelope, deduplicates ids and rejects malformed payloads (0.4707ms)
+✖ typed key model fetch stays bounded, uses one GET endpoint and zeroes credential bytes (0.3601ms)
+✖ transport owns authenticated model GET with the same endpoint and response bounds (0.3722ms)
+ℹ tests 72
+ℹ suites 0
+ℹ pass 67
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 447.6228
+
+✖ failing tests:
+
+test at entry\src\test\AiImportContracts.test.cjs:10:1
+✖ AI recognition settings expose explicit credential controls and both routes (2.6232ms)
+  AssertionError [ERR_ASSERTION]: 云端模型
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiImportContracts.test.cjs:16:44)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at entry\src\test\AiModelCatalogContracts.test.cjs:42:1
+✖ settings removes static recommendations and fetches after API key completion (2.4597ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /推荐视觉模型|platformModels|AiPlatformModel/. Input:
+  
+  "import { router } from '@kit.ArkUI'\n" +
+    "import { BODY_FONT_SIZE, PAGE_PADDING, themePalette } from '../constants/AppTheme'\n" +
+    "import { SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+    "import { UiStyle } from '../constants/UiStyle'\n" +
+    "import { AiPlatform, AiPlatformAccess, AiPlatformCatalog, AiPlatformModel } from '../models/ai/AiPlatformCatalog'\n" +
+    'import {\n' +
+    '  AiImportError, AiImportErrorCode, AiImportErrorMessages,\n' +
+    '  AiProviderConfig, AiProviderConfigValidator, AiProviderId\n' +
+    "} from '../models/ai/AiProviderConfig'\n" +
+    "import { AiConnectionTestService } from '../services/ai/AiConnectionTestService'\n" +
+    "import { AiCredentialStore } from '../services/ai/AiCredentialStore'\n" +
+    "import { AiProviderConfigStore } from '../services/ai/AiProviderConfigStore'\n" +
+    "import { AppColors } from '../theme/AppColors'\n" +
+    "import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'\n" +
+    "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+    '\n' +
+    '@Entry\n' +
+    '@Component\n' +
+    'struct AiRecognitionSettingsPage {\n' +
+    "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+    "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }\n" +
+    '  @State providerId: string = AiProviderId.OPENAI\n' +
+    "  @State model: string = ''\n" +
+    "  @State baseUrl: string = 'https://api.openai.com/v1'\n" +
+    "  @State platformLabel: string = '自定义'\n" +
+    '  // 最近一次已应用的目录平台 id（供「重选同平台 = no-op」守卫读取；比较目录 id 而非持久化字符串）。\n' +
+    "  @State appliedPlatformId: string = ''\n" +
+    "  @State platformNote: string = ''\n" +
+    '  @State platformModels: Array<AiPlatformModel> = new Array<AiPlatformModel>()\n' +
+    '  @State urlEditable: boolean = false\n' +
+    "  @State apiKey: string = ''\n" +
+    '  @State showKey: boolean = false\n' +
+    '  @State configured: boolean = false\n' +
+    '  @State credentialUpdatePending: boolean = false\n' +
+    '  @State pending: boolean = false\n' +
+    "  @State statusMessage: string = ''\n" +
+    '  @State failed: boolean = false\n' +
+    '\n' +
+    '  private colors(): AppColors {\n' +
+    '    return themePalette(this.darkMode)\n' +
+    '  }\n' +
+    '\n' +
+    '  aboutToAppear(): void {\n' +
+    '    this.loadSettings()\n' +
+    '    this.syncPlatformFromConfig()\n' +
+    '  }\n' +
+    '\n' +
+    '  // 选择页只写回平台 id：必须先 peek 判空/判忙，通过后才 take，反序会把用户的选择静默吞掉。\n' +
+    '  onPageShow(): void {\n' +
+    '    const selectedId: string = AiPlatformSelectionState.shared().peek()\n' +
+    '    if (selectedId.length === 0 || this.pending) return\n' +
+    '    AiPlatformSelectionState.shared().take()\n' +
+    '    this.applyPlatform(selectedId)\n' +
+    '  }\n' +
+    '\n' +
+    '  aboutToDisappear(): void {\n' +
+    "    this.apiKey = ''\n" +
+    '    this.showKey = false\n' +
+    '  }\n' +
+    '\n' +
+    '  onBackPress(): boolean {\n' +
+    '    if (this.pending) return true\n' +
+    '    this.leavePage()\n' +
+    '    return true\n' +
+    '  }\n' +
+    '\n' +
+    '  private leavePage(): void {\n' +
+    '    if (this.pending) return\n' +
+    "    this.apiKey = ''\n" +
+    '    this.showKey = false\n' +
+    '    router.back()\n' +
+    '  }\n' +
+    '\n' +
+    '  private formConfig(): AiProviderConfig {\n' +
+    '    return AiProviderConfigValidator.normalize(new AiProviderConfig(this.providerId, this.model, this.baseUrl))\n' +
+    '  }\n' +
+    '\n' +
+    '  private applyConfig(config: AiProviderConfig): void {\n' +
+    '    this.providerId = config.providerId\n' +
+    '    this.model = config.model\n' +
+    '    this.baseUrl = config.baseUrl\n' +
+    '    this.syncPlatformFromConfig()\n' +
+    '  }\n' +
+    '\n' +
+    '  // 应用选择页回传的目录 id：地址与模型芯片都来自目录；gateway 不自建直连地址，留空并提示用户手填。\n' +
+    '  private applyPlatform(id: string): void {\n' +
+    '    const platform: AiPlatform | null = AiPlatformCatalog.find(id)\n' +
+    '    if (platform === null) return\n' +
+    '    // 重选「当前已应用」的平台是 no-op：避免把用户尚未保存的 Model / 手填地址静默清空。\n' +
+    '    // 用目录 id 比较（目录 id 恒小写），不比较持久化字符串，避免大小写变体让守卫失效。\n' +
+    '    if (this.appliedPlatformId === platform.id) return\n' +
+    '    this.appliedPlatformId = platform.id\n' +
+    '    this.platformLabel = platform.nameZh\n' +
+    '    this.platformNote = platform.note\n' +
+    '    // 必须 slice：@State 可变，直接引用会反向污染目录单例数组。\n' +
+    '    this.platformModels = platform.models.slice()\n' +
+    "    this.model = ''\n" +
+    '    if (platform.access === AiPlatformAccess.GATEWAY) {\n' +
+    '      this.providerId = AiProviderId.CUSTOM\n' +
+    "      this.baseUrl = ''\n" +
+    '      this.urlEditable = true\n' +
+    "      this.statusMessage = platform.note.length > 0 ? platform.note : '该平台需自建兼容网关，请填写你自己的地址'\n" +
+    '      this.failed = this.statusMessage.length > 0\n' +
+    '    } else {\n' +
+    '      this.providerId = platform.id\n' +
+    '      this.baseUrl = platform.baseUrl\n' +
+    '      this.urlEditable = platform.access === AiPlatformAccess.LOCAL_HTTP\n' +
+    '      // 非 gateway 平台的风险/限制说明统一显示在地址下方（platformNote），不占用底部状态区。\n' +
+    "      this.statusMessage = ''\n" +
+    '      this.failed = false\n' +
+    '    }\n' +
+    '  }\n' +
+    '\n' +
+    '  // 明文风险按「实际地址」判定，而不是按所选平台的目录 access：\n' +
+    '  // 用户完全可能在 DIRECT 平台上手动填入 http://192.168.x 地址（校验器白名单放行），\n' +
+    '  // 反之 LOCAL_HTTP 平台的 note 只是信息性文字，不应被涂成错误色。\n' +
+    '  private isCleartextAddress(): boolean {\n' +
+    "    return this.baseUrl.trim().toLowerCase().startsWith('http://')\n" +
+    '  }\n' +
+    '\n' +
+    '  // 展示层只认目录：未知/已移除的持久化 id 一律兜底「自定义」，绝不把 store 里的原始字符串渲染到 UI。\n' +
+    '  private syncPlatformFromConfig(): void {\n' +
+    '    const platform: AiPlatform | null = AiPlatformCatalog.find(this.providerId)\n' +
+    '    if (platform === null) {\n' +
+    "      this.appliedPlatformId = ''\n" +
+    "      this.platformLabel = '自定义'\n" +
+    "      this.platformNote = ''\n" +
+    '      this.platformModels = new Array<AiPlatformModel>()\n' +
+    '      this.urlEditable = true\n' +
+    '      return\n' +
+    '    }\n' +
+    '    this.appliedPlatformId = platform.id\n' +
+    '    this.platformLabel = platform.nameZh\n' +
+    '    this.platformNote = platform.note\n' +
+    '    this.platformModels = platform.models.slice()\n' +
+    '    this.urlEditable = platform.access !== AiPlatformAccess.DIRECT\n' +
+    '  }\n' +
+    '\n' +
+    '  private showError(error: Error): void {\n' +
+    '    this.failed = true\n' +
+    '    const code: AiImportErrorCode = error instanceof AiImportError ? error.code : AiImportErrorCode.PROVIDER_UNAVAILABLE\n' +
+    '    this.statusMessage = AiImportErrorMessages.forCode(code)\n' +
+    '  }\n' +
+    '\n' +
+    '  private async loadSettings(): Promise<void> {\n' +
+    '    if (this.pending) return\n' +
+    '    this.pending = true\n' +
+    '    try {\n' +
+    '      this.credentialUpdatePending = await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))\n' +
+    '      const config: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n' +
+    '      if (config !== null) this.applyConfig(config)\n' +
+    '      if (this.credentialUpdatePending) throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n' +
+    '      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+    '    } catch (err) {\n' +
+    '      this.showError(err)\n' +
+    '    } finally {\n' +
+    "      this.apiKey = ''\n" +
+    '      this.showKey = false\n' +
+    '      this.pending = false\n' +
+    '    }\n' +
+    '  }\n' +
+    '\n' +
+    '  private async saveSettings(): Promise<void> {\n' +
+    '    if (this.pending) return\n' +
+    '    this.pending = true\n' +
+    "    this.statusMessage = ''\n" +
+    '    this.failed = false\n' +
+    '    try {\n' +
+    '      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n' +
+    '        const config: AiProviderConfig = this.formConfig()\n' +
+    '        if (this.apiKey.trim().length > 0) {\n' +
+    '          this.credentialUpdatePending = true\n' +
+    '          await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n' +
+    '          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n' +
+    '          await AiCredentialStore.save(getContext(this), this.apiKey)\n' +
+    '          await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n' +
+    '          this.credentialUpdatePending = false\n' +
+    '        } else {\n' +
+    '          if (await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))) {\n' +
+    '            throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n' +
+    '          }\n' +
+    '          const saved: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n' +
+    '          if (await AiCredentialStore.hasCredential(getContext(this)) && !AiProviderConfigStore.sameConfig(saved, config)) {\n' +
+    '            throw new AiImportError(AiImportErrorCode.REPLACEMENT_KEY_REQUIRED)\n' +
+    '          }\n' +
+    '          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n' +
+    '        }\n' +
+    '        this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+    "        this.statusMessage = '设置已保存'\n" +
+    '      })\n' +
+    '    } catch (err) {\n' +
+    '      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n' +
+    '    } finally {\n' +
+    "      this.apiKey = ''\n" +
+    '      this.showKey = false\n' +
+    '      this.pending = false\n' +
+    '    }\n' +
+    '  }\n' +
+    '\n' +
+    '  private async clearApiKey(): Promise<void> {\n' +
+    '    if (this.pending) return\n' +
+    '    this.pending = true\n' +
+    '    this.failed = false\n' +
+    '    try {\n' +
+    '      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n' +
+    '        this.credentialUpdatePending = true\n' +
+    '        await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n' +
+    '        await AiCredentialStore.clear(getContext(this))\n' +
+    '        this.configured = false\n' +
+    '        await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n' +
+    '        this.credentialUpdatePending = false\n' +
+    "        this.statusMessage = 'API Key 已清除'\n" +
+    '      })\n' +
+    '    } catch (err) {\n' +
+    '      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n' +
+    '    } finally {\n' +
+    "      this.apiKey = ''\n" +
+    '      this.showKey = false\n' +
+    '      this.pending = false\n' +
+    '    }\n' +
+    '  }\n' +
+    '\n' +
+    '  private async testConnection(): Promise<void> {\n' +
+    '    if (this.pending) return\n' +
+    '    if (this.apiKey.length > 0) {\n' +
+    '      this.failed = true\n' +
+    "      this.statusMessage = '请先保存新 API Key，再测试连接'\n" +
+    '      return\n' +
+    '    }\n' +
+    '    this.pending = true\n' +
+    "    this.statusMessage = '正在测试连接…'\n" +
+    '    this.failed = false\n' +
+    '    try {\n' +
+    '      const config: AiProviderConfig = this.formConfig()\n' +
+    '      await AiProviderConfigStore.requireUsable(getContext(this), config)\n' +
+    '      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n' +
+    '      if (!this.configured) throw new AiImportError(AiImportErrorCode.MISSING_API_KEY)\n' +
+    '      await new AiConnectionTestService().test(getContext(this), config)\n' +
+    "      this.statusMessage = '连接成功'\n" +
+    '    } catch (err) {\n' +
+    '      this.showError(err)\n' +
+    '    } finally {\n' +
+    '      this.pending = false\n' +
+    '    }\n' +
+    '  }\n' +
+    '\n' +
+    '  private openPlatformPicker(): void {\n' +
+    '    if (this.pending) return\n' +
+    "    this.getUIContext().getRouter().pushUrl({ url: 'pages/AiPlatformPickerPage' }).catch(() => {\n" +
+    '      this.failed = true\n' +
+    "      this.statusMessage = '平台选择页面暂不可用，请稍后重试'\n" +
+    '    })\n' +
+    '  }\n' +
+    '\n' +
+    '  @Builder\n' +
+    '  private FieldLabel(label: string) {\n' +
+    '    Text(label)\n' +
+    '      .fontSize(UiStyle.DETAIL_SIZE)\n' +
+    '      .fontColor(this.colors().textPrimary)\n' +
+    '      .fontWeight(FontWeight.Medium)\n' +
+    '  }\n' +
+    '\n' +
+    '  @Builder\n' +
+    '  private HeaderBar() {\n' +
+    '    Row({ space: 12 }) {\n' +
+    "      Button('返回')\n" +
+    '        .type(ButtonType.Normal)\n' +
+    '        .constraintSize({ minWidt'... 11663 more characters
+  
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:44:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import { router } from '@kit.ArkUI'\nimport { BODY_FONT_SIZE, PAGE_PADDING, themePalette } from '../constants/AppTheme'\nimport { SHEET_RADIUS } from '../constants/EditorialStyle'\nimport { UiStyle } from '../constants/UiStyle'\nimport { AiPlatform, AiPlatformAccess, AiPlatformCatalog, AiPlatformModel } from '../models/ai/AiPlatformCatalog'\nimport {\n  AiImportError, AiImportErrorCode, AiImportErrorMessages,\n  AiProviderConfig, AiProviderConfigValidator, AiProviderId\n} from '../models/ai/AiProviderConfig'\nimport { AiConnectionTestService } from '../services/ai/AiConnectionTestService'\nimport { AiCredentialStore } from '../services/ai/AiCredentialStore'\nimport { AiProviderConfigStore } from '../services/ai/AiProviderConfigStore'\nimport { AppColors } from '../theme/AppColors'\nimport { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'\nimport { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n\n@Entry\n@Component\nstruct AiRecognitionSettingsPage {\n  @StorageProp('darkMode') darkMode: boolean = false\n  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }\n  @State providerId: string = AiProviderId.OPENAI\n  @State model: string = ''\n  @State baseUrl: string = 'https://api.openai.com/v1'\n  @State platformLabel: string = '自定义'\n  // 最近一次已应用的目录平台 id（供「重选同平台 = no-op」守卫读取；比较目录 id 而非持久化字符串）。\n  @State appliedPlatformId: string = ''\n  @State platformNote: string = ''\n  @State platformModels: Array<AiPlatformModel> = new Array<AiPlatformModel>()\n  @State urlEditable: boolean = false\n  @State apiKey: string = ''\n  @State showKey: boolean = false\n  @State configured: boolean = false\n  @State credentialUpdatePending: boolean = false\n  @State pending: boolean = false\n  @State statusMessage: string = ''\n  @State failed: boolean = false\n\n  private colors(): AppColors {\n    return themePalette(this.darkMode)\n  }\n\n  aboutToAppear(): void {\n    this.loadSettings()\n    this.syncPlatformFromConfig()\n  }\n\n  // 选择页只写回平台 id：必须先 peek 判空/判忙，通过后才 take，反序会把用户的选择静默吞掉。\n  onPageShow(): void {\n    const selectedId: string = AiPlatformSelectionState.shared().peek()\n    if (selectedId.length === 0 || this.pending) return\n    AiPlatformSelectionState.shared().take()\n    this.applyPlatform(selectedId)\n  }\n\n  aboutToDisappear(): void {\n    this.apiKey = ''\n    this.showKey = false\n  }\n\n  onBackPress(): boolean {\n    if (this.pending) return true\n    this.leavePage()\n    return true\n  }\n\n  private leavePage(): void {\n    if (this.pending) return\n    this.apiKey = ''\n    this.showKey = false\n    router.back()\n  }\n\n  private formConfig(): AiProviderConfig {\n    return AiProviderConfigValidator.normalize(new AiProviderConfig(this.providerId, this.model, this.baseUrl))\n  }\n\n  private applyConfig(config: AiProviderConfig): void {\n    this.providerId = config.providerId\n    this.model = config.model\n    this.baseUrl = config.baseUrl\n    this.syncPlatformFromConfig()\n  }\n\n  // 应用选择页回传的目录 id：地址与模型芯片都来自目录；gateway 不自建直连地址，留空并提示用户手填。\n  private applyPlatform(id: string): void {\n    const platform: AiPlatform | null = AiPlatformCatalog.find(id)\n    if (platform === null) return\n    // 重选「当前已应用」的平台是 no-op：避免把用户尚未保存的 Model / 手填地址静默清空。\n    // 用目录 id 比较（目录 id 恒小写），不比较持久化字符串，避免大小写变体让守卫失效。\n    if (this.appliedPlatformId === platform.id) return\n    this.appliedPlatformId = platform.id\n    this.platformLabel = platform.nameZh\n    this.platformNote = platform.note\n    // 必须 slice：@State 可变，直接引用会反向污染目录单例数组。\n    this.platformModels = platform.models.slice()\n    this.model = ''\n    if (platform.access === AiPlatformAccess.GATEWAY) {\n      this.providerId = AiProviderId.CUSTOM\n      this.baseUrl = ''\n      this.urlEditable = true\n      this.statusMessage = platform.note.length > 0 ? platform.note : '该平台需自建兼容网关，请填写你自己的地址'\n      this.failed = this.statusMessage.length > 0\n    } else {\n      this.providerId = platform.id\n      this.baseUrl = platform.baseUrl\n      this.urlEditable = platform.access === AiPlatformAccess.LOCAL_HTTP\n      // 非 gateway 平台的风险/限制说明统一显示在地址下方（platformNote），不占用底部状态区。\n      this.statusMessage = ''\n      this.failed = false\n    }\n  }\n\n  // 明文风险按「实际地址」判定，而不是按所选平台的目录 access：\n  // 用户完全可能在 DIRECT 平台上手动填入 http://192.168.x 地址（校验器白名单放行），\n  // 反之 LOCAL_HTTP 平台的 note 只是信息性文字，不应被涂成错误色。\n  private isCleartextAddress(): boolean {\n    return this.baseUrl.trim().toLowerCase().startsWith('http://')\n  }\n\n  // 展示层只认目录：未知/已移除的持久化 id 一律兜底「自定义」，绝不把 store 里的原始字符串渲染到 UI。\n  private syncPlatformFromConfig(): void {\n    const platform: AiPlatform | null = AiPlatformCatalog.find(this.providerId)\n    if (platform === null) {\n      this.appliedPlatformId = ''\n      this.platformLabel = '自定义'\n      this.platformNote = ''\n      this.platformModels = new Array<AiPlatformModel>()\n      this.urlEditable = true\n      return\n    }\n    this.appliedPlatformId = platform.id\n    this.platformLabel = platform.nameZh\n    this.platformNote = platform.note\n    this.platformModels = platform.models.slice()\n    this.urlEditable = platform.access !== AiPlatformAccess.DIRECT\n  }\n\n  private showError(error: Error): void {\n    this.failed = true\n    const code: AiImportErrorCode = error instanceof AiImportError ? error.code : AiImportErrorCode.PROVIDER_UNAVAILABLE\n    this.statusMessage = AiImportErrorMessages.forCode(code)\n  }\n\n  private async loadSettings(): Promise<void> {\n    if (this.pending) return\n    this.pending = true\n    try {\n      this.credentialUpdatePending = await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))\n      const config: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n      if (config !== null) this.applyConfig(config)\n      if (this.credentialUpdatePending) throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n    } catch (err) {\n      this.showError(err)\n    } finally {\n      this.apiKey = ''\n      this.showKey = false\n      this.pending = false\n    }\n  }\n\n  private async saveSettings(): Promise<void> {\n    if (this.pending) return\n    this.pending = true\n    this.statusMessage = ''\n    this.failed = false\n    try {\n      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n        const config: AiProviderConfig = this.formConfig()\n        if (this.apiKey.trim().length > 0) {\n          this.credentialUpdatePending = true\n          await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n          await AiCredentialStore.save(getContext(this), this.apiKey)\n          await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n          this.credentialUpdatePending = false\n        } else {\n          if (await AiProviderConfigStore.isCredentialUpdatePending(getContext(this))) {\n            throw new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING)\n          }\n          const saved: AiProviderConfig | null = await AiProviderConfigStore.load(getContext(this))\n          if (await AiCredentialStore.hasCredential(getContext(this)) && !AiProviderConfigStore.sameConfig(saved, config)) {\n            throw new AiImportError(AiImportErrorCode.REPLACEMENT_KEY_REQUIRED)\n          }\n          this.applyConfig(await AiProviderConfigStore.save(getContext(this), config))\n        }\n        this.configured = await AiCredentialStore.hasCredential(getContext(this))\n        this.statusMessage = '设置已保存'\n      })\n    } catch (err) {\n      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n    } finally {\n      this.apiKey = ''\n      this.showKey = false\n      this.pending = false\n    }\n  }\n\n  private async clearApiKey(): Promise<void> {\n    if (this.pending) return\n    this.pending = true\n    this.failed = false\n    try {\n      await AiProviderConfigStore.runUpdateExclusive<void>(async (): Promise<void> => {\n        this.credentialUpdatePending = true\n        await AiProviderConfigStore.beginCredentialUpdate(getContext(this))\n        await AiCredentialStore.clear(getContext(this))\n        this.configured = false\n        await AiProviderConfigStore.completeCredentialUpdate(getContext(this))\n        this.credentialUpdatePending = false\n        this.statusMessage = 'API Key 已清除'\n      })\n    } catch (err) {\n      this.showError(this.credentialUpdatePending ? new AiImportError(AiImportErrorCode.CREDENTIAL_UPDATE_PENDING) : err)\n    } finally {\n      this.apiKey = ''\n      this.showKey = false\n      this.pending = false\n    }\n  }\n\n  private async testConnection(): Promise<void> {\n    if (this.pending) return\n    if (this.apiKey.length > 0) {\n      this.failed = true\n      this.statusMessage = '请先保存新 API Key，再测试连接'\n      return\n    }\n    this.pending = true\n    this.statusMessage = '正在测试连接…'\n    this.failed = false\n    try {\n      const config: AiProviderConfig = this.formConfig()\n      await AiProviderConfigStore.requireUsable(getContext(this), config)\n      this.configured = await AiCredentialStore.hasCredential(getContext(this))\n      if (!this.configured) throw new AiImportError(AiImportErrorCode.MISSING_API_KEY)\n      await new AiConnectionTestService().test(getContext(this), config)\n      this.statusMessage = '连接成功'\n    } catch (err) {\n      this.showError(err)\n    } finally {\n      this.pending = false\n    }\n  }\n\n  private openPlatformPicker(): void {\n    if (this.pending) return\n    this.getUIContext().getRouter().pushUrl({ url: 'pages/AiPlatformPickerPage' }).catch(() => {\n      this.failed = true\n      this.statusMessage = '平台选择页面暂不可用，请稍后重试'\n    })\n  }\n\n  @Builder\n  private FieldLabel(label: string) {\n    Text(label)\n      .fontSize(UiStyle.DETAIL_SIZE)\n      .fontColor(this.colors().textPrimary)\n      .fontWeight(FontWeight.Medium)\n  }\n\n  @Builder\n  private HeaderBar() {\n    Row({ space: 12 }) {\n      Button('返回')\n        .type(ButtonType.Normal)\n        .constraintSize({ minWidt"... 11663 more characters,
+    expected: /推荐视觉模型|platformModels|AiPlatformModel/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at entry\src\test\AiModelCatalogContracts.test.cjs:62:1
+✖ model list parser accepts the OpenAI envelope, deduplicates ids and rejects malformed payloads (0.4707ms)
+  Error: ENOENT: no such file or directory, open 'G:\code\openHarmony\wrong_question_collection\entry\src\main\ets\services\ai\AiModelCatalogService.ets'
+      at Object.readFileSync (node:fs:484:20)
+      at read (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:9:25)
+      at runtime (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:29:19)
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:63:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    errno: -4058,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\main\\ets\\services\\ai\\AiModelCatalogService.ets'
+  }
+
+test at entry\src\test\AiModelCatalogContracts.test.cjs:79:1
+✖ typed key model fetch stays bounded, uses one GET endpoint and zeroes credential bytes (0.3601ms)
+  Error: ENOENT: no such file or directory, open 'G:\code\openHarmony\wrong_question_collection\entry\src\main\ets\services\ai\AiModelCatalogService.ets'
+      at Object.readFileSync (node:fs:484:20)
+      at read (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:9:25)
+      at runtime (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:29:19)
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:80:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    errno: -4058,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\main\\ets\\services\\ai\\AiModelCatalogService.ets'
+  }
+
+test at entry\src\test\AiModelCatalogContracts.test.cjs:101:1
+✖ transport owns authenticated model GET with the same endpoint and response bounds (0.3722ms)
+  AssertionError [ERR_ASSERTION]: missing method async getJson
+      at extractMethod (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:13:10)
+      at TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\AiModelCatalogContracts.test.cjs:103:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: -1,
+    expected: -1,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

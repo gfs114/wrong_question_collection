@@ -1,0 +1,1481 @@
+TAP version 13
+# Subtest: wrong-question subject filters provide a readable 48vp selected control
+not ok 1 - wrong-question subject filters provide a readable 48vp selected control
+  ---
+  duration_ms: 1.6283
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\WrongMineUiFollowupContracts.test.cjs:20:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /constraintSize\(\{ minHeight: 48 \}\)/. Input:
+    
+    'private SubjectChip(label: string, value: string, selected: boolean) {\n' +
+      '    Button() {\n' +
+      '      Text(label)\n' +
+      '        .fontSize(13)\n' +
+      '        .fontWeight(FontWeight.Medium)\n' +
+      '        .fontColor(selected ? this.colors().brand : this.colors().textSecondary)\n' +
+      '    }\n' +
+      '    .type(ButtonType.Normal)\n' +
+      '    .height(40)\n' +
+      '    .padding({ left: 16, right: 16 })\n' +
+      '    .backgroundColor(selected ? this.colors().brandSoft : this.colors().cardBackground)\n' +
+      '    .border({\n' +
+      '      width: HAIRLINE,\n' +
+      '      color: selected ? this.colors().brandSoft : this.colors().divider\n' +
+      '    })\n' +
+      '    .borderRadius(CHIP_RADIUS)\n' +
+      '    .onClick(() => {\n' +
+      '      this.selectSubject(value)\n' +
+      '    })\n' +
+      '  }\n' +
+      '\n' +
+      '  @Builder\n' +
+      '  '
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    private SubjectChip(label: string, value: string, selected: boolean) {
+        Button() {
+          Text(label)
+            .fontSize(13)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(selected ? this.colors().brand : this.colors().textSecondary)
+        }
+        .type(ButtonType.Normal)
+        .height(40)
+        .padding({ left: 16, right: 16 })
+        .backgroundColor(selected ? this.colors().brandSoft : this.colors().cardBackground)
+        .border({
+          width: HAIRLINE,
+          color: selected ? this.colors().brandSoft : this.colors().divider
+        })
+        .borderRadius(CHIP_RADIUS)
+        .onClick(() => {
+          this.selectSubject(value)
+        })
+      }
+    
+      @Builder
+      
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:24:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: shared empty state supports page and embedded layouts without a fixed wrong-page box
+not ok 2 - shared empty state supports page and embedded layouts without a fixed wrong-page box
+  ---
+  duration_ms: 0.5657
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\WrongMineUiFollowupContracts.test.cjs:31:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /@Prop fillAvailable: boolean = true/. Input:
+    
+    'import {\n' +
+      '  BADGE_RADIUS,\n' +
+      '  HAIRLINE,\n' +
+      '  SHEET_RADIUS\n' +
+      "} from '../constants/EditorialStyle'\n" +
+      'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      '\n' +
+      '/**\n' +
+      ' * 空态（编辑 / 练习册风）：方形书签章 + 标题 + 说明，动作降级为描边次级按钮，\n' +
+      ' * 与首页「导入资料」的次级操作同一套语言。\n' +
+      ' */\n' +
+      '@Component\n' +
+      'export struct EmptyState {\n' +
+      "  @Prop glyph: string = '·'\n" +
+      "  @Prop title: string = ''\n" +
+      "  @Prop description: string = ''\n" +
+      "  @Prop actionLabel: string = ''\n" +
+      '  @Prop showAction: boolean = false\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '  onAction: () => void = () => {\n' +
+      '  }\n' +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Column({ space: 10 }) {\n' +
+      '      Text(this.glyph)\n' +
+      '        .width(64)\n' +
+      '        .height(64)\n' +
+      '        .fontSize(26)\n' +
+      '        .fontWeight(FontWeight.Bold)\n' +
+      '        .fontColor(this.colors().brand)\n' +
+      '        .textAlign(TextAlign.Center)\n' +
+      '        .backgroundColor(this.colors().brandSoft)\n' +
+      '        .borderRadius(SHEET_RADIUS)\n' +
+      '\n' +
+      '      Text(this.title)\n' +
+      '        .fontSize(15)\n' +
+      '        .fontWeight(FontWeight.Bold)\n' +
+      '        .letterSpacing(1)\n' +
+      '        .fontColor(this.colors().textPrimary)\n' +
+      '        .textAlign(TextAlign.Center)\n' +
+      '\n' +
+      '      Text(this.description)\n' +
+      '        .fontSize(BODY_FONT_SIZE)\n' +
+      '        .fontColor(this.colors().textCaption)\n' +
+      '        .textAlign(TextAlign.Center)\n' +
+      '        .lineHeight(22)\n' +
+      '\n' +
+      '      if (this.showAction) {\n' +
+      '        Button() {\n' +
+      '          Text(this.actionLabel)\n' +
+      '            .fontSize(15)\n' +
+      '            .fontWeight(FontWeight.Medium)\n' +
+      '            .fontColor(this.colors().brand)\n' +
+      '        }\n' +
+      '        .type(ButtonType.Normal)\n' +
+      '        .height(48)\n' +
+      '        .padding({ left: 24, right: 24 })\n' +
+      '        .margin({ top: 10 })\n' +
+      '        .backgroundColor(this.colors().cardBackground)\n' +
+      '        .border({ width: HAIRLINE, color: this.colors().brand })\n' +
+      '        .borderRadius(BADGE_RADIUS + 6)\n' +
+      '        .onClick(() => {\n' +
+      '          this.onAction()\n' +
+      '        })\n' +
+      '      }\n' +
+      '    }\n' +
+      "    .width('100%')\n" +
+      "    .height('100%')\n" +
+      '    .padding({ left: 32, right: 32 })\n' +
+      '    .justifyContent(FlexAlign.Center)\n' +
+      '  }\n' +
+      '}\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import {
+      BADGE_RADIUS,
+      HAIRLINE,
+      SHEET_RADIUS
+    } from '../constants/EditorialStyle'
+    import {
+      BODY_FONT_SIZE,
+      themePalette
+    } from '../constants/AppTheme'
+    import { AppColors } from '../theme/AppColors'
+    
+    /**
+     * 空态（编辑 / 练习册风）：方形书签章 + 标题 + 说明，动作降级为描边次级按钮，
+     * 与首页「导入资料」的次级操作同一套语言。
+     */
+    @Component
+    export struct EmptyState {
+      @Prop glyph: string = '·'
+      @Prop title: string = ''
+      @Prop description: string = ''
+      @Prop actionLabel: string = ''
+      @Prop showAction: boolean = false
+      @StorageProp('darkMode') darkMode: boolean = false
+      onAction: () => void = () => {
+      }
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      build() {
+        Column({ space: 10 }) {
+          Text(this.glyph)
+            .width(64)
+            .height(64)
+            .fontSize(26)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colors().brand)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.colors().brandSoft)
+            .borderRadius(SHEET_RADIUS)
+    
+          Text(this.title)
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .letterSpacing(1)
+            .fontColor(this.colors().textPrimary)
+            .textAlign(TextAlign.Center)
+    
+          Text(this.description)
+            .fontSize(BODY_FONT_SIZE)
+            .fontColor(this.colors().textCaption)
+            .textAlign(TextAlign.Center)
+            .lineHeight(22)
+    
+          if (this.showAction) {
+            Button() {
+              Text(this.actionLabel)
+                .fontSize(15)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(this.colors().brand)
+            }
+            .type(ButtonType.Normal)
+            .height(48)
+            .padding({ left: 24, right: 24 })
+            .margin({ top: 10 })
+            .backgroundColor(this.colors().cardBackground)
+            .border({ width: HAIRLINE, color: this.colors().brand })
+            .borderRadius(BADGE_RADIUS + 6)
+            .onClick(() => {
+              this.onAction()
+            })
+          }
+        }
+        .width('100%')
+        .height('100%')
+        .padding({ left: 32, right: 32 })
+        .justifyContent(FlexAlign.Center)
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:35:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: wrong-question and mine feeds include the live left and right safe-area insets
+not ok 3 - wrong-question and mine feeds include the live left and right safe-area insets
+  ---
+  duration_ms: 1.6451
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\WrongMineUiFollowupContracts.test.cjs:42:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /SafeAreaInsets, SafeAreaUtils/. Input:
+    
+    "import { router } from '@kit.ArkUI'\n" +
+      "import { EmptyState } from '../components/EmptyState'\n" +
+      "import { SectionTitle } from '../components/SectionTitle'\n" +
+      "import { StatRow, StatCell } from '../components/StatRow'\n" +
+      "import { WrongQuestionCard } from '../components/WrongQuestionCard'\n" +
+      'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  CONTENT_MAX_WIDTH,\n' +
+      '  PAGE_PADDING,\n' +
+      '  TAB_BAR_CLEARANCE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      'import {\n' +
+      '  CHIP_RADIUS,\n' +
+      '  EDITORIAL_CARD_GAP,\n' +
+      '  HAIRLINE\n' +
+      "} from '../constants/EditorialStyle'\n" +
+      "import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'\n" +
+      "import { AccountSessionState } from '../models/AccountSession'\n" +
+      "import { Statistics } from '../models/Statistics'\n" +
+      "import { WrongQuestionSummary } from '../models/WrongQuestion'\n" +
+      "import { AccountSessionService } from '../services/AccountSessionService'\n" +
+      "import { CloudQuestionRepository } from '../services/CloudQuestionRepository'\n" +
+      "import { ConnectivityPolicy } from '../services/ConnectivityPolicy'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { DateUtils } from '../utils/DateUtils'\n" +
+      "import { NavigationState } from '../utils/NavigationState'\n" +
+      '\n' +
+      'class WrongCardRow {\n' +
+      '  left: WrongQuestionSummary\n' +
+      '  right: WrongQuestionSummary | null\n' +
+      '\n' +
+      '  constructor(left: WrongQuestionSummary, right: WrongQuestionSummary | null) {\n' +
+      '    this.left = left\n' +
+      '    this.right = right\n' +
+      '  }\n' +
+      '}\n' +
+      '\n' +
+      '@Component\n' +
+      'export struct WrongQuestionsPage {\n' +
+      "  @Prop @Watch('onActiveChanged') active: boolean = false\n" +
+      "  @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0\n" +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '  @State statistics: Statistics = new Statistics(0, 0, 0, 0)\n' +
+      '  @State subjects: Array<string> = new Array<string>()\n' +
+      "  @State selectedSubject: string = ''\n" +
+      '  @State items: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()\n' +
+      '  @State loading: boolean = false\n' +
+      "  @State errorMessage: string = ''\n" +
+      '  @State navigationPending: boolean = false\n' +
+      '  @State signedIn: boolean = false\n' +
+      '  @State offline: boolean = false\n' +
+      '  @State syncFailed: boolean = false\n' +
+      "  @State accountId: string = ''\n" +
+      '  @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT\n' +
+      '  private hasRequested: boolean = false\n' +
+      '  private requestedVersion: number = -1\n' +
+      '  private requestToken: number = 0\n' +
+      '  private sizeObserver?: WindowSizeObserver\n' +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToAppear(): void {\n' +
+      '    this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {\n' +
+      '      this.applyWindowSizeClass(windowWidthVp)\n' +
+      '    })\n' +
+      '    this.sizeObserver.start(getContext(this))\n' +
+      '    this.refreshWhenActive()\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToDisappear(): void {\n' +
+      '    if (this.sizeObserver !== undefined) {\n' +
+      '      this.sizeObserver.stop()\n' +
+      '      this.sizeObserver = undefined\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private applyWindowSizeClass(windowWidthVp: number): void {\n' +
+      '    const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)\n' +
+      '    if (sizeClass !== this.windowSizeClass) {\n' +
+      '      this.windowSizeClass = sizeClass\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private contentMaxWidth(): number {\n' +
+      '    if (this.windowSizeClass === WindowSizeClass.COMPACT) {\n' +
+      '      return CONTENT_MAX_WIDTH\n' +
+      '    }\n' +
+      '    return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH\n' +
+      '  }\n' +
+      '\n' +
+      '  // 编辑风统计：一张纸张卡 + 竖细线分隔；error 只留给「待复习」这个唯一需要行动的数字。\n' +
+      '  private statCells(): Array<StatCell> {\n' +
+      '    const cells: Array<StatCell> = new Array<StatCell>()\n' +
+      "    cells.push(new StatCell('全部错题', this.statistics.wrongCount.toString(), this.colors().textPrimary))\n" +
+      "    cells.push(new StatCell('已掌握', this.statistics.masteredCount.toString(), this.colors().textPrimary))\n" +
+      "    cells.push(new StatCell('待复习', this.statistics.pendingCount.toString(), this.colors().error))\n" +
+      '    return cells\n' +
+      '  }\n' +
+      '\n' +
+      '  private wrongRows(): Array<WrongCardRow> {\n' +
+      '    const rows: Array<WrongCardRow> = new Array<WrongCardRow>()\n' +
+      '    for (let index: number = 0; index < this.items.length; index += 2) {\n' +
+      '      const right: WrongQuestionSummary | null =\n' +
+      '        index + 1 < this.items.length ? this.items[index + 1] : null\n' +
+      '      rows.push(new WrongCardRow(this.items[index], right))\n' +
+      '    }\n' +
+      '    return rows\n' +
+      '  }\n' +
+      '\n' +
+      '  onActiveChanged(): void {\n' +
+      '    this.refreshWhenActive()\n' +
+      '  }\n' +
+      '\n' +
+      '  onRefreshVersionChanged(): void {\n' +
+      '    this.refreshWhenActive()\n' +
+      '  }\n' +
+      '\n' +
+      '  private refreshWhenActive(): void {\n' +
+      '    if (!this.active) {\n' +
+      '      this.hasRequested = false\n' +
+      '      this.requestedVersion = -1\n' +
+      '      return\n' +
+      '    }\n' +
+      '    if (this.hasRequested && this.requestedVersion === this.refreshVersion) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.hasRequested = true\n' +
+      '    this.requestedVersion = this.refreshVersion\n' +
+      '    this.requestToken = this.requestToken + 1\n' +
+      '    const token: number = this.requestToken\n' +
+      '    this.loading = true\n' +
+      '    this.items = new Array<WrongQuestionSummary>()\n' +
+      "    this.errorMessage = ''\n" +
+      '    this.loadContent(token)\n' +
+      '  }\n' +
+      '\n' +
+      '  private async loadContent(token: number): Promise<void> {\n' +
+      '    const session: AccountSessionState = await AccountSessionService.state(getContext(this))\n' +
+      '    if (token !== this.requestToken) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.signedIn = session.signedIn\n' +
+      '    this.accountId = session.userId\n' +
+      '    if (!this.signedIn) {\n' +
+      '      this.statistics = new Statistics(0, 0, 0, 0)\n' +
+      '      this.subjects = new Array<string>()\n' +
+      '      this.items = new Array<WrongQuestionSummary>()\n' +
+      '      this.loading = false\n' +
+      '      return\n' +
+      '    }\n' +
+      '    try {\n' +
+      '      await CloudQuestionRepository.refresh(this.accountId, getContext(this))\n' +
+      '      if (token !== this.requestToken) {\n' +
+      '        return\n' +
+      '      }\n' +
+      '      this.offline = false\n' +
+      '      this.syncFailed = false\n' +
+      '    } catch (err) {\n' +
+      '      if (token !== this.requestToken) {\n' +
+      '        return\n' +
+      '      }\n' +
+      '      if (err instanceof Error && ConnectivityPolicy.isOfflineError(err)) {\n' +
+      '        this.offline = true\n' +
+      '        this.syncFailed = false\n' +
+      '      } else {\n' +
+      '        this.offline = false\n' +
+      '        this.syncFailed = true\n' +
+      '      }\n' +
+      '    }\n' +
+      '    try {\n' +
+      '      const statistics: Statistics = await CloudQuestionRepository.statistics(this.accountId)\n' +
+      '      const items: Array<WrongQuestionSummary> =\n' +
+      '        await CloudQuestionRepository.listCachedWrongQuestions(this.accountId)\n' +
+      '      const subjects: Array<string> = this.deriveSubjects(items)\n' +
+      '      if (token !== this.requestToken) {\n' +
+      '        return\n' +
+      '      }\n' +
+      '      if (this.selectedSubject.length > 0 && !this.containsSubject(subjects, this.selectedSubject)) {\n' +
+      "        this.selectedSubject = ''\n" +
+      '      }\n' +
+      '      this.statistics = statistics\n' +
+      '      this.subjects = subjects\n' +
+      '      this.items = this.filterBySubject(items)\n' +
+      '      this.loading = false\n' +
+      '    } catch (err) {\n' +
+      '      if (token !== this.requestToken) {\n' +
+      '        return\n' +
+      '      }\n' +
+      "      this.errorMessage = '错题数据加载失败，请稍后重试'\n" +
+      '      this.loading = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private deriveSubjects(items: Array<WrongQuestionSummary>): Array<string> {\n' +
+      '    const subjects: Array<string> = new Array<string>()\n' +
+      '    for (let index: number = 0; index < items.length; index++) {\n' +
+      '      const subject: string = items[index].subject\n' +
+      '      if (subject.length > 0 && !this.containsSubject(subjects, subject)) {\n' +
+      '        subjects.push(subject)\n' +
+      '      }\n' +
+      '    }\n' +
+      '    subjects.sort()\n' +
+      '    return subjects\n' +
+      '  }\n' +
+      '\n' +
+      '  private filterBySubject(items: Array<WrongQuestionSummary>): Array<WrongQuestionSummary> {\n' +
+      '    if (this.selectedSubject.length === 0) {\n' +
+      '      return items.slice()\n' +
+      '    }\n' +
+      '    const filtered: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()\n' +
+      '    for (let index: number = 0; index < items.length; index++) {\n' +
+      '      if (items[index].subject === this.selectedSubject) {\n' +
+      '        filtered.push(items[index])\n' +
+      '      }\n' +
+      '    }\n' +
+      '    return filtered\n' +
+      '  }\n' +
+      '\n' +
+      '  private retry(): void {\n' +
+      '    this.hasRequested = false\n' +
+      '    this.refreshWhenActive()\n' +
+      '  }\n' +
+      '\n' +
+      '  private containsSubject(subjects: Array<string>, expected: string): boolean {\n' +
+      '    for (let index: number = 0; index < subjects.length; index++) {\n' +
+      '      if (subjects[index] === expected) {\n' +
+      '        return true\n' +
+      '      }\n' +
+      '    }\n' +
+      '    return false\n' +
+      '  }\n' +
+      '\n' +
+      '  private selectSubject(subject: string): void {\n' +
+      '    if (this.selectedSubject === subject || this.loading) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.selectedSubject = subject\n' +
+      '    this.hasRequested = false\n' +
+      '    this.refreshWhenActive()\n' +
+      '  }\n' +
+      '\n' +
+      '  private bannerMessage(): string {\n' +
+      '    if (!this.signedIn) {\n' +
+      "      return '未登录：仅可浏览缓存数据，修改需先登录'\n" +
+      '    }\n' +
+      '    if (this.syncFailed) {\n' +
+      "      return '同步失败：正在显示本地缓存'\n" +
+      '    }\n' +
+      '    if (this.offline) {\n' +
+      "      return '离线浏览：当前仅可查看缓存，修改需联网'\n" +
+      '    }\n' +
+      "    return ''\n" +
+      '  }\n' +
+      '\n' +
+      '  private showToast(message: string): void {\n' +
+      '    try {\n' +
+      '      this.getUIContext().getPromptAction().showToast({ message: message })\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private openWrongQuestion(wrongId: string): void {\n' +
+      '    if (this.navigationPending) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.navigationPending = true\n' +
+      '    NavigationState.shared().selectWrongQuestion(wrongId)\n' +
+      '    const options: router.RouterOptions = {\n' +
+      "      url: 'pages/WrongQuestionDetailPage'\n" +
+      '    }\n' +
+      '    this.getUIContext().getRouter().pushUrl(options).catch(() => {\n' +
+      "      this.showToast('错题详情暂不可用')\n" +
+      '    }).finally(() => {\n' +
+      '      this.navigationPending = false\n' +
+      '    })\n' +
+      '  }\n' +
+      '\n' +
+      '  // 编辑风学科 chips：选中 = brandSoft + brand，未选中 = 纸底 + 细线描边（不再是实心胶囊）。\n' +
+      '  @Builder\n' +
+      '  private SubjectChip(label: string, value: string, selected: boolean) {\n' +
+      '    Button() {\n' +
+      '      Text(label)\n' +
+      '        .fontSize(13)\n' +
+      '        .fontWeight(FontWeight.Medium)\n' +
+      '        .fontColor(selected ? this.colors().brand : this.colors().textSecondary)\n' +
+      '    }\n' +
+      '    .type(ButtonType.Normal)\n' +
+      '    .height(40)\n' +
+      '    .padding({ left: 16, right: 16 })\n' +
+      '    .backgroundColor(selected ? this.colors().brandSoft : this.colors().cardBackground)\n' +
+      '    .border({\n' +
+      '      width: HAIRLINE,\n' +
+      '      color: selected ? this.colors().brandSoft : this.colors().divider\n' +
+      '    })\n' +
+      '    .borderRadius(CHIP_RADIUS)\n' +
+      '    .onClick(() => {\n' +
+      '      this.selectSubject(value)\n' +
+      '    })\n' +
+      '  }\n' +
+      '\n' +
+      '  @Builder\n' +
+      '  private StatusBanner() {\n' +
+      '    Row() {\n' +
+      '      Text(this.bannerMessage())\n' +
+      '        .fontSize(13)\n' +
+      '        .fontColor(this.colors().warningText)\n' +
+      '    }\n' +
+      "    .width('100%')\n" +
+      '    .padding({ left: 16, right: 16, top: 8, bottom: 8 })\n' +
+      '    .backgroundColor(this.colors().warning)\n' +
+      '  }\n' +
+      '\n' +
+      '  @Builder\n' +
+      '  private WrongCard(item: WrongQuestionSummary) {\n' +
+      '    WrongQuestionCard({\n' +
+      '      subject: item.subject,\n' +
+      '      b'... 4204 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { router } from '@kit.ArkUI'
+    import { EmptyState } from '../components/EmptyState'
+    import { SectionTitle } from '../components/SectionTitle'
+    import { StatRow, StatCell } from '../components/StatRow'
+    import { WrongQuestionCard } from '../components/WrongQuestionCard'
+    import {
+      BODY_FONT_SIZE,
+      CONTENT_MAX_WIDTH,
+      PAGE_PADDING,
+      TAB_BAR_CLEARANCE,
+      themePalette
+    } from '../constants/AppTheme'
+    import {
+      CHIP_RADIUS,
+      EDITORIAL_CARD_GAP,
+      HAIRLINE
+    } from '../constants/EditorialStyle'
+    import { ResponsiveLayout, WindowSizeClass, WindowSizeObserver } from '../constants/ResponsiveLayout'
+    import { AccountSessionState } from '../models/AccountSession'
+    import { Statistics } from '../models/Statistics'
+    import { WrongQuestionSummary } from '../models/WrongQuestion'
+    import { AccountSessionService } from '../services/AccountSessionService'
+    import { CloudQuestionRepository } from '../services/CloudQuestionRepository'
+    import { ConnectivityPolicy } from '../services/ConnectivityPolicy'
+    import { AppColors } from '../theme/AppColors'
+    import { DateUtils } from '../utils/DateUtils'
+    import { NavigationState } from '../utils/NavigationState'
+    
+    class WrongCardRow {
+      left: WrongQuestionSummary
+      right: WrongQuestionSummary | null
+    
+      constructor(left: WrongQuestionSummary, right: WrongQuestionSummary | null) {
+        this.left = left
+        this.right = right
+      }
+    }
+    
+    @Component
+    export struct WrongQuestionsPage {
+      @Prop @Watch('onActiveChanged') active: boolean = false
+      @Prop @Watch('onRefreshVersionChanged') refreshVersion: number = 0
+      @StorageProp('darkMode') darkMode: boolean = false
+      @State statistics: Statistics = new Statistics(0, 0, 0, 0)
+      @State subjects: Array<string> = new Array<string>()
+      @State selectedSubject: string = ''
+      @State items: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()
+      @State loading: boolean = false
+      @State errorMessage: string = ''
+      @State navigationPending: boolean = false
+      @State signedIn: boolean = false
+      @State offline: boolean = false
+      @State syncFailed: boolean = false
+      @State accountId: string = ''
+      @State windowSizeClass: WindowSizeClass = WindowSizeClass.COMPACT
+      private hasRequested: boolean = false
+      private requestedVersion: number = -1
+      private requestToken: number = 0
+      private sizeObserver?: WindowSizeObserver
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      aboutToAppear(): void {
+        this.sizeObserver = new WindowSizeObserver((windowWidthVp: number): void => {
+          this.applyWindowSizeClass(windowWidthVp)
+        })
+        this.sizeObserver.start(getContext(this))
+        this.refreshWhenActive()
+      }
+    
+      aboutToDisappear(): void {
+        if (this.sizeObserver !== undefined) {
+          this.sizeObserver.stop()
+          this.sizeObserver = undefined
+        }
+      }
+    
+      private applyWindowSizeClass(windowWidthVp: number): void {
+        const sizeClass: WindowSizeClass = ResponsiveLayout.classify(windowWidthVp)
+        if (sizeClass !== this.windowSizeClass) {
+          this.windowSizeClass = sizeClass
+        }
+      }
+    
+      private contentMaxWidth(): number {
+        if (this.windowSizeClass === WindowSizeClass.COMPACT) {
+          return CONTENT_MAX_WIDTH
+        }
+        return ResponsiveLayout.EXPANDED_CONTENT_MAX_WIDTH
+      }
+    
+      // 编辑风统计：一张纸张卡 + 竖细线分隔；error 只留给「待复习」这个唯一需要行动的数字。
+      private statCells(): Array<StatCell> {
+        const cells: Array<StatCell> = new Array<StatCell>()
+        cells.push(new StatCell('全部错题', this.statistics.wrongCount.toString(), this.colors().textPrimary))
+        cells.push(new StatCell('已掌握', this.statistics.masteredCount.toString(), this.colors().textPrimary))
+        cells.push(new StatCell('待复习', this.statistics.pendingCount.toString(), this.colors().error))
+        return cells
+      }
+    
+      private wrongRows(): Array<WrongCardRow> {
+        const rows: Array<WrongCardRow> = new Array<WrongCardRow>()
+        for (let index: number = 0; index < this.items.length; index += 2) {
+          const right: WrongQuestionSummary | null =
+            index + 1 < this.items.length ? this.items[index + 1] : null
+          rows.push(new WrongCardRow(this.items[index], right))
+        }
+        return rows
+      }
+    
+      onActiveChanged(): void {
+        this.refreshWhenActive()
+      }
+    
+      onRefreshVersionChanged(): void {
+        this.refreshWhenActive()
+      }
+    
+      private refreshWhenActive(): void {
+        if (!this.active) {
+          this.hasRequested = false
+          this.requestedVersion = -1
+          return
+        }
+        if (this.hasRequested && this.requestedVersion === this.refreshVersion) {
+          return
+        }
+        this.hasRequested = true
+        this.requestedVersion = this.refreshVersion
+        this.requestToken = this.requestToken + 1
+        const token: number = this.requestToken
+        this.loading = true
+        this.items = new Array<WrongQuestionSummary>()
+        this.errorMessage = ''
+        this.loadContent(token)
+      }
+    
+      private async loadContent(token: number): Promise<void> {
+        const session: AccountSessionState = await AccountSessionService.state(getContext(this))
+        if (token !== this.requestToken) {
+          return
+        }
+        this.signedIn = session.signedIn
+        this.accountId = session.userId
+        if (!this.signedIn) {
+          this.statistics = new Statistics(0, 0, 0, 0)
+          this.subjects = new Array<string>()
+          this.items = new Array<WrongQuestionSummary>()
+          this.loading = false
+          return
+        }
+        try {
+          await CloudQuestionRepository.refresh(this.accountId, getContext(this))
+          if (token !== this.requestToken) {
+            return
+          }
+          this.offline = false
+          this.syncFailed = false
+        } catch (err) {
+          if (token !== this.requestToken) {
+            return
+          }
+          if (err instanceof Error && ConnectivityPolicy.isOfflineError(err)) {
+            this.offline = true
+            this.syncFailed = false
+          } else {
+            this.offline = false
+            this.syncFailed = true
+          }
+        }
+        try {
+          const statistics: Statistics = await CloudQuestionRepository.statistics(this.accountId)
+          const items: Array<WrongQuestionSummary> =
+            await CloudQuestionRepository.listCachedWrongQuestions(this.accountId)
+          const subjects: Array<string> = this.deriveSubjects(items)
+          if (token !== this.requestToken) {
+            return
+          }
+          if (this.selectedSubject.length > 0 && !this.containsSubject(subjects, this.selectedSubject)) {
+            this.selectedSubject = ''
+          }
+          this.statistics = statistics
+          this.subjects = subjects
+          this.items = this.filterBySubject(items)
+          this.loading = false
+        } catch (err) {
+          if (token !== this.requestToken) {
+            return
+          }
+          this.errorMessage = '错题数据加载失败，请稍后重试'
+          this.loading = false
+        }
+      }
+    
+      private deriveSubjects(items: Array<WrongQuestionSummary>): Array<string> {
+        const subjects: Array<string> = new Array<string>()
+        for (let index: number = 0; index < items.length; index++) {
+          const subject: string = items[index].subject
+          if (subject.length > 0 && !this.containsSubject(subjects, subject)) {
+            subjects.push(subject)
+          }
+        }
+        subjects.sort()
+        return subjects
+      }
+    
+      private filterBySubject(items: Array<WrongQuestionSummary>): Array<WrongQuestionSummary> {
+        if (this.selectedSubject.length === 0) {
+          return items.slice()
+        }
+        const filtered: Array<WrongQuestionSummary> = new Array<WrongQuestionSummary>()
+        for (let index: number = 0; index < items.length; index++) {
+          if (items[index].subject === this.selectedSubject) {
+            filtered.push(items[index])
+          }
+        }
+        return filtered
+      }
+    
+      private retry(): void {
+        this.hasRequested = false
+        this.refreshWhenActive()
+      }
+    
+      private containsSubject(subjects: Array<string>, expected: string): boolean {
+        for (let index: number = 0; index < subjects.length; index++) {
+          if (subjects[index] === expected) {
+            return true
+          }
+        }
+        return false
+      }
+    
+      private selectSubject(subject: string): void {
+        if (this.selectedSubject === subject || this.loading) {
+          return
+        }
+        this.selectedSubject = subject
+        this.hasRequested = false
+        this.refreshWhenActive()
+      }
+    
+      private bannerMessage(): string {
+        if (!this.signedIn) {
+          return '未登录：仅可浏览缓存数据，修改需先登录'
+        }
+        if (this.syncFailed) {
+          return '同步失败：正在显示本地缓存'
+        }
+        if (this.offline) {
+          return '离线浏览：当前仅可查看缓存，修改需联网'
+        }
+        return ''
+      }
+    
+      private showToast(message: string): void {
+        try {
+          this.getUIContext().getPromptAction().showToast({ message: message })
+        } catch {
+        }
+      }
+    
+      private openWrongQuestion(wrongId: string): void {
+        if (this.navigationPending) {
+          return
+        }
+        this.navigationPending = true
+        NavigationState.shared().selectWrongQuestion(wrongId)
+        const options: router.RouterOptions = {
+          url: 'pages/WrongQuestionDetailPage'
+        }
+        this.getUIContext().getRouter().pushUrl(options).catch(() => {
+          this.showToast('错题详情暂不可用')
+        }).finally(() => {
+          this.navigationPending = false
+        })
+      }
+    
+      // 编辑风学科 chips：选中 = brandSoft + brand，未选中 = 纸底 + 细线描边（不再是实心胶囊）。
+      @Builder
+      private SubjectChip(label: string, value: string, selected: boolean) {
+        Button() {
+          Text(label)
+            .fontSize(13)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(selected ? this.colors().brand : this.colors().textSecondary)
+        }
+        .type(ButtonType.Normal)
+        .height(40)
+        .padding({ left: 16, right: 16 })
+        .backgroundColor(selected ? this.colors().brandSoft : this.colors().cardBackground)
+        .border({
+          width: HAIRLINE,
+          color: selected ? this.colors().brandSoft : this.colors().divider
+        })
+        .borderRadius(CHIP_RADIUS)
+        .onClick(() => {
+          this.selectSubject(value)
+        })
+      }
+    
+      @Builder
+      private StatusBanner() {
+        Row() {
+          Text(this.bannerMessage())
+            .fontSize(13)
+            .fontColor(this.colors().warningText)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+        .backgroundColor(this.colors().warning)
+      }
+    
+      @Builder
+      private WrongCard(item: WrongQuestionSummary) {
+        WrongQuestionCard({
+          subject: item.subject,
+          bankName: item.bankName,
+          questionText: item.question,
+          mastered: item.mastered,
+          addTimeText: DateUtils.formatDate(item.addTime),
+          onOpen: () => {
+            this.openWrongQuestion(item.id)
+          }
+        })
+      }
+    
+      build() {
+        Column() {
+          if (this.loading) {
+            Column() {
+              if (this.bannerMessage().length > 0) {
+                this.StatusBanner()
+              }
+    
+              Column({ space: 14 }) {
+                LoadingProgress()
+                  .width(40)
+                  .height(40)
+                  .color(this.colors().brand)
+    
+                Text('正在整理错题')
+                  .fontSize(BODY_FONT_SIZE)
+                  .fontColor(this.colors().textCaption)
+              }
+              .layoutWeight(1)
+              .width('100%')
+              .justifyContent(FlexAlign.Center)
+            }
+            .width('100%')
+            .height('100%')
+          } else if (this.errorMessage.length > 0) {
+            Column() {
+              if (this.bannerMessage().length > 0) {
+                this.StatusBanner()
+              }
+    
+              EmptyState({
+                glyph: '!',
+                title: '加载失败',
+                description: this.errorMessage,
+                actionLabel: '重新加载',
+                showAction: true,
+                onAction: () => {
+                  this.retry()
+                }
+              })
+              .layoutWeight(1)
+            }
+            .width('100%')
+            .height('100%')
+          } else {
+            List({ space: EDITORIAL_CARD_GAP }) {
+              if (this.bannerMessage().length > 0) {
+                ListItem() {
+                  this.StatusBanner()
+                }
+              }
+    
+              ListItem() {
+                StatRow({ cells: this.statCells() })
+              }
+    
+              ListItem() {
+                Scroll() {
+                  Row({ space: 8 }) {
+                    this.SubjectChip('全部', '', this.selectedSubject.length === 0)
+    
+                    ForEach(this.subjects, (subject: string) => {
+                      this.SubjectChip(subject, subject, this.selectedSubject === subject)
+                    }, (subject: string): string => subject)
+                  }
+                }
+                .width('100%')
+                .scrollable(ScrollDirection.Horizontal)
+                .scrollBar(BarState.Off)
+              }
+    
+              ListItem() {
+                SectionTitle({
+                  title: this.selectedSubject.length === 0 ? '最近错题' : this.selectedSubject + '错题',
+                  detail: this.items.length.toString() + ' 道',
+                  showDetail: true
+                })
+              }
+    
+              if (this.items.length === 0) {
+                ListItem() {
+                  Column() {
+                    EmptyState({
+                      glyph: '✓',
+                      title: '暂无错题',
+                      description: '做题时可以将不会的题加入错题本'
+                    })
+                  }
+                  .width('100%')
+                  .height(260)
+                }
+              } else if (this.windowSizeClass === WindowSizeClass.EXPANDED) {
+                ForEach(this.wrongRows(), (row: WrongCardRow) => {
+                  ListItem() {
+                    Row({ space: EDITORIAL_CARD_GAP }) {
+                      Column() {
+                        this.WrongCard(row.left)
+                      }
+                      .layoutWeight(1)
+    
+                      if (row.right === null) {
+                        Column()
+                          .layoutWeight(1)
+                      } else {
+                        Column() {
+                          this.WrongCard(row.right)
+                        }
+                        .layoutWeight(1)
+                      }
+                    }
+                    .width('100%')
+                    .alignItems(VerticalAlign.Top)
+                  }
+                }, (row: WrongCardRow): string => row.left.id)
+              } else {
+                ForEach(this.items, (item: WrongQuestionSummary) => {
+                  ListItem() {
+                    this.WrongCard(item)
+                  }
+                }, (item: WrongQuestionSummary): string => item.id)
+              }
+            }
+            .width('100%')
+            .height('100%')
+            .constraintSize({ maxWidth: this.contentMaxWidth() })
+            .contentEndOffset(TAB_BAR_CLEARANCE)
+            .padding({
+              left: PAGE_PADDING,
+              right: PAGE_PADDING
+            })
+            .scrollBar(BarState.Off)
+          }
+        }
+        .width('100%')
+        .height('100%')
+        .backgroundColor(this.colors().pageBackground)
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:45:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: mine separates ordinary settings from the confirmed destructive action
+not ok 4 - mine separates ordinary settings from the confirmed destructive action
+  ---
+  duration_ms: 0.5288
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\WrongMineUiFollowupContracts.test.cjs:52:1'
+  failureType: 'testCodeFailure'
+  error: 'missing end marker: private DataManagementSection()'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: -1
+  actual: -1
+  operator: 'notStrictEqual'
+  stack: |-
+    slice (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:16:10)
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:54:20)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: account and migration actions meet the 48vp touch-target floor
+not ok 5 - account and migration actions meet the 48vp touch-target floor
+  ---
+  duration_ms: 0.5597
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\WrongMineUiFollowupContracts.test.cjs:68:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /\.height\(46\)/. Input:
+    
+    "import { LoginWithHuaweiIDButton, loginComponentManager } from '@kit.AccountKit'\n" +
+      "import { BusinessError } from '@kit.BasicServicesKit'\n" +
+      'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      "import { HAIRLINE, SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      '\n' +
+      '@Component\n' +
+      'export struct HuaweiAccountCard {\n' +
+      '  @Prop signedIn: boolean = false\n' +
+      "  @Prop userId: string = ''\n" +
+      "  @Prop deviceName: string = ''\n" +
+      "  @Prop @Watch('onSigningInChanged') signingIn: boolean = false\n" +
+      "  @Prop syncLabel: string = '本地模式'\n" +
+      '  @Prop syncing: boolean = false\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '  onAuthorizationCode: (authorizationCode: string) => void = () => {\n' +
+      '  }\n' +
+      '  onLoginError: (code: number) => void = () => {\n' +
+      '  }\n' +
+      '  onSignOut: () => void = () => {\n' +
+      '  }\n' +
+      '  onSync: () => void = () => {\n' +
+      '  }\n' +
+      '  private registered: boolean = false\n' +
+      '  private controller: loginComponentManager.LoginWithHuaweiIDButtonController =\n' +
+      '    new loginComponentManager.LoginWithHuaweiIDButtonController()\n' +
+      '  private params: loginComponentManager.LoginWithHuaweiIDButtonParams = {\n' +
+      '    style: loginComponentManager.Style.BUTTON_RED,\n' +
+      '    borderRadius: 24,\n' +
+      '    supportDarkMode: true,\n' +
+      '    loginType: loginComponentManager.LoginType.ID,\n' +
+      '    textAndIconStyle: true\n' +
+      '  }\n' +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  aboutToAppear(): void {\n' +
+      '    this.registerController()\n' +
+      '    this.onSigningInChanged()\n' +
+      '  }\n' +
+      '\n' +
+      '  onSigningInChanged(): void {\n' +
+      '    this.controller.setEnabled(!this.signingIn)\n' +
+      '  }\n' +
+      '\n' +
+      '  private registerController(): void {\n' +
+      '    if (this.registered) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.registered = true\n' +
+      '    this.controller.onClickLoginWithHuaweiIDButton((err: BusinessError,\n' +
+      '      credential: loginComponentManager.HuaweiIDCredential) => {\n' +
+      '      if (err !== undefined && err !== null) {\n' +
+      '        this.onLoginError(err.code)\n' +
+      '        return\n' +
+      '      }\n' +
+      '      if (credential === undefined || credential.authorizationCode.length === 0) {\n' +
+      '        this.onLoginError(0)\n' +
+      '        return\n' +
+      '      }\n' +
+      '      this.onAuthorizationCode(credential.authorizationCode)\n' +
+      '    })\n' +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Column({ space: 14 }) {\n' +
+      '      if (this.signedIn) {\n' +
+      '        Row({ space: 12 }) {\n' +
+      "          Text('账')\n" +
+      '            .width(48)\n' +
+      '            .height(48)\n' +
+      '            .fontSize(17)\n' +
+      '            .fontWeight(FontWeight.Bold)\n' +
+      '            .fontColor(this.colors().brand)\n' +
+      '            .textAlign(TextAlign.Center)\n' +
+      '            .backgroundColor(this.colors().pageBackground)\n' +
+      '            .borderRadius(24)\n' +
+      '\n' +
+      '          Column({ space: 4 }) {\n' +
+      "            Text('已登录华为账号')\n" +
+      '              .fontSize(16)\n' +
+      '              .fontWeight(FontWeight.Bold)\n' +
+      '              .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      "            Text('当前设备：' + this.deviceName)\n" +
+      '              .fontSize(13)\n' +
+      '              .fontColor(this.colors().textCaption)\n' +
+      '\n' +
+      "            Text('文字数据可同步，PDF 与题图仍只保存在本机')\n" +
+      '              .fontSize(12)\n' +
+      '              .fontColor(this.colors().textCaption)\n' +
+      '              .maxLines(2)\n' +
+      '\n' +
+      '            Text(this.syncLabel)\n' +
+      '              .fontSize(12)\n' +
+      '              .fontColor(this.colors().brand)\n' +
+      '          }\n' +
+      '          .layoutWeight(1)\n' +
+      '          .alignItems(HorizontalAlign.Start)\n' +
+      '        }\n' +
+      "        .width('100%')\n" +
+      '\n' +
+      "        Button(this.syncing ? '正在同步…' : '立即同步')\n" +
+      '          .type(ButtonType.Normal)\n' +
+      "          .width('100%')\n" +
+      '          .height(46)\n' +
+      '          .fontSize(BODY_FONT_SIZE)\n' +
+      '          .fontColor(this.colors().onBrand)\n' +
+      '          .backgroundColor(this.colors().brand)\n' +
+      '          .borderRadius(16)\n' +
+      '          .enabled(!this.signingIn && !this.syncing)\n' +
+      '          .onClick(() => {\n' +
+      '            this.onSync()\n' +
+      '          })\n' +
+      '\n' +
+      "        Button('退出登录')\n" +
+      '          .type(ButtonType.Normal)\n' +
+      "          .width('100%')\n" +
+      '          .height(46)\n' +
+      '          .fontSize(BODY_FONT_SIZE)\n' +
+      '          .fontColor(this.colors().error)\n' +
+      '          .backgroundColor(this.colors().pageBackground)\n' +
+      '          .borderRadius(16)\n' +
+      '          .enabled(!this.signingIn)\n' +
+      '          .onClick(() => {\n' +
+      '            this.onSignOut()\n' +
+      '          })\n' +
+      '      } else {\n' +
+      '        Column({ space: 6 }) {\n' +
+      "          Text('登录后开启云同步')\n" +
+      '            .fontSize(17)\n' +
+      '            .fontWeight(FontWeight.Bold)\n' +
+      '            .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      "          Text('本地功能无需登录即可使用')\n" +
+      '            .fontSize(BODY_FONT_SIZE)\n' +
+      '            .fontColor(this.colors().textCaption)\n' +
+      '\n' +
+      "          Text('登录后可在多台设备间同步题库与错题文字')\n" +
+      '            .fontSize(12)\n' +
+      '            .fontColor(this.colors().textCaption)\n' +
+      '        }\n' +
+      "        .width('100%')\n" +
+      '        .alignItems(HorizontalAlign.Start)\n' +
+      '\n' +
+      '        LoginWithHuaweiIDButton({\n' +
+      '          params: this.params,\n' +
+      '          controller: this.controller\n' +
+      '        })\n' +
+      "        .width('100%')\n" +
+      '        .height(48)\n' +
+      '\n' +
+      '        if (this.signingIn) {\n' +
+      '          Row({ space: 8 }) {\n' +
+      '            LoadingProgress()\n' +
+      '              .width(18)\n' +
+      '              .height(18)\n' +
+      '              .color(this.colors().brand)\n' +
+      "            Text('正在建立安全会话')\n" +
+      '              .fontSize(12)\n' +
+      '              .fontColor(this.colors().textCaption)\n' +
+      '          }\n' +
+      '        }\n' +
+      '      }\n' +
+      '    }\n' +
+      "    .width('100%')\n" +
+      '    .padding(18)\n' +
+      '    .borderRadius(SHEET_RADIUS)\n' +
+      '    .backgroundColor(this.colors().cardBackground)\n' +
+      '    .border({ width: HAIRLINE, color: this.colors().divider })\n' +
+      '  }\n' +
+      '}\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { LoginWithHuaweiIDButton, loginComponentManager } from '@kit.AccountKit'
+    import { BusinessError } from '@kit.BasicServicesKit'
+    import {
+      BODY_FONT_SIZE,
+      themePalette
+    } from '../constants/AppTheme'
+    import { HAIRLINE, SHEET_RADIUS } from '../constants/EditorialStyle'
+    import { AppColors } from '../theme/AppColors'
+    
+    @Component
+    export struct HuaweiAccountCard {
+      @Prop signedIn: boolean = false
+      @Prop userId: string = ''
+      @Prop deviceName: string = ''
+      @Prop @Watch('onSigningInChanged') signingIn: boolean = false
+      @Prop syncLabel: string = '本地模式'
+      @Prop syncing: boolean = false
+      @StorageProp('darkMode') darkMode: boolean = false
+      onAuthorizationCode: (authorizationCode: string) => void = () => {
+      }
+      onLoginError: (code: number) => void = () => {
+      }
+      onSignOut: () => void = () => {
+      }
+      onSync: () => void = () => {
+      }
+      private registered: boolean = false
+      private controller: loginComponentManager.LoginWithHuaweiIDButtonController =
+        new loginComponentManager.LoginWithHuaweiIDButtonController()
+      private params: loginComponentManager.LoginWithHuaweiIDButtonParams = {
+        style: loginComponentManager.Style.BUTTON_RED,
+        borderRadius: 24,
+        supportDarkMode: true,
+        loginType: loginComponentManager.LoginType.ID,
+        textAndIconStyle: true
+      }
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      aboutToAppear(): void {
+        this.registerController()
+        this.onSigningInChanged()
+      }
+    
+      onSigningInChanged(): void {
+        this.controller.setEnabled(!this.signingIn)
+      }
+    
+      private registerController(): void {
+        if (this.registered) {
+          return
+        }
+        this.registered = true
+        this.controller.onClickLoginWithHuaweiIDButton((err: BusinessError,
+          credential: loginComponentManager.HuaweiIDCredential) => {
+          if (err !== undefined && err !== null) {
+            this.onLoginError(err.code)
+            return
+          }
+          if (credential === undefined || credential.authorizationCode.length === 0) {
+            this.onLoginError(0)
+            return
+          }
+          this.onAuthorizationCode(credential.authorizationCode)
+        })
+      }
+    
+      build() {
+        Column({ space: 14 }) {
+          if (this.signedIn) {
+            Row({ space: 12 }) {
+              Text('账')
+                .width(48)
+                .height(48)
+                .fontSize(17)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(this.colors().brand)
+                .textAlign(TextAlign.Center)
+                .backgroundColor(this.colors().pageBackground)
+                .borderRadius(24)
+    
+              Column({ space: 4 }) {
+                Text('已登录华为账号')
+                  .fontSize(16)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(this.colors().textPrimary)
+    
+                Text('当前设备：' + this.deviceName)
+                  .fontSize(13)
+                  .fontColor(this.colors().textCaption)
+    
+                Text('文字数据可同步，PDF 与题图仍只保存在本机')
+                  .fontSize(12)
+                  .fontColor(this.colors().textCaption)
+                  .maxLines(2)
+    
+                Text(this.syncLabel)
+                  .fontSize(12)
+                  .fontColor(this.colors().brand)
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
+            }
+            .width('100%')
+    
+            Button(this.syncing ? '正在同步…' : '立即同步')
+              .type(ButtonType.Normal)
+              .width('100%')
+              .height(46)
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().onBrand)
+              .backgroundColor(this.colors().brand)
+              .borderRadius(16)
+              .enabled(!this.signingIn && !this.syncing)
+              .onClick(() => {
+                this.onSync()
+              })
+    
+            Button('退出登录')
+              .type(ButtonType.Normal)
+              .width('100%')
+              .height(46)
+              .fontSize(BODY_FONT_SIZE)
+              .fontColor(this.colors().error)
+              .backgroundColor(this.colors().pageBackground)
+              .borderRadius(16)
+              .enabled(!this.signingIn)
+              .onClick(() => {
+                this.onSignOut()
+              })
+          } else {
+            Column({ space: 6 }) {
+              Text('登录后开启云同步')
+                .fontSize(17)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(this.colors().textPrimary)
+    
+              Text('本地功能无需登录即可使用')
+                .fontSize(BODY_FONT_SIZE)
+                .fontColor(this.colors().textCaption)
+    
+              Text('登录后可在多台设备间同步题库与错题文字')
+                .fontSize(12)
+                .fontColor(this.colors().textCaption)
+            }
+            .width('100%')
+            .alignItems(HorizontalAlign.Start)
+    
+            LoginWithHuaweiIDButton({
+              params: this.params,
+              controller: this.controller
+            })
+            .width('100%')
+            .height(48)
+    
+            if (this.signingIn) {
+              Row({ space: 8 }) {
+                LoadingProgress()
+                  .width(18)
+                  .height(18)
+                  .color(this.colors().brand)
+                Text('正在建立安全会话')
+                  .fontSize(12)
+                  .fontColor(this.colors().textCaption)
+              }
+            }
+          }
+        }
+        .width('100%')
+        .padding(18)
+        .borderRadius(SHEET_RADIUS)
+        .backgroundColor(this.colors().cardBackground)
+        .border({ width: HAIRLINE, color: this.colors().divider })
+      }
+    }
+    
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\WrongMineUiFollowupContracts.test.cjs:72:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83.686

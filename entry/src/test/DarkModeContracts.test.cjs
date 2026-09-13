@@ -192,6 +192,28 @@ const safeArea = fs.readFileSync(safeAreaPath, 'utf8')
 expectIncludes(safeArea, 'static top(', 'SafeAreaUtils.top must stay intact')
 expectIncludes(safeArea, 'static bottom(', 'SafeAreaUtils.bottom must stay intact')
 
+// 2026-09-10：首页报头压状态栏的根因是 safeAreaInsets 这个 AppStorage 键从来没有被写入过，
+// 于是所有 @StorageProp('safeAreaInsets') 绑定恒为 0。这里钉住「真实避让区 -> AppStorage」这条链路，
+// 使各页面按机型与窗口模式自动避让，而不是各自写死数值。
+expectIncludes(safeArea, 'getWindowAvoidArea', 'SafeAreaUtils must read the real window avoid area')
+expectIncludes(safeArea, 'AvoidAreaType.TYPE_SYSTEM', 'the status bar avoid area is the system type')
+expectIncludes(safeArea, 'AvoidAreaType.TYPE_CUTOUT', 'notches must widen the top/left/right insets')
+expectIncludes(safeArea, 'AvoidAreaType.TYPE_NAVIGATION_INDICATOR',
+  'the gesture indicator must feed the bottom inset')
+expectIncludes(safeArea, 'densityPixels', 'px avoid areas must be converted with the display density')
+expectIncludes(safeArea, 'AppStorage.setOrCreate', 'the insets must be published to AppStorage')
+expectIncludes(safeArea, "'safeAreaInsets'", 'the published key must match the @StorageProp bindings')
+
+const entryAbilityForSafeArea = readEts('ets/entryability/EntryAbility.ets')
+expectIncludes(entryAbilityForSafeArea, 'SafeAreaUtils.publishFromWindow',
+  'the ability must publish the main window insets')
+expectIncludes(entryAbilityForSafeArea, "'avoidAreaChange'",
+  'insets must follow avoid-area changes (rotation, window mode)')
+expectIncludes(entryAbilityForSafeArea, "'windowSizeChange'",
+  'insets must follow window size changes (freeform resize)')
+expectIncludes(entryAbilityForSafeArea, ".off('avoidAreaChange'",
+  'the avoid-area listener must be released when the window stage is destroyed')
+
 const serverRoot = path.join(projectRoot, 'server')
 if (!fs.existsSync(serverRoot)) {
   throw new Error('server/ is required')

@@ -1,0 +1,12 @@
+KaTeX 0.18.5
+
+This product bundles the KaTeX browser distribution and WOFF2 fonts.
+KaTeX is distributed under the MIT License; see LICENSE in this directory.
+
+Source package: katex@0.18.5 from the npm registry
+Package integrity: sha512-1FU5H3RjGJVj6GT9fMjf2uMIXmPQp232aXS3UEeQzf0dxefHg/CKMvNB3DuOC46LFG/E5PNxrE8dOwB782FDGg==
+
+Reviewed distribution file SHA-256 values:
+katex.min.js: 30c9f7c07bf54d341ffd8f16dc6632766f12b16d0a064e2a08f2d6b1744396a6
+auto-render.min.js: e5372d199bcdae8b4de71d0f7ceba72a4ba12774a27c60a6f1f77d03b3228ee4
+katex.min.css: 5bc44ab327592b75fcf2d412a1b396ebf20203bfe826a1966fb8ab03f8b08bb4

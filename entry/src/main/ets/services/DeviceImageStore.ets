@@ -3,6 +3,32 @@ import { relationalStore } from '@kit.ArkData'
 import { DeviceQuestionImage } from '../models/CloudCacheModels'
 import { DatabaseService } from './DatabaseService'
 
+const DEVICE_IMAGE_TRANSACTION_OPTIONS: relationalStore.TransactionOptions = {
+  transactionType: relationalStore.TransactionType.IMMEDIATE
+}
+
+export enum DeviceImageWriteOutcome {
+  ROLLED_BACK = 'rolled_back',
+  UNKNOWN = 'unknown'
+}
+
+export class DeviceImageStoreError extends Error {
+  readonly outcome: DeviceImageWriteOutcome
+  readonly primaryMessage: string
+  readonly rollbackMessage: string
+
+  constructor(outcome: DeviceImageWriteOutcome, primaryError: Error,
+    rollbackError: Error | null = null) {
+    const rollbackMessage: string = rollbackError === null ? '' : rollbackError.message
+    super(rollbackError === null ? primaryError.message :
+      primaryError.message + '; rollback also failed: ' + rollbackMessage)
+    this.name = 'DeviceImageStoreError'
+    this.outcome = outcome
+    this.primaryMessage = primaryError.message
+    this.rollbackMessage = rollbackMessage
+  }
+}
+
 export class DeviceImageScope {
   static key(accountId: string, questionUuid: string): string {
     DeviceImageScope.validateIdentifier(accountId, 'Account ID')
@@ -50,6 +76,9 @@ export class DeviceImageScope {
       return false
     }
     const parts: Array<string> = relativePath.split('/')
+    if (parts.length !== 1) {
+      return false
+    }
     for (let index: number = 0; index < parts.length; index++) {
       if (parts[index].length === 0 || parts[index] === '.' || parts[index] === '..') {
         return false
@@ -67,22 +96,61 @@ export class DeviceImageScope {
 
 export class DeviceImageStore {
   static async save(context: Context, image: DeviceQuestionImage): Promise<void> {
-    DeviceImageScope.key(image.accountId, image.questionUuid)
-    DeviceImageScope.validateOwnedPath(context.filesDir, image.accountId, image.imagePath)
-    if (!/^[a-f0-9]{64}$/.test(image.sha256)) {
-      throw new Error('Device image SHA-256 is invalid')
+    return DeviceImageStore.saveBatch(context, [image])
+  }
+
+  static async saveBatch(context: Context, images: Array<DeviceQuestionImage>): Promise<void> {
+    if (images.length === 0) {
+      return
     }
-    if (!Number.isInteger(image.sortOrder) || image.sortOrder < 0) {
-      throw new Error('Device image sort order is invalid')
+    const filesDir: string = context.filesDir
+    const snapshotImages: Array<DeviceQuestionImage> = new Array<DeviceQuestionImage>()
+    const keys: Set<string> = new Set<string>()
+    for (let index: number = 0; index < images.length; index++) {
+      const image: DeviceQuestionImage = images[index]
+      DeviceImageScope.key(image.accountId, image.questionUuid)
+      DeviceImageScope.validateOwnedPath(filesDir, image.accountId, image.imagePath)
+      if (!/^[a-f0-9]{64}$/.test(image.sha256) || !Number.isInteger(image.sortOrder) ||
+        image.sortOrder < 0) {
+        throw new Error('Device image metadata is invalid')
+      }
+      const key: string = image.accountId + ':' + image.questionUuid + ':' + image.sortOrder.toString()
+      if (keys.has(key)) {
+        throw new Error('Device image batch contains a duplicate key')
+      }
+      keys.add(key)
+      snapshotImages.push(new DeviceQuestionImage(image.accountId, image.questionUuid,
+        image.imagePath, image.sha256, image.sortOrder))
     }
     const store: relationalStore.RdbStore = DatabaseService.getStore()
-    const values: Array<relationalStore.ValueType> = [
-      image.accountId, image.questionUuid, image.imagePath, image.sha256, image.sortOrder
-    ]
-    await store.execute(
-      'INSERT INTO device_question_image(account_id, question_uuid, image_path, sha256, sort_order) ' +
-      'VALUES (?, ?, ?, ?, ?) ON CONFLICT(account_id, question_uuid, sort_order) DO UPDATE SET ' +
-      'image_path = excluded.image_path, sha256 = excluded.sha256', values)
+    const transaction: relationalStore.Transaction =
+      await store.createTransaction(DEVICE_IMAGE_TRANSACTION_OPTIONS)
+    try {
+      for (let index: number = 0; index < snapshotImages.length; index++) {
+        const image: DeviceQuestionImage = snapshotImages[index]
+        const values: Array<relationalStore.ValueType> = [
+          image.accountId, image.questionUuid, image.imagePath, image.sha256, image.sortOrder
+        ]
+        await transaction.execute(
+          'INSERT INTO device_question_image(account_id, question_uuid, image_path, sha256, sort_order) ' +
+          'VALUES (?, ?, ?, ?, ?) ON CONFLICT(account_id, question_uuid, sort_order) DO UPDATE SET ' +
+          'image_path = excluded.image_path, sha256 = excluded.sha256', values)
+      }
+      await transaction.commit()
+    } catch (err) {
+      const primaryError: Error = err instanceof Error ? err : new Error('Device image batch save failed')
+      let rollbackError: Error | null = null
+      try {
+        await transaction.rollback()
+      } catch (err) {
+        rollbackError = err instanceof Error ? err : new Error('Device image transaction rollback failed')
+      }
+      if (rollbackError !== null) {
+        throw new DeviceImageStoreError(DeviceImageWriteOutcome.UNKNOWN,
+          primaryError, rollbackError)
+      }
+      throw new DeviceImageStoreError(DeviceImageWriteOutcome.ROLLED_BACK, primaryError)
+    }
   }
 
   static async images(accountId: string, questionUuid: string): Promise<Array<DeviceQuestionImage>> {

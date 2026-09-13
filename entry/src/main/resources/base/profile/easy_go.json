@@ -7,6 +7,10 @@
         "homePage": "pages/Index",
         "enableReducedContainerSize": true,
         "fullScreenPages": [
+          "pages/AiRecognitionSettingsPage",
+          "pages/AiPlatformPickerPage",
+          "pages/PdfAiImportSetupPage",
+          "pages/PdfAiImportProgressPage",
           "pages/ImportBankPage",
           "pages/PdfImportSetupPage",
           "pages/PdfImportProgressPage",

@@ -157,8 +157,8 @@ expectAbsent(detail, 'WindowLayoutPolicy', 'detail page must not use the removed
 expectIncludes(detail, 'isEasySplit()', 'detail page must expose the guarded runtime split check')
 
 const indexPage = readEts('ets/pages/Index.ets')
-expectIncludes(indexPage, 'HdsTabs({ barPosition: BarPosition.End, index: this.selectedIndex })',
-  'the HDS Tabs must own the bottom bar')
+expectIncludes(indexPage, 'HdsTabs({ barPosition: BarPosition.End, index: this.tabBarIndex,',
+  'the HDS Tabs must own the bottom bar with the slot index binding')
 expectAbsent(indexPage, 'SafeAreaUtils.bottom', 'the native TabBar must handle the bottom safe area itself')
 expectAbsent(indexPage, '.height(60)', 'the native TabBar must not hard-code a fixed item height')
 

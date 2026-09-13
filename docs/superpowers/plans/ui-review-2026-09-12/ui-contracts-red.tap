@@ -1,0 +1,394 @@
+TAP version 13
+# Subtest: primary and selected controls use readable light and dark color pairs
+not ok 1 - primary and selected controls use readable light and dark color pairs
+  ---
+  duration_ms: 1.2311
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\UiRemediationContracts.test.cjs:25:1'
+  failureType: 'testCodeFailure'
+  error: 'action contrast 3.1336516779091146'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:32:12)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.start (node:internal/test_runner/test:1242:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+# Subtest: import leads with PDF and keeps JSON format and mutually exclusive handlers
+not ok 2 - import leads with PDF and keeps JSON format and mutually exclusive handlers
+  ---
+  duration_ms: 0.253
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\UiRemediationContracts.test.cjs:42:1'
+  failureType: 'testCodeFailure'
+  error: 'PDF entry must precede technical JSON instructions'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:44:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: settings group Model with service and expose status outside the scrolling form
+not ok 3 - settings group Model with service and expose status outside the scrolling form
+  ---
+  duration_ms: 0.2497
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\UiRemediationContracts.test.cjs:53:1'
+  failureType: 'testCodeFailure'
+  error: 'model must precede credential group'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:56:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: three page shells consume four insets and constrain readable content and touch targets
+not ok 4 - three page shells consume four insets and constrain readable content and touch targets
+  ---
+  duration_ms: 0.8527
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\UiRemediationContracts.test.cjs:68:1'
+  failureType: 'testCodeFailure'
+  error: 'ImportBankPage: missing top inset'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:72:14)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: picker clears both filters, restores actual catalog and still selects only the platform id
+not ok 5 - picker clears both filters, restores actual catalog and still selects only the platform id
+  ---
+  duration_ms: 0.8083
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\UiRemediationContracts.test.cjs:81:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /清空搜索与筛选/. Input:
+    
+    "import { BODY_FONT_SIZE, CARD_RADIUS, CONTENT_MAX_WIDTH, PAGE_PADDING, themePalette } from '../constants/AppTheme'\n" +
+      'import {\n' +
+      '  AiPlatform, AiPlatformAccess, AiPlatformCatalog, AiPlatformCategory\n' +
+      "} from '../models/ai/AiPlatformCatalog'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'\n" +
+      "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+      '\n' +
+      'class CategoryFilter {\n' +
+      '  readonly key: string\n' +
+      '  readonly label: string\n' +
+      '  readonly category: AiPlatformCategory | null\n' +
+      '\n' +
+      '  constructor(key: string, label: string, category: AiPlatformCategory | null) {\n' +
+      '    this.key = key\n' +
+      '    this.label = label\n' +
+      '    this.category = category\n' +
+      '  }\n' +
+      '}\n' +
+      '\n' +
+      'const FILTERS: Array<CategoryFilter> = [\n' +
+      "  new CategoryFilter('all', '全部', null),\n" +
+      "  new CategoryFilter('direct', '模型原厂', AiPlatformCategory.DIRECT),\n" +
+      "  new CategoryFilter('inference', '推理平台', AiPlatformCategory.INFERENCE),\n" +
+      "  new CategoryFilter('gateway', '聚合转发', AiPlatformCategory.AGGREGATOR),\n" +
+      "  new CategoryFilter('cloud', '云平台', AiPlatformCategory.CLOUD),\n" +
+      "  new CategoryFilter('local', '本地部署', AiPlatformCategory.LOCAL)\n" +
+      ']\n' +
+      '\n' +
+      '@Entry\n' +
+      '@Component\n' +
+      'struct AiPlatformPickerPage {\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }\n" +
+      "  @State keyword: string = ''\n" +
+      "  @State filterKey: string = 'all'\n" +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  private activeCategory(): AiPlatformCategory | null {\n' +
+      '    for (let index: number = 0; index < FILTERS.length; index++) {\n' +
+      '      if (FILTERS[index].key === this.filterKey) return FILTERS[index].category\n' +
+      '    }\n' +
+      '    return null\n' +
+      '  }\n' +
+      '\n' +
+      '  // 无关键词时直接按分类取（避免先复制全部目录再过滤）；有关键词时用 search 命中 id/中英文名，\n' +
+      '  // 两个条件同时存在时按分类收窄搜索结果。\n' +
+      '  private visiblePlatforms(): Array<AiPlatform> {\n' +
+      '    const category: AiPlatformCategory | null = this.activeCategory()\n' +
+      '    if (this.keyword.trim().length === 0 && category !== null) {\n' +
+      '      return AiPlatformCatalog.byCategory(category)\n' +
+      '    }\n' +
+      '    const matched: Array<AiPlatform> = AiPlatformCatalog.search(this.keyword)\n' +
+      '    if (category === null) return matched\n' +
+      '    const filtered: Array<AiPlatform> = new Array<AiPlatform>()\n' +
+      '    for (let index: number = 0; index < matched.length; index++) {\n' +
+      '      if (matched[index].category === category) filtered.push(matched[index])\n' +
+      '    }\n' +
+      '    return filtered\n' +
+      '  }\n' +
+      '\n' +
+      '  private tagFor(platform: AiPlatform): string {\n' +
+      "    if (platform.access === AiPlatformAccess.GATEWAY) return '需自建网关'\n" +
+      "    if (platform.access === AiPlatformAccess.LOCAL_HTTP) return '本机'\n" +
+      "    if (platform.models.length === 0) return '未确认视觉模型'\n" +
+      "    return '视觉'\n" +
+      '  }\n' +
+      '\n' +
+      '  // 副标题只在能补充信息时显示：nameEn 与 nameZh 相同、或 nameZh 已含 nameEn（如「深度求索 DeepSeek」）\n' +
+      '  // 都会与主标题重复，返回空串由调用处跳过渲染。本地部署优先显示 baseUrl，优先级不变。\n' +
+      '  private subtitleFor(platform: AiPlatform): string {\n' +
+      '    if (platform.access === AiPlatformAccess.LOCAL_HTTP) return platform.baseUrl\n' +
+      "    if (platform.nameZh.includes(platform.nameEn)) return ''\n" +
+      '    return platform.nameEn\n' +
+      '  }\n' +
+      '\n' +
+      '  private goBack(): void {\n' +
+      '    this.getUIContext().getRouter().back()\n' +
+      '  }\n' +
+      '\n' +
+      '  private choose(platform: AiPlatform): void {\n' +
+      '    AiPlatformSelectionState.shared().select(platform.id)\n' +
+      '    this.getUIContext().getRouter().back()\n' +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Column() {\n' +
+      '      Row({ space: 12 }) {\n' +
+      "        Button('返回').onClick(() => { this.goBack() })\n" +
+      "        Text('选择 AI 平台').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.colors().textPrimary)\n" +
+      "      }.width('100%').padding(PAGE_PADDING)\n" +
+      '      Column({ space: 12 }) {\n' +
+      "        TextInput({ text: this.keyword, placeholder: '搜索平台名称，如 deepseek / 月之暗面' })\n" +
+      '          .fontColor(this.colors().textPrimary).backgroundColor(this.colors().cardBackground)\n' +
+      '          .border({ width: 1, color: this.colors().divider })\n' +
+      '          .onChange((value: string) => { this.keyword = value })\n' +
+      '        Scroll() {\n' +
+      '          Row({ space: 8 }) {\n' +
+      '            ForEach(FILTERS, (item: CategoryFilter) => {\n' +
+      '              Button(item.label)\n' +
+      '                .backgroundColor(this.filterKey === item.key ? this.colors().brand : this.colors().chipBackground)\n' +
+      '                .fontColor(this.filterKey === item.key ? Color.White : this.colors().textPrimary)\n' +
+      '                .onClick(() => { this.filterKey = item.key })\n' +
+      '            }, (item: CategoryFilter) => item.key)\n' +
+      '          }\n' +
+      "        }.scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%')\n" +
+      '        if (this.visiblePlatforms().length === 0) {\n' +
+      "          Text('没有匹配的平台，试试其它关键词').fontSize(13).fontColor(this.colors().textCaption)\n" +
+      '        }\n' +
+      '        List({ space: 8 }) {\n' +
+      '          ForEach(this.visiblePlatforms(), (platform: AiPlatform) => {\n' +
+      '            ListItem() {\n' +
+      '              Row({ space: 8 }) {\n' +
+      '                Column({ space: 4 }) {\n' +
+      '                  Text(platform.nameZh).fontSize(BODY_FONT_SIZE).fontColor(this.colors().textPrimary)\n' +
+      '                  if (this.subtitleFor(platform).length > 0) {\n' +
+      '                    Text(this.subtitleFor(platform))\n' +
+      '                      .fontSize(12).fontColor(this.colors().textCaption)\n' +
+      '                  }\n' +
+      '                }.alignItems(HorizontalAlign.Start).layoutWeight(1)\n' +
+      '                Text(this.tagFor(platform)).fontSize(12).fontColor(this.colors().brand)\n' +
+      "              }.width('100%').padding(12)\n" +
+      '              .backgroundColor(this.colors().cardBackground).borderRadius(CARD_RADIUS)\n' +
+      '            }\n' +
+      "            .accessibilityText(platform.nameZh + '，' + this.tagFor(platform) + '，点击选择')\n" +
+      '            .onClick(() => { this.choose(platform) })\n' +
+      '          }, (platform: AiPlatform) => platform.id)\n' +
+      "        }.layoutWeight(1).width('100%').scrollBar(BarState.Off)\n" +
+      "      }.layoutWeight(1).width('100%').constraintSize({ maxWidth: CONTENT_MAX_WIDTH }).padding(PAGE_PADDING)\n" +
+      "    }.width('100%').height('100%').backgroundColor(this.colors().pageBackground)\n" +
+      '    .padding({ top: SafeAreaUtils.top(this.safeAreaInsets), bottom: SafeAreaUtils.bottom(this.safeAreaInsets) })\n' +
+      '  }\n' +
+      '}\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { BODY_FONT_SIZE, CARD_RADIUS, CONTENT_MAX_WIDTH, PAGE_PADDING, themePalette } from '../constants/AppTheme'
+    import {
+      AiPlatform, AiPlatformAccess, AiPlatformCatalog, AiPlatformCategory
+    } from '../models/ai/AiPlatformCatalog'
+    import { AppColors } from '../theme/AppColors'
+    import { AiPlatformSelectionState } from '../utils/AiPlatformSelectionState'
+    import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+    
+    class CategoryFilter {
+      readonly key: string
+      readonly label: string
+      readonly category: AiPlatformCategory | null
+    
+      constructor(key: string, label: string, category: AiPlatformCategory | null) {
+        this.key = key
+        this.label = label
+        this.category = category
+      }
+    }
+    
+    const FILTERS: Array<CategoryFilter> = [
+      new CategoryFilter('all', '全部', null),
+      new CategoryFilter('direct', '模型原厂', AiPlatformCategory.DIRECT),
+      new CategoryFilter('inference', '推理平台', AiPlatformCategory.INFERENCE),
+      new CategoryFilter('gateway', '聚合转发', AiPlatformCategory.AGGREGATOR),
+      new CategoryFilter('cloud', '云平台', AiPlatformCategory.CLOUD),
+      new CategoryFilter('local', '本地部署', AiPlatformCategory.LOCAL)
+    ]
+    
+    @Entry
+    @Component
+    struct AiPlatformPickerPage {
+      @StorageProp('darkMode') darkMode: boolean = false
+      @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = { top: 0, left: 0, right: 0, bottom: 0 }
+      @State keyword: string = ''
+      @State filterKey: string = 'all'
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      private activeCategory(): AiPlatformCategory | null {
+        for (let index: number = 0; index < FILTERS.length; index++) {
+          if (FILTERS[index].key === this.filterKey) return FILTERS[index].category
+        }
+        return null
+      }
+    
+      // 无关键词时直接按分类取（避免先复制全部目录再过滤）；有关键词时用 search 命中 id/中英文名，
+      // 两个条件同时存在时按分类收窄搜索结果。
+      private visiblePlatforms(): Array<AiPlatform> {
+        const category: AiPlatformCategory | null = this.activeCategory()
+        if (this.keyword.trim().length === 0 && category !== null) {
+          return AiPlatformCatalog.byCategory(category)
+        }
+        const matched: Array<AiPlatform> = AiPlatformCatalog.search(this.keyword)
+        if (category === null) return matched
+        const filtered: Array<AiPlatform> = new Array<AiPlatform>()
+        for (let index: number = 0; index < matched.length; index++) {
+          if (matched[index].category === category) filtered.push(matched[index])
+        }
+        return filtered
+      }
+    
+      private tagFor(platform: AiPlatform): string {
+        if (platform.access === AiPlatformAccess.GATEWAY) return '需自建网关'
+        if (platform.access === AiPlatformAccess.LOCAL_HTTP) return '本机'
+        if (platform.models.length === 0) return '未确认视觉模型'
+        return '视觉'
+      }
+    
+      // 副标题只在能补充信息时显示：nameEn 与 nameZh 相同、或 nameZh 已含 nameEn（如「深度求索 DeepSeek」）
+      // 都会与主标题重复，返回空串由调用处跳过渲染。本地部署优先显示 baseUrl，优先级不变。
+      private subtitleFor(platform: AiPlatform): string {
+        if (platform.access === AiPlatformAccess.LOCAL_HTTP) return platform.baseUrl
+        if (platform.nameZh.includes(platform.nameEn)) return ''
+        return platform.nameEn
+      }
+    
+      private goBack(): void {
+        this.getUIContext().getRouter().back()
+      }
+    
+      private choose(platform: AiPlatform): void {
+        AiPlatformSelectionState.shared().select(platform.id)
+        this.getUIContext().getRouter().back()
+      }
+    
+      build() {
+        Column() {
+          Row({ space: 12 }) {
+            Button('返回').onClick(() => { this.goBack() })
+            Text('选择 AI 平台').fontSize(20).fontWeight(FontWeight.Bold).fontColor(this.colors().textPrimary)
+          }.width('100%').padding(PAGE_PADDING)
+          Column({ space: 12 }) {
+            TextInput({ text: this.keyword, placeholder: '搜索平台名称，如 deepseek / 月之暗面' })
+              .fontColor(this.colors().textPrimary).backgroundColor(this.colors().cardBackground)
+              .border({ width: 1, color: this.colors().divider })
+              .onChange((value: string) => { this.keyword = value })
+            Scroll() {
+              Row({ space: 8 }) {
+                ForEach(FILTERS, (item: CategoryFilter) => {
+                  Button(item.label)
+                    .backgroundColor(this.filterKey === item.key ? this.colors().brand : this.colors().chipBackground)
+                    .fontColor(this.filterKey === item.key ? Color.White : this.colors().textPrimary)
+                    .onClick(() => { this.filterKey = item.key })
+                }, (item: CategoryFilter) => item.key)
+              }
+            }.scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%')
+            if (this.visiblePlatforms().length === 0) {
+              Text('没有匹配的平台，试试其它关键词').fontSize(13).fontColor(this.colors().textCaption)
+            }
+            List({ space: 8 }) {
+              ForEach(this.visiblePlatforms(), (platform: AiPlatform) => {
+                ListItem() {
+                  Row({ space: 8 }) {
+                    Column({ space: 4 }) {
+                      Text(platform.nameZh).fontSize(BODY_FONT_SIZE).fontColor(this.colors().textPrimary)
+                      if (this.subtitleFor(platform).length > 0) {
+                        Text(this.subtitleFor(platform))
+                          .fontSize(12).fontColor(this.colors().textCaption)
+                      }
+                    }.alignItems(HorizontalAlign.Start).layoutWeight(1)
+                    Text(this.tagFor(platform)).fontSize(12).fontColor(this.colors().brand)
+                  }.width('100%').padding(12)
+                  .backgroundColor(this.colors().cardBackground).borderRadius(CARD_RADIUS)
+                }
+                .accessibilityText(platform.nameZh + '，' + this.tagFor(platform) + '，点击选择')
+                .onClick(() => { this.choose(platform) })
+              }, (platform: AiPlatform) => platform.id)
+            }.layoutWeight(1).width('100%').scrollBar(BarState.Off)
+          }.layoutWeight(1).width('100%').constraintSize({ maxWidth: CONTENT_MAX_WIDTH }).padding(PAGE_PADDING)
+        }.width('100%').height('100%').backgroundColor(this.colors().pageBackground)
+        .padding({ top: SafeAreaUtils.top(this.safeAreaInsets), bottom: SafeAreaUtils.bottom(this.safeAreaInsets) })
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:83:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 71.5251

@@ -1,0 +1,425 @@
+{
+  "success": true,
+  "errors": [
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 27,
+      "column": 60,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 28,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 62,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 70,
+      "column": 18,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 103,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 128,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\HuksAesGcmCipher.ets",
+      "line": 130,
+      "column": 56,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 61,
+      "column": 64,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 64,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 65,
+      "column": 19,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 77,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 78,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 112,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 113,
+      "column": 58,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 152,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 163,
+      "column": 54,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 165,
+      "column": 16,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 166,
+      "column": 57,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 181,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiCredentialStore.ets",
+      "line": 182,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 45,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 46,
+      "column": 24,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 112,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 113,
+      "column": 62,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 114,
+      "column": 59,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 115,
+      "column": 61,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 134,
+      "column": 25,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 135,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 136,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 137,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiProviderConfigStore.ets",
+      "line": 138,
+      "column": 17,
+      "severity": "warning",
+      "message": "Function may throw exceptions. Special handling is required.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiVisionTransport.ets",
+      "line": 130,
+      "column": 59,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\services\\ai\\AiVisionTransport.ets",
+      "line": 193,
+      "column": 59,
+      "severity": "warning",
+      "message": "To use this API, you need to apply for the permissions: ohos.permission.INTERNET",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 72,
+      "column": 12,
+      "severity": "warning",
+      "message": "'back' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 194,
+      "column": 92,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 195,
+      "column": 80,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 198,
+      "column": 63,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 218,
+      "column": 61,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 219,
+      "column": 61,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 220,
+      "column": 40,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 221,
+      "column": 64,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 224,
+      "column": 69,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 227,
+      "column": 83,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 228,
+      "column": 53,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 231,
+      "column": 61,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 233,
+      "column": 65,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 252,
+      "column": 59,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 253,
+      "column": 39,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 256,
+      "column": 62,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 281,
+      "column": 49,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 282,
+      "column": 63,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    },
+    {
+      "file": "entry\\src\\main\\ets\\pages\\AiRecognitionSettingsPage.ets",
+      "line": 284,
+      "column": 48,
+      "severity": "warning",
+      "message": "'getContext' has been deprecated.",
+      "rule": ""
+    }
+  ],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 52
+  }
+}

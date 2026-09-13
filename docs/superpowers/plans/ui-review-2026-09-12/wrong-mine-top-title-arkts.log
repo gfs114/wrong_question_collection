@@ -1,0 +1,27 @@
+FILE=entry/src/main/ets/pages/Index.ets EXIT=0
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE=entry/src/main/ets/pages/WrongQuestionsPage.ets EXIT=0
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}
+FILE=entry/src/main/ets/pages/MinePage.ets EXIT=0
+{
+  "success": true,
+  "errors": [],
+  "summary": {
+    "errorCount": 0,
+    "warnCount": 0
+  }
+}

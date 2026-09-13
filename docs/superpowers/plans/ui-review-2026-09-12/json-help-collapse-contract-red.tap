@@ -1,0 +1,793 @@
+TAP version 13
+# (node:33740) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: primary and selected controls use readable light and dark color pairs
+ok 1 - primary and selected controls use readable light and dark color pairs
+  ---
+  duration_ms: 42.6691
+  type: 'test'
+  ...
+# Subtest: import leads with PDF and keeps JSON format and mutually exclusive handlers
+ok 2 - import leads with PDF and keeps JSON format and mutually exclusive handlers
+  ---
+  duration_ms: 1.3985
+  type: 'test'
+  ...
+# Subtest: JSON format guidance is collapsed by default behind one accessible disclosure
+not ok 3 - JSON format guidance is collapsed by default behind one accessible disclosure
+  ---
+  duration_ms: 1.3259
+  type: 'test'
+  location: 'G:\\code\\openHarmony\\wrong_question_collection\\entry\\src\\test\\UiRemediationContracts.test.cjs:68:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /@State jsonHelpExpanded: boolean = false/. Input:
+    
+    "import { Context } from '@kit.AbilityKit'\n" +
+      'import {\n' +
+      '  BODY_FONT_SIZE,\n' +
+      '  PAGE_PADDING,\n' +
+      '  SUBTITLE_FONT_SIZE,\n' +
+      '  themePalette\n' +
+      "} from '../constants/AppTheme'\n" +
+      "import { SHEET_RADIUS } from '../constants/EditorialStyle'\n" +
+      "import { UiStyle } from '../constants/UiStyle'\n" +
+      "import { ImportErrorCode, ImportResult } from '../models/ImportResult'\n" +
+      "import { AccountSessionState } from '../models/AccountSession'\n" +
+      "import { PdfFileSelection } from '../models/PdfImportModels'\n" +
+      "import { AccountSessionService } from '../services/AccountSessionService'\n" +
+      "import { ImportService } from '../services/ImportService'\n" +
+      "import { PdfImportService } from '../services/PdfImportService'\n" +
+      "import { AppColors } from '../theme/AppColors'\n" +
+      "import { PdfImportState } from '../utils/PdfImportState'\n" +
+      "import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'\n" +
+      '\n' +
+      'const JSON_BANK_EXAMPLE: string = `{\n' +
+      '  "bankName": "数学错题示例",\n' +
+      '  "subject": "数学",\n' +
+      '  "questions": [\n' +
+      '    {\n' +
+      '      "id": "q-001",\n' +
+      '      "type": "single_choice",\n' +
+      '      "question": "2 + 3 = ?",\n' +
+      '      "options": ["A. 4", "B. 5", "C. 6"],\n' +
+      '      "answer": "B",\n' +
+      '      "analysis": "2 + 3 = 5。"\n' +
+      '    }\n' +
+      '  ]\n' +
+      '}`\n' +
+      '\n' +
+      '@Entry\n' +
+      '@Component\n' +
+      'struct ImportBankPage {\n' +
+      '  @State importing: boolean = false\n' +
+      '  @State pdfSelecting: boolean = false\n' +
+      "  @State errorMessage: string = ''\n" +
+      "  @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {\n" +
+      '    top: 0, left: 0, right: 0, bottom: 0\n' +
+      '  }\n' +
+      "  @StorageProp('darkMode') darkMode: boolean = false\n" +
+      '\n' +
+      '  private colors(): AppColors {\n' +
+      '    return themePalette(this.darkMode)\n' +
+      '  }\n' +
+      '\n' +
+      '  private goBack(): void {\n' +
+      '    if (this.importing || this.pdfSelecting) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    try {\n' +
+      '      this.getUIContext().getRouter().back()\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  onBackPress(): boolean {\n' +
+      '    this.goBack()\n' +
+      '    return true\n' +
+      '  }\n' +
+      '\n' +
+      '  private startImport(): void {\n' +
+      '    if (this.importing || this.pdfSelecting) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    const hostContext: Context | undefined = this.getUIContext().getHostContext()\n' +
+      '    if (hostContext === undefined) {\n' +
+      "      this.showToast('暂时无法获取应用上下文')\n" +
+      '      return\n' +
+      '    }\n' +
+      '    AccountSessionService.state(hostContext)\n' +
+      '      .then((session: AccountSessionState) => {\n' +
+      '        if (!session.signedIn) {\n' +
+      "          this.showToast('请先登录华为账号')\n" +
+      '          return\n' +
+      '        }\n' +
+      '        this.importing = true\n' +
+      "        this.errorMessage = ''\n" +
+      '        this.importBank()\n' +
+      '      })\n' +
+      '      .catch(() => {\n' +
+      "        this.showToast('导入失败，请稍后重试')\n" +
+      '      })\n' +
+      '  }\n' +
+      '\n' +
+      '  private async importBank(): Promise<void> {\n' +
+      '    let result: ImportResult\n' +
+      '    try {\n' +
+      '      result = await ImportService.selectAndImport(getContext(this))\n' +
+      '    } catch {\n' +
+      "      this.errorMessage = '导入失败，请稍后重试'\n" +
+      '      this.importing = false\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.importing = false\n' +
+      '    if (result.cancelled) {\n' +
+      '      return\n' +
+      '    }\n' +
+      '    if (result.success) {\n' +
+      "      this.showToast('题库导入成功')\n" +
+      '      this.goBack()\n' +
+      '      return\n' +
+      '    }\n' +
+      '    this.errorMessage = this.messageFor(result.errorCode.code)\n' +
+      '  }\n' +
+      '\n' +
+      '  private messageFor(errorCode: string): string {\n' +
+      '    if (errorCode === ImportErrorCode.FORMAT_ERROR) {\n' +
+      "      return '题库格式错误，请检查 JSON 文件'\n" +
+      '    }\n' +
+      '    if (errorCode === ImportErrorCode.READ_ERROR) {\n' +
+      "      return '文件读取失败，请重新选择'\n" +
+      '    }\n' +
+      '    if (errorCode === ImportErrorCode.SAVE_ERROR) {\n' +
+      "      return '题库保存失败，请稍后重试'\n" +
+      '    }\n' +
+      "    return '导入失败，请稍后重试'\n" +
+      '  }\n' +
+      '\n' +
+      '  private showToast(message: string): void {\n' +
+      '    try {\n' +
+      '      this.getUIContext().getPromptAction().showToast({ message: message })\n' +
+      '    } catch {\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async selectPdf(): Promise<void> {\n' +
+      '    if (this.importing || this.pdfSelecting) return\n' +
+      '    this.pdfSelecting = true\n' +
+      "    this.errorMessage = ''\n" +
+      '    try {\n' +
+      '      const context: Context = getContext(this)\n' +
+      '      const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)\n' +
+      '      if (selection === null) return\n' +
+      '      const state: PdfImportState = PdfImportState.shared()\n' +
+      '      const previous: PdfFileSelection | null = state.getSelection()\n' +
+      '      if (previous !== null && previous.uri !== selection.uri) {\n' +
+      '        try {\n' +
+      '          await PdfImportService.removeTemporaryPdf(previous.uri)\n' +
+      '        } catch {\n' +
+      '          const removed: boolean = await this.releaseUnpublishedSelection(selection)\n' +
+      "          this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :\n" +
+      "            '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'\n" +
+      '          return\n' +
+      '        }\n' +
+      '      }\n' +
+      '      state.reset()\n' +
+      '      state.setSelection(selection)\n' +
+      '      try {\n' +
+      "        await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })\n" +
+      '      } catch {\n' +
+      '        state.reset()\n' +
+      '        const removed: boolean = await this.releaseUnpublishedSelection(selection)\n' +
+      "        this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :\n" +
+      "          'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'\n" +
+      '      }\n' +
+      '    } catch (err) {\n' +
+      '      this.errorMessage = this.messageForPdfError(err)\n' +
+      '    } finally {\n' +
+      '      this.pdfSelecting = false\n' +
+      '    }\n' +
+      '  }\n' +
+      '\n' +
+      '  private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {\n' +
+      '    return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)\n' +
+      '  }\n' +
+      '\n' +
+      '  private messageForPdfError(err: Error): string {\n' +
+      "    let message: string = ''\n" +
+      '    if (err instanceof Error) {\n' +
+      '      message = err.message\n' +
+      '    }\n' +
+      "    if (message.includes('已有 PDF 选择任务')) {\n" +
+      "      return '正在选择 PDF，请稍候'\n" +
+      '    }\n' +
+      "    if (message.includes('大小') || message.includes('超过限制')) {\n" +
+      "      return 'PDF 文件不能超过 200 MB'\n" +
+      '    }\n' +
+      "    if (message.includes('暂存') || message.includes('空间')) {\n" +
+      "      return 'PDF 暂存失败，请检查本地空间'\n" +
+      '    }\n' +
+      "    if (message.includes('选择') || message.includes('picker')) {\n" +
+      "      return 'PDF 导入失败，请重新选择文件'\n" +
+      '    }\n' +
+      "    return 'PDF 导入失败，请重新选择文件'\n" +
+      '  }\n' +
+      '\n' +
+      '  build() {\n' +
+      '    Navigation() {\n' +
+      '      Column() {\n' +
+      '        Scroll() {\n' +
+      '          Column({ space: UiStyle.GROUP_GAP }) {\n' +
+      '            Column({ space: 8 }) {\n' +
+      "              Text('选择资料来源')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(24)\n' +
+      '                .fontWeight(FontWeight.Bold)\n' +
+      '                .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      "              Text('PDF 和结构化 JSON 题库均可导入')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .alignItems(HorizontalAlign.Start)\n' +
+      '\n' +
+      '            Column({ space: 12 }) {\n' +
+      '              Row() {\n' +
+      "                Text('PDF 资料')\n" +
+      '                  .fontSize(SUBTITLE_FONT_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Bold)\n' +
+      '                  .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '                Blank()\n' +
+      '\n' +
+      "                Text('推荐')\n" +
+      '                  .fontSize(12)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '\n' +
+      "              Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '                .lineHeight(22)\n' +
+      '\n' +
+      '              Button() {\n' +
+      "                Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')\n" +
+      '                  .fontSize(UiStyle.BODY_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Medium)\n' +
+      '                  .fontColor(UiStyle.onAction(this.darkMode))\n' +
+      '              }\n' +
+      '              .type(ButtonType.Normal)\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .backgroundColor(UiStyle.action(this.darkMode))\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '              .enabled(!this.pdfSelecting && !this.importing)\n' +
+      "              .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')\n" +
+      '              .onClick(() => {\n' +
+      '                this.selectPdf()\n' +
+      '              })\n' +
+      '            }\n' +
+      "            .width('100%')\n" +
+      '            .padding(20)\n' +
+      '            .alignItems(HorizontalAlign.Start)\n' +
+      '            .backgroundColor(this.colors().cardBackground)\n' +
+      '            .border({ width: 1, color: this.colors().divider })\n' +
+      '            .borderRadius(SHEET_RADIUS)\n' +
+      '\n' +
+      '            if (this.importing) {\n' +
+      '              Row({ space: 12 }) {\n' +
+      '                LoadingProgress()\n' +
+      '                  .width(24)\n' +
+      '                  .height(24)\n' +
+      '                  .color(UiStyle.action(this.darkMode))\n' +
+      '\n' +
+      "                Text('正在读取并导入题库…')\n" +
+      '                  .fontSize(BODY_FONT_SIZE)\n' +
+      '                  .fontColor(this.colors().textCaption)\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '              .padding({ left: 16, right: 16 })\n' +
+      '              .justifyContent(FlexAlign.Center)\n' +
+      '              .backgroundColor(this.colors().cardBackground)\n' +
+      '              .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      '            }\n' +
+      '\n' +
+      '            if (this.errorMessage.length > 0) {\n' +
+      '              Text(this.errorMessage)\n' +
+      "                .width('100%')\n" +
+      '                .constraintSize({ minHeight: 48 })\n' +
+      '                .padding({ left: 16, right: 16, top: 13, bottom: 13 })\n' +
+      '                .fontSize(BODY_FONT_SIZE)\n' +
+      '                .fontColor(UiStyle.errorText(this.darkMode))\n' +
+      '                .backgroundColor(this.colors().errorSoft)\n' +
+      '                .borderRadius(UiStyle.CONTROL_RADIUS)\n' +
+      "                .accessibilityText('导入失败：' + this.errorMessage)\n" +
+      '            }\n' +
+      '\n' +
+      '            Column({ space: 12 }) {\n' +
+      '              Row() {\n' +
+      "                Text('已有结构化题库')\n" +
+      '                  .fontSize(SUBTITLE_FONT_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Bold)\n' +
+      '                  .fontColor(this.colors().textPrimary)\n' +
+      '\n' +
+      '                Blank()\n' +
+      '\n' +
+      "                Text('仅支持单选题')\n" +
+      '                  .fontSize(12)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      "              .width('100%')\n" +
+      '\n' +
+      "              Text('选择 JSON 文件可直接导入已有题库。')\n" +
+      "                .width('100%')\n" +
+      '                .fontSize(UiStyle.DETAIL_SIZE)\n' +
+      '                .fontColor(this.colors().textCaption)\n' +
+      '\n' +
+      '              Button() {\n' +
+      "                Text(this.importing ? '正在导入…' : '选择 JSON 文件')\n" +
+      '                  .fontSize(UiStyle.BODY_SIZE)\n' +
+      '                  .fontWeight(FontWeight.Medium)\n' +
+      '                  .fontColor(UiStyle.action(this.darkMode))\n' +
+      '              }\n' +
+      '              .type(ButtonType.Normal)\n' +
+      "              .width('100%')\n" +
+      '              .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })\n' +
+      '        '... 3295 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import { Context } from '@kit.AbilityKit'
+    import {
+      BODY_FONT_SIZE,
+      PAGE_PADDING,
+      SUBTITLE_FONT_SIZE,
+      themePalette
+    } from '../constants/AppTheme'
+    import { SHEET_RADIUS } from '../constants/EditorialStyle'
+    import { UiStyle } from '../constants/UiStyle'
+    import { ImportErrorCode, ImportResult } from '../models/ImportResult'
+    import { AccountSessionState } from '../models/AccountSession'
+    import { PdfFileSelection } from '../models/PdfImportModels'
+    import { AccountSessionService } from '../services/AccountSessionService'
+    import { ImportService } from '../services/ImportService'
+    import { PdfImportService } from '../services/PdfImportService'
+    import { AppColors } from '../theme/AppColors'
+    import { PdfImportState } from '../utils/PdfImportState'
+    import { SafeAreaInsets, SafeAreaUtils } from '../utils/SafeAreaUtils'
+    
+    const JSON_BANK_EXAMPLE: string = `{
+      "bankName": "数学错题示例",
+      "subject": "数学",
+      "questions": [
+        {
+          "id": "q-001",
+          "type": "single_choice",
+          "question": "2 + 3 = ?",
+          "options": ["A. 4", "B. 5", "C. 6"],
+          "answer": "B",
+          "analysis": "2 + 3 = 5。"
+        }
+      ]
+    }`
+    
+    @Entry
+    @Component
+    struct ImportBankPage {
+      @State importing: boolean = false
+      @State pdfSelecting: boolean = false
+      @State errorMessage: string = ''
+      @StorageProp('safeAreaInsets') safeAreaInsets: SafeAreaInsets = {
+        top: 0, left: 0, right: 0, bottom: 0
+      }
+      @StorageProp('darkMode') darkMode: boolean = false
+    
+      private colors(): AppColors {
+        return themePalette(this.darkMode)
+      }
+    
+      private goBack(): void {
+        if (this.importing || this.pdfSelecting) {
+          return
+        }
+        try {
+          this.getUIContext().getRouter().back()
+        } catch {
+        }
+      }
+    
+      onBackPress(): boolean {
+        this.goBack()
+        return true
+      }
+    
+      private startImport(): void {
+        if (this.importing || this.pdfSelecting) {
+          return
+        }
+        const hostContext: Context | undefined = this.getUIContext().getHostContext()
+        if (hostContext === undefined) {
+          this.showToast('暂时无法获取应用上下文')
+          return
+        }
+        AccountSessionService.state(hostContext)
+          .then((session: AccountSessionState) => {
+            if (!session.signedIn) {
+              this.showToast('请先登录华为账号')
+              return
+            }
+            this.importing = true
+            this.errorMessage = ''
+            this.importBank()
+          })
+          .catch(() => {
+            this.showToast('导入失败，请稍后重试')
+          })
+      }
+    
+      private async importBank(): Promise<void> {
+        let result: ImportResult
+        try {
+          result = await ImportService.selectAndImport(getContext(this))
+        } catch {
+          this.errorMessage = '导入失败，请稍后重试'
+          this.importing = false
+          return
+        }
+        this.importing = false
+        if (result.cancelled) {
+          return
+        }
+        if (result.success) {
+          this.showToast('题库导入成功')
+          this.goBack()
+          return
+        }
+        this.errorMessage = this.messageFor(result.errorCode.code)
+      }
+    
+      private messageFor(errorCode: string): string {
+        if (errorCode === ImportErrorCode.FORMAT_ERROR) {
+          return '题库格式错误，请检查 JSON 文件'
+        }
+        if (errorCode === ImportErrorCode.READ_ERROR) {
+          return '文件读取失败，请重新选择'
+        }
+        if (errorCode === ImportErrorCode.SAVE_ERROR) {
+          return '题库保存失败，请稍后重试'
+        }
+        return '导入失败，请稍后重试'
+      }
+    
+      private showToast(message: string): void {
+        try {
+          this.getUIContext().getPromptAction().showToast({ message: message })
+        } catch {
+        }
+      }
+    
+      private async selectPdf(): Promise<void> {
+        if (this.importing || this.pdfSelecting) return
+        this.pdfSelecting = true
+        this.errorMessage = ''
+        try {
+          const context: Context = getContext(this)
+          const selection: PdfFileSelection | null = await PdfImportService.selectPdf(context)
+          if (selection === null) return
+          const state: PdfImportState = PdfImportState.shared()
+          const previous: PdfFileSelection | null = state.getSelection()
+          if (previous !== null && previous.uri !== selection.uri) {
+            try {
+              await PdfImportService.removeTemporaryPdf(previous.uri)
+            } catch {
+              const removed: boolean = await this.releaseUnpublishedSelection(selection)
+              this.errorMessage = removed ? '上一次 PDF 临时文件清理失败，请重试' :
+                '上一次 PDF 临时文件清理失败；新文件已登记稍后清理'
+              return
+            }
+          }
+          state.reset()
+          state.setSelection(selection)
+          try {
+            await this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })
+          } catch {
+            state.reset()
+            const removed: boolean = await this.releaseUnpublishedSelection(selection)
+            this.errorMessage = removed ? 'AI PDF 导入设置页面暂不可用，请重试' :
+              'AI PDF 导入设置页面暂不可用；临时文件已登记稍后清理'
+          }
+        } catch (err) {
+          this.errorMessage = this.messageForPdfError(err)
+        } finally {
+          this.pdfSelecting = false
+        }
+      }
+    
+      private async releaseUnpublishedSelection(selection: PdfFileSelection): Promise<boolean> {
+        return await PdfImportService.removeOrAbandonTemporaryPdf(selection.uri)
+      }
+    
+      private messageForPdfError(err: Error): string {
+        let message: string = ''
+        if (err instanceof Error) {
+          message = err.message
+        }
+        if (message.includes('已有 PDF 选择任务')) {
+          return '正在选择 PDF，请稍候'
+        }
+        if (message.includes('大小') || message.includes('超过限制')) {
+          return 'PDF 文件不能超过 200 MB'
+        }
+        if (message.includes('暂存') || message.includes('空间')) {
+          return 'PDF 暂存失败，请检查本地空间'
+        }
+        if (message.includes('选择') || message.includes('picker')) {
+          return 'PDF 导入失败，请重新选择文件'
+        }
+        return 'PDF 导入失败，请重新选择文件'
+      }
+    
+      build() {
+        Navigation() {
+          Column() {
+            Scroll() {
+              Column({ space: UiStyle.GROUP_GAP }) {
+                Column({ space: 8 }) {
+                  Text('选择资料来源')
+                    .width('100%')
+                    .fontSize(24)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('PDF 和结构化 JSON 题库均可导入')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                }
+                .width('100%')
+                .alignItems(HorizontalAlign.Start)
+    
+                Column({ space: 12 }) {
+                  Row() {
+                    Text('PDF 资料')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(this.colors().textPrimary)
+    
+                    Blank()
+    
+                    Text('推荐')
+                      .fontSize(12)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .width('100%')
+    
+                  Text('选择文件后设置页码，再进行 AI 识别；识别完成后逐题审核并保存。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Button() {
+                    Text(this.pdfSelecting ? '正在选择…' : '导入 PDF')
+                      .fontSize(UiStyle.BODY_SIZE)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(UiStyle.onAction(this.darkMode))
+                  }
+                  .type(ButtonType.Normal)
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .backgroundColor(UiStyle.action(this.darkMode))
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .enabled(!this.pdfSelecting && !this.importing)
+                  .accessibilityText(this.pdfSelecting ? '正在选择 PDF' : '导入 PDF')
+                  .onClick(() => {
+                    this.selectPdf()
+                  })
+                }
+                .width('100%')
+                .padding(20)
+                .alignItems(HorizontalAlign.Start)
+                .backgroundColor(this.colors().cardBackground)
+                .border({ width: 1, color: this.colors().divider })
+                .borderRadius(SHEET_RADIUS)
+    
+                if (this.importing) {
+                  Row({ space: 12 }) {
+                    LoadingProgress()
+                      .width(24)
+                      .height(24)
+                      .color(UiStyle.action(this.darkMode))
+    
+                    Text('正在读取并导入题库…')
+                      .fontSize(BODY_FONT_SIZE)
+                      .fontColor(this.colors().textCaption)
+                  }
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .padding({ left: 16, right: 16 })
+                  .justifyContent(FlexAlign.Center)
+                  .backgroundColor(this.colors().cardBackground)
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                }
+    
+                if (this.errorMessage.length > 0) {
+                  Text(this.errorMessage)
+                    .width('100%')
+                    .constraintSize({ minHeight: 48 })
+                    .padding({ left: 16, right: 16, top: 13, bottom: 13 })
+                    .fontSize(BODY_FONT_SIZE)
+                    .fontColor(UiStyle.errorText(this.darkMode))
+                    .backgroundColor(this.colors().errorSoft)
+                    .borderRadius(UiStyle.CONTROL_RADIUS)
+                    .accessibilityText('导入失败：' + this.errorMessage)
+                }
+    
+                Column({ space: 12 }) {
+                  Row() {
+                    Text('已有结构化题库')
+                      .fontSize(SUBTITLE_FONT_SIZE)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(this.colors().textPrimary)
+    
+                    Blank()
+    
+                    Text('仅支持单选题')
+                      .fontSize(12)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .width('100%')
+    
+                  Text('选择 JSON 文件可直接导入已有题库。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+    
+                  Button() {
+                    Text(this.importing ? '正在导入…' : '选择 JSON 文件')
+                      .fontSize(UiStyle.BODY_SIZE)
+                      .fontWeight(FontWeight.Medium)
+                      .fontColor(UiStyle.action(this.darkMode))
+                  }
+                  .type(ButtonType.Normal)
+                  .width('100%')
+                  .constraintSize({ minHeight: UiStyle.TOUCH_TARGET })
+                  .backgroundColor(this.colors().cardBackground)
+                  .border({ width: 1, color: UiStyle.action(this.darkMode) })
+                  .borderRadius(UiStyle.CONTROL_RADIUS)
+                  .enabled(!this.importing && !this.pdfSelecting)
+                  .accessibilityText(this.importing ? '正在导入题库' : '选择 JSON 文件')
+                  .onClick(() => {
+                    this.startImport()
+                  })
+    
+                  Divider()
+                    .color(this.colors().divider)
+    
+                  Text('JSON 格式说明')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('文件需要包含题库名称 bankName、学科 subject 和题目数组 questions。每道题需包含 id、type、question、options、answer 与 analysis。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Text('type 请填写 single_choice，answer 使用与选项对应的字母。文件编码需为 UTF-8。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Divider()
+                    .color(this.colors().divider)
+    
+                  Text('JSON 示例')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(this.colors().textPrimary)
+    
+                  Text('以下内容可直接保存为 UTF-8 编码的 .json 文件后导入。')
+                    .width('100%')
+                    .fontSize(UiStyle.DETAIL_SIZE)
+                    .fontColor(this.colors().textCaption)
+                    .lineHeight(22)
+    
+                  Text(JSON_BANK_EXAMPLE)
+                    .width('100%')
+                    .padding(16)
+                    .fontSize(13)
+                    .fontFamily('monospace')
+                    .fontColor(this.colors().textSecondary)
+                    .lineHeight(20)
+                    .backgroundColor(this.colors().inputBackground)
+                    .borderRadius(UiStyle.CONTROL_RADIUS)
+                    .accessibilityText('JSON 题库示例：' + JSON_BANK_EXAMPLE)
+                }
+                .width('100%')
+                .padding(20)
+                .alignItems(HorizontalAlign.Start)
+                .backgroundColor(this.colors().cardBackground)
+                .border({ width: 1, color: this.colors().divider })
+                .borderRadius(SHEET_RADIUS)
+              }
+              .width('100%')
+              .align(Alignment.Top)
+              .padding({
+                top: PAGE_PADDING,
+                left: PAGE_PADDING,
+                right: PAGE_PADDING,
+                bottom: PAGE_PADDING + SafeAreaUtils.bottom(this.safeAreaInsets)
+              })
+            }
+            .layoutWeight(1)
+            .width('100%')
+            .constraintSize({ maxWidth: UiStyle.CONTENT_WIDTH })
+            .scrollBar(BarState.Off)
+          }
+          .width('100%')
+          .height('100%')
+          .backgroundColor(this.colors().pageBackground)
+        }
+        .title('导入题库', {
+          barStyle: BarStyle.STANDARD
+        })
+        .titleMode(NavigationTitleMode.Mini)
+        .hideBackButton(false)
+        .mode(NavigationMode.Stack)
+        .width('100%')
+        .height('100%')
+        .padding({
+          top: SafeAreaUtils.top(this.safeAreaInsets),
+          left: SafeAreaUtils.left(this.safeAreaInsets),
+          right: SafeAreaUtils.right(this.safeAreaInsets)
+        })
+      }
+    }
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (G:\code\openHarmony\wrong_question_collection\entry\src\test\UiRemediationContracts.test.cjs:72:10)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1382:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+    Test.postRun (node:internal/test_runner/test:1522:19)
+    Test.run (node:internal/test_runner/test:1447:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: settings group Model with service and expose status outside the scrolling form
+ok 4 - settings group Model with service and expose status outside the scrolling form
+  ---
+  duration_ms: 0.299
+  type: 'test'
+  ...
+# Subtest: three page shells consume four insets and constrain readable content and touch targets
+ok 5 - three page shells consume four insets and constrain readable content and touch targets
+  ---
+  duration_ms: 1.8979
+  type: 'test'
+  ...
+# Subtest: picker clears both filters, restores actual catalog and still selects only the platform id
+ok 6 - picker clears both filters, restores actual catalog and still selects only the platform id
+  ---
+  duration_ms: 12.6116
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.0496

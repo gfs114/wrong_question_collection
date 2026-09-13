@@ -4,6 +4,7 @@ import {
   themePalette
 } from '../constants/AppTheme'
 import { AppColors } from '../theme/AppColors'
+import { MathContentUtils } from '../utils/MathContentUtils'
 
 @Component
 export struct QuestionCard {
@@ -50,7 +51,7 @@ export struct QuestionCard {
           }
           .width('100%')
 
-          Text(this.questionText)
+          Text(MathContentUtils.toPlainPreview(this.questionText))
             .fontSize(BODY_FONT_SIZE)
             .fontWeight(FontWeight.Medium)
             .fontColor(this.colors().textPrimary)

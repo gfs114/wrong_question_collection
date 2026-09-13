@@ -13,6 +13,22 @@ function read(relativePath) {
   return fs.readFileSync(filePath, 'utf8')
 }
 
+function extractMethod(source, signature) {
+  const start = source.indexOf(signature)
+  assert.notEqual(start, -1, 'missing method ' + signature)
+  const openingBrace = source.indexOf('{', start)
+  assert.notEqual(openingBrace, -1, 'missing method body ' + signature)
+  let depth = 0
+  for (let index = openingBrace; index < source.length; index++) {
+    if (source[index] === '{') depth++
+    else if (source[index] === '}') {
+      depth--
+      if (depth === 0) return source.slice(start, index + 1)
+    }
+  }
+  assert.fail('unterminated method ' + signature)
+}
+
 function walkEtsSources(directory) {
   const sources = []
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -80,20 +96,45 @@ test('normal business write paths go through CloudQuestionRepository', () => {
   assert.doesNotMatch(mine, /WrongQuestionService\./, 'MinePage must not call the local-first wrong-question service')
 })
 
-test('PDF production pages run the cloud import flow', () => {
-  const pages = [
+test('rollback cloud pages remain intact but the formal PDF flow is client AI only', () => {
+  const rollbackPages = [
     'pages/PdfImportSetupPage.ets',
-    'pages/PdfImportProgressPage.ets',
-    'pages/PdfImportReviewPage.ets'
+    'pages/PdfImportProgressPage.ets'
   ]
-  for (const file of pages) {
+  for (const file of rollbackPages) {
     const source = read(file)
     assert.match(source, /CloudImportService/, `${file} must use CloudImportService`)
     assert.doesNotMatch(source, /OnDeviceOcrService|PdfImportCoordinator|PdfImportService|\bpdfService\b/,
       `${file} must not touch the retired device pipeline`)
   }
+  assert.match(read('pages/PdfImportReviewPage.ets'), /CloudPdfReviewAdapter/)
+  const importPage = read('pages/ImportBankPage.ets')
+  const formalPages = importPage + read('pages/PdfAiImportSetupPage.ets') +
+    read('pages/PdfAiImportProgressPage.ets') + read('services/ai/PdfAiImportCoordinator.ets') +
+    read('services/review/AiPdfReviewAdapter.ets')
+  assert.match(importPage, /pages\/PdfAiImportSetupPage/)
+  assert.match(formalPages, /AiVisionTransport/)
+  assert.doesNotMatch(formalPages,
+    /CloudImportService|CloudImportApi|\/v1\/imports\/pdf|PaddleOCR|textRecognition|OcrService|fallback/)
   assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'OnDeviceOcrService.ets')), false)
   assert.equal(fs.existsSync(path.join(etsRoot, 'services', 'PdfImportCoordinator.ets')), false)
+})
+
+test('formal entry prohibitions are scoped to the AI flow and leave rollback files available', () => {
+  const importPage = read('pages/ImportBankPage.ets')
+  const scopedSources = [
+    ['selectPdf', extractMethod(importPage, 'private async selectPdf')],
+    ['setup', read('pages/PdfAiImportSetupPage.ets')],
+    ['progress', read('pages/PdfAiImportProgressPage.ets')],
+    ['coordinator', read('services/ai/PdfAiImportCoordinator.ets')],
+    ['AI adapter', read('services/review/AiPdfReviewAdapter.ets')]
+  ]
+  const forbidden = /fallback|PaddleOCR|OcrService|CloudImportService|\/v1\/imports\/pdf/
+  for (const [name, source] of scopedSources) {
+    assert.doesNotMatch(source, forbidden, `${name} must remain client-AI-only`)
+  }
+  assert.equal(fs.existsSync(path.join(etsRoot, 'pages', 'PdfImportSetupPage.ets')), true)
+  assert.equal(fs.existsSync(path.join(etsRoot, 'pages', 'PdfImportProgressPage.ets')), true)
 })
 
 test('AppBootstrap integrates LegacyCloudMigrationService without legacy backfill', () => {

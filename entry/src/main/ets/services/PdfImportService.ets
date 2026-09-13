@@ -166,6 +166,54 @@ export class PdfImportService {
     }
   }
 
+  static async removeOrAbandonTemporaryPdf(path: string): Promise<boolean> {
+    const cacheDir: string = PdfImportService.registeredCacheDir(path)
+    if (cacheDir.length === 0) {
+      throw new Error('PDF 临时文件不属于当前导入任务')
+    }
+    if (!PdfImportService.isDirectTemporaryPdfPath(cacheDir, path)) {
+      throw new Error('PDF 临时文件路径无效')
+    }
+    try {
+      await PdfImportService.removeTemporaryPdf(path)
+      return true
+    } catch {
+      PdfImportService.registerOrphanPath(path, cacheDir)
+      PdfImportService.unregisterStagedPath(path)
+      return false
+    }
+  }
+
+  static async proveTemporaryPdfAbsent(cacheDir: string, path: string): Promise<boolean> {
+    if (!PdfImportService.isDirectTemporaryPdfPath(cacheDir, path)) {
+      throw new Error('PDF 临时文件路径无效')
+    }
+    await PdfImportService.validateCacheDirectory(cacheDir)
+    const fileInfo: fs.Stat | null = await PdfImportService.lstatIfPresent(path)
+    if (fileInfo === null) {
+      return true
+    }
+    throw new Error('PDF 临时文件仍然存在')
+  }
+
+  static async removeRecoveredTemporaryPdf(cacheDir: string, path: string): Promise<void> {
+    const trustedCacheDir: string = cacheDir
+    const recoveredPath: string = path
+    if (!PdfImportService.isDirectTemporaryPdfPath(trustedCacheDir, recoveredPath)) {
+      throw new Error('恢复任务 PDF 临时文件路径无效')
+    }
+    try {
+      if (!(await PdfImportService.validateExistingTemporaryPdf(
+        trustedCacheDir, recoveredPath))) return
+      await fs.unlink(recoveredPath)
+      PdfImportService.unregisterStagedPath(recoveredPath)
+      PdfImportService.unregisterOrphanPath(recoveredPath)
+    } catch (err) {
+      if (err instanceof Error) throw err
+      throw new Error('恢复任务 PDF 临时文件删除失败')
+    }
+  }
+
   static abandonTemporaryPdf(path: string): void {
     const stagedIndex: number = PdfImportService.stagedPaths.indexOf(path)
     if (stagedIndex < 0) {

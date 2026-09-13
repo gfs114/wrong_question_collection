@@ -83,8 +83,8 @@ for (const file of allEtsFiles()) {
 
 // 3. HdsTabs 存在（HdsTabs + TabContent + 原生 TabBar）
 const index = readEts('ets/pages/Index.ets')
-expectIncludes(index, 'HdsTabs({ barPosition: BarPosition.End, index: this.selectedIndex })',
-  'index must host a HdsTabs with a bottom bar')
+expectIncludes(index, 'HdsTabs({ barPosition: BarPosition.End, index: this.tabBarIndex,',
+  'index must host a HdsTabs with a bottom bar and the slot index binding')
 for (const token of ['TabContent() {', '.tabBar(', 'barOverlap(true)', 'barFloatingStyle({']) {
   expectIncludes(index, token, 'index HdsTabs must use the official ' + token + ' integration point')
 }
@@ -96,6 +96,15 @@ expectIncludes(index, "this.TabBarItem(MainTabIndex.WRONG_QUESTIONS, '错题',",
   'wrong-questions tab must stay third in the native TabBar')
 expectIncludes(index, "this.TabBarItem(MainTabIndex.MINE, '我的', $r('sys.symbol.person_fill'))",
   'mine tab must stay fourth in the native TabBar')
+// 2026-09-10：底栏中间新增「+」动作位（题库导入），插在题库与错题之间。
+expectIncludes(index, 'this.TabBarImportAction()', 'the native TabBar must mount the center import action')
+expectIncludes(index, "accessibilityText('导入题库')", 'the center action must stay accessible')
+const nativeBooksBar = index.indexOf("this.TabBarItem(MainTabIndex.BOOKS, '题库'")
+const nativeImportBar = index.indexOf('this.TabBarImportAction()')
+const nativeWrongBar = index.indexOf("this.TabBarItem(MainTabIndex.WRONG_QUESTIONS, '错题',")
+if (!(nativeBooksBar >= 0 && nativeImportBar > nativeBooksBar && nativeWrongBar > nativeImportBar)) {
+  throw new Error('the center import action must sit between the books and wrong-question tabs')
+}
 
 // 4. Navigation 存在（首页 + 二级页面原生标题栏与返回键）
 expectIncludes(index, 'Navigation() {', 'index must host a native Navigation root')
@@ -181,11 +190,15 @@ expectIncludes(moduleJson, '"easyGo": "$profile:easy_go"', 'module.json5 easy_go
 
 // 7. Router pushUrl 保留（UIContext Router 兼容）
 for (const page of ['ets/pages/Index.ets', 'ets/pages/BooksPage.ets', 'ets/pages/WrongQuestionsPage.ets',
-  'ets/pages/QuestionListPage.ets', 'ets/pages/QuestionDetailPage.ets', 'ets/pages/ImportBankPage.ets']) {
+  'ets/pages/QuestionListPage.ets', 'ets/pages/QuestionDetailPage.ets', 'ets/pages/PdfAiImportSetupPage.ets']) {
   const source = readEts(page)
   expectIncludes(source, "this.getUIContext().getRouter().pushUrl(options)",
     page + ' must keep UIContext router.pushUrl navigation')
 }
+const importBankPage = readEts('ets/pages/ImportBankPage.ets')
+expectIncludes(importBankPage,
+  "this.getUIContext().getRouter().pushUrl({ url: 'pages/PdfAiImportSetupPage' })",
+  'ets/pages/ImportBankPage.ets must keep UIContext router.pushUrl navigation to the AI setup page only')
 expectIncludes(index, 'router.RouterOptions', 'index must keep typed router options')
 
 // 8. 同步模块零修改

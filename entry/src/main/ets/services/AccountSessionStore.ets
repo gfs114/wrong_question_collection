@@ -6,13 +6,47 @@ const ASSET_NOT_FOUND: number = 24000002
 const REFRESH_TOKEN_ALIAS: string = 'wqc_refresh_token'
 const DEVICE_KEY_ALIAS: string = 'wqc_device_key'
 
+export class AccountRefreshCredential {
+  version: number = 1
+  ownerAccountId: string
+  refreshToken: string
+
+  constructor(ownerAccountId: string, refreshToken: string) {
+    this.ownerAccountId = ownerAccountId
+    this.refreshToken = refreshToken
+  }
+}
+
 export class AccountSessionStore {
-  static async refreshToken(): Promise<string> {
-    return AccountSessionStore.read(REFRESH_TOKEN_ALIAS)
+  static async refreshCredential(): Promise<AccountRefreshCredential | null> {
+    const encoded: string = await AccountSessionStore.read(REFRESH_TOKEN_ALIAS)
+    if (encoded.length === 0 || encoded.length > 20000) return null
+    try {
+      const decoded: AccountRefreshCredential = JSON.parse(encoded)
+      if (decoded === null || !AccountSessionStore.isValidCredential(decoded)) return null
+      const snapshot: AccountRefreshCredential =
+        new AccountRefreshCredential(decoded.ownerAccountId, decoded.refreshToken)
+      if (JSON.stringify(snapshot) !== encoded) return null
+      return snapshot
+    } catch {
+      return null
+    }
   }
 
-  static async saveRefreshToken(value: string): Promise<void> {
-    await AccountSessionStore.write(REFRESH_TOKEN_ALIAS, value)
+  static async saveRefreshCredential(credential: AccountRefreshCredential): Promise<void> {
+    if (!AccountSessionStore.isValidCredential(credential)) {
+      throw new Error('Secure session credential is invalid')
+    }
+    const snapshot: AccountRefreshCredential =
+      new AccountRefreshCredential(credential.ownerAccountId, credential.refreshToken)
+    await AccountSessionStore.write(REFRESH_TOKEN_ALIAS, JSON.stringify(snapshot))
+  }
+
+  private static isValidCredential(credential: AccountRefreshCredential): boolean {
+    return credential.version === 1 && typeof credential.ownerAccountId === 'string' &&
+      /^[A-Za-z0-9._:-]{1,160}$/.test(credential.ownerAccountId) &&
+      typeof credential.refreshToken === 'string' &&
+      /^[\x21-\x7e]{1,16384}$/.test(credential.refreshToken)
   }
 
   static async deviceKey(): Promise<string> {

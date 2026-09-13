@@ -36,6 +36,7 @@ export class PdfImportState {
   private drafts: Array<PdfQuestionDraft> = new Array<PdfQuestionDraft>()
   private failures: Array<PdfPageFailure> = new Array<PdfPageFailure>()
   private cancelRequested: boolean = false
+  private reviewSessionId: string = ''
   private cloudSelection: CloudPdfSelection | null = null
   private accountId: string = ''
   private jobId: string = ''
@@ -101,6 +102,18 @@ export class PdfImportState {
     return this.cancelRequested
   }
 
+  setReviewSessionId(sessionId: string): void {
+    this.reviewSessionId = sessionId
+  }
+
+  getReviewSessionId(): string {
+    return this.reviewSessionId
+  }
+
+  clearReviewSessionId(): void {
+    this.reviewSessionId = ''
+  }
+
   setCloudSelection(selection: CloudPdfSelection | null): void {
     this.cloudSelection = selection === null ? null :
       new CloudPdfSelection(selection.pdfPath, selection.fileName, selection.sourceSize)
@@ -125,6 +138,7 @@ export class PdfImportState {
   }
 
   setCloudJob(job: CloudImportJob): void {
+    this.reviewSessionId = ''
     this.cloudJob = PdfImportState.copyCloudJob(job)
     this.jobId = job.jobId
     this.bankName = job.bankName
@@ -215,6 +229,7 @@ export class PdfImportState {
   }
 
   resetCloudFlow(): void {
+    this.reviewSessionId = ''
     this.cloudSelection = null
     this.accountId = ''
     this.jobId = ''
@@ -231,6 +246,7 @@ export class PdfImportState {
   }
 
   reset(): void {
+    this.reviewSessionId = ''
     this.selection = null
     this.settings = null
     this.drafts = new Array<PdfQuestionDraft>()

@@ -1,0 +1,1493 @@
+[wqc-signing] injected local signing material into build profile.
+> hvigor [32mUP-TO-DATE :entry:default@PreBuild...  [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateMetadata...  [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@MergeProfile...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@CreateBuildProfile...  [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GeneratePkgContextInfo...  [39m
+> hvigor [32mFinished :entry:default@GeneratePkgSdkInfo... after 3 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 1 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@MakePackInfo...  [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 12 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessProfile...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessRouterMap...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessShareConfig...  [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 2 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessResource...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateLoaderJson...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessLibs...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@CompileResource...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@DoNativeStrip...  [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@CacheNativeLibs...  [39m
+> hvigor WARN: WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ApiHttpClient.ets:59:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ApiHttpClient.ets:144:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ApiHttpClient.ets:191:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionStore.ets:88:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:181:67
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:230:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:270:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:319:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:336:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:353:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DatabaseService.ets:373:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:21:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:61:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:65:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:69:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:69:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:69:67
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:71:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:79:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:84:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:86:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:86:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:86:69
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:87:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:87:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:87:67
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:88:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:92:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:101:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:107:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:112:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:121:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:126:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:128:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:136:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:142:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:144:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:144:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:144:69
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:145:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:145:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:145:69
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:146:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:146:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:150:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:157:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:178:68
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:181:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:181:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:183:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:190:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:191:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:192:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:201:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:213:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:226:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:233:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:233:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:233:65
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:234:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:234:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:234:65
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:235:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:235:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:235:65
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudCacheService.ets:236:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:203:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:204:55
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:205:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:304:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:305:55
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:310:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:311:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:312:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:313:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/AccountSessionService.ets:314:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:127:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:160:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:166:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:168:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:168:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:168:69
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:169:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:169:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/DeviceImageStore.ets:173:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/PdfImportService.ets:440:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/PdfImportService.ets:440:48
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/PdfImportService.ets:448:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/PdfImportService.ets:448:72
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/PdfReviewSession.ets:364:54
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:389:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:398:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:398:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:411:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:420:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:420:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:433:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:441:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:441:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:462:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:462:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:549:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:550:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:550:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:620:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:621:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:621:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:633:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:634:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:634:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:641:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:823:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:823:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:831:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:831:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:855:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:856:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:857:55
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:858:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:859:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:859:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:859:86
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:860:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:860:76
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/PdfPageImageEncoder.ets:861:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:787:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:788:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:788:44
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:792:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:793:37
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:794:15
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:794:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:798:44
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:963:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:963:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:966:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:967:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:970:46
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:973:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:973:48
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:979:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:980:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:981:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:981:48
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:981:70
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:986:46
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:987:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:988:54
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:988:85
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1035:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1035:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1038:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1103:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1103:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1106:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1107:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1114:39
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1114:69
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1117:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1118:15
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1151:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1151:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1154:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1155:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1167:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1168:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1169:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1170:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1171:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1171:48
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1171:75
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1172:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1172:50
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1172:79
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1188:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1188:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiImportSaveService.ets:1191:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/entryability/EntryAbility.ets:54:23
+ This API is unavailable to 2in1.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/entryability/EntryAbility.ets:104:23
+ This API is unavailable to 2in1.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:101:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:194:63
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:200:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:202:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:203:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:204:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:205:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:205:71
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:210:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:213:67
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:219:29
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:226:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:227:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:227:75
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:228:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:228:82
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:229:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:230:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:231:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:232:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:238:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:248:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:253:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:261:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:262:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:263:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:264:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:265:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:272:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:295:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:422:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:426:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:431:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:438:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:442:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:446:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:465:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:469:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:474:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:495:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:529:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:574:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:577:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:581:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:589:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:594:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:596:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:597:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:598:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:599:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:600:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:604:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:610:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:611:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:612:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:613:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:614:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:615:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:619:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:621:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:622:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:623:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:624:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:626:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:627:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:628:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:629:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/QuestionBankService.ets:630:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SampleDataService.ets:15:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SampleDataService.ets:17:34
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SampleDataService.ets:30:63
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:18:60
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:43:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:46:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:46:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:48:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:70:47
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:90:45
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:100:68
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:103:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:103:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:105:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:112:68
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:115:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:115:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/SyncIdentityService.ets:117:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:154:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:155:52
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:162:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:163:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:509:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:509:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:513:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:520:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:544:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:549:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:549:48
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:554:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:554:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:636:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:639:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:640:46
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:643:74
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:647:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:648:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:652:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:652:91
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:653:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:653:65
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:654:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:658:29
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:662:71
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:667:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:669:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:669:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:669:88
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:673:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:676:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:676:61
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:679:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:689:66
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:692:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:693:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:696:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:698:70
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:702:29
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:703:44
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:706:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:708:67
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:712:26
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:713:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:716:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:756:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:757:52
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:806:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:822:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:823:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:843:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:844:12
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/LegacyCloudMigrationService.ets:845:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/constants/ResponsiveLayout.ets:98:19
+ 'px2vp' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/BooksPage.ets:76:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/BooksPage.ets:145:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/BooksPage.ets:157:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/BooksPage.ets:293:58
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/HomePage.ets:81:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/HomePage.ets:133:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/HomePage.ets:147:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/StatisticsService.ets:9:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/StatisticsService.ets:15:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/StatisticsService.ets:18:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/StatisticsService.ets:19:44
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/StatisticsService.ets:20:47
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/StatisticsService.ets:23:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/MinePage.ets:89:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/MinePage.ets:669:16
+ 'pushUrl' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionsPage.ets:74:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionsPage.ets:150:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionsPage.ets:164:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/Index.ets:66:44
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:27:60
+ The system capacity of this api 'createRandom' is not supported on all devices
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:27:60
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:28:57
+ The system capacity of this api 'generateRandom' is not supported on all devices
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:28:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:62:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:70:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:103:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:128:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/HuksAesGcmCipher.ets:130:56
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:61:64
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:64:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:65:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:77:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:78:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:112:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:113:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:152:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:163:54
+ The system capacity of this api 'createMd' is not supported on all devices
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:163:54
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:165:16
+ The system capacity of this api 'update' is not supported on all devices
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:165:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:166:57
+ The system capacity of this api 'digest' is not supported on all devices
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:166:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:181:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiCredentialStore.ets:182:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:45:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:46:24
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:112:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:113:62
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:114:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:115:61
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:134:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:135:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:136:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:137:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ai/AiProviderConfigStore.ets:138:17
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:72:12
+ 'back' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:194:92
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:195:80
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:198:63
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:218:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:219:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:220:40
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:221:64
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:224:69
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:227:83
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:228:53
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:231:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:233:65
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:252:59
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:253:39
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:256:62
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:282:49
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:283:63
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/AiRecognitionSettingsPage.ets:285:26
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfAiImportSetupPage.ets:100:32
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfAiImportSetupPage.ets:156:32
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfAiImportProgressPage.ets:89:30
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfAiImportProgressPage.ets:183:30
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfAiImportProgressPage.ets:220:30
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ImportService.ets:54:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ImportService.ets:57:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ImportService.ets:68:44
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/ImportService.ets:80:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/ImportBankPage.ets:93:52
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/ImportBankPage.ets:136:32
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:136:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:137:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:142:39
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:160:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:177:20
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:205:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:208:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:214:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:216:46
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:220:41
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:233:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:246:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:247:12
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/CloudImportService.ets:248:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:122:30
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:172:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:177:22
+ To use this API, you need to apply for the permissions: ohos.permission.GET_NETWORK_INFO
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:194:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:195:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:195:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:219:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:219:61
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportSetupPage.ets:220:20
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportProgressPage.ets:142:30
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportProgressPage.ets:283:33
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportProgressPage.ets:288:67
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportProgressPage.ets:292:33
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportProgressPage.ets:545:33
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:175:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:176:44
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:177:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:182:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:182:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:185:43
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:186:21
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:186:54
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:189:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:375:36
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:408:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:409:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:410:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:410:48
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:410:70
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:414:46
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:437:16
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:438:23
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:440:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:440:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:447:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:447:57
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:463:33
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:463:59
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:479:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:479:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:482:14
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:490:32
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/services/review/CloudPdfReviewAdapter.ets:490:58
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportReviewPage.ets:73:65
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportReviewPage.ets:226:63
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportReviewPage.ets:251:73
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportReviewPage.ets:269:70
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportReviewPage.ets:304:9
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/PdfImportReviewPage.ets:444:34
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/EditQuestionPage.ets:96:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/EditQuestionPage.ets:108:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/EditQuestionPage.ets:179:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/EditQuestionPage.ets:206:69
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionListPage.ets:93:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionListPage.ets:177:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionListPage.ets:194:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionListPage.ets:271:78
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionDetailPage.ets:54:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionDetailPage.ets:149:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionDetailPage.ets:161:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/QuestionDetailPage.ets:237:74
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionDetailPage.ets:54:29
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionDetailPage.ets:125:76
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionDetailPage.ets:137:61
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionDetailPage.ets:193:72
+ 'getContext' has been deprecated.
+
+WARN: ArkTS:WARN File: G:/code/openHarmony/wrong_question_collection/entry/src/main/ets/pages/WrongQuestionDetailPage.ets:253:71
+ 'getContext' has been deprecated.
+
+
+> hvigor [32mFinished :entry:default@CompileArkTS... after 4 s 356 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GeneratePkgModuleJson...  [39m
+> hvigor [32mFinished :entry:default@ProcessCompiledResources... after 1 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 533 ms [39m
+> hvigor [32mFinished :entry:default@PackingCheck... after 5 ms [39m
+> hvigor [32mFinished :entry:default@SignHap... after 2 s 393 ms [39m
+> hvigor [32mFinished :entry:default@CollectDebugSymbol... after 1 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 11 s 562 ms [39m
+
+33 tasks in total: 17 executed, 16 up-to-date
